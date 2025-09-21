@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Bank, Goal, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useSweetAlert } from '../hooks/useSweetAlert'
 import { ArrowDownCircle, DollarSign } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -26,6 +27,7 @@ export function TransactionManager({
   onTransactionAdded
 }: TransactionManagerProps) {
   const { user } = useAuth()
+  const { showSuccess, showError, showWarning, showConfirm } = useSweetAlert()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     bank_id: '',
@@ -74,18 +76,18 @@ export function TransactionManager({
 
     const amount = parseFloat(formData.amount)
     if (amount <= 0) {
-      toast.error('Amount must be greater than 0')
+      await showError('Invalid Amount', 'Amount must be greater than 0')
       return
     }
 
     const selectedBank = banks.find(b => b.id === formData.bank_id)
     if (!selectedBank) {
-      toast.error('Selected bank not found')
+      await showError('Bank Not Found', 'Selected bank not found')
       return
     }
 
     if (amount > Number(selectedBank.balance)) {
-      toast.error('Insufficient balance in selected bank')
+      await showError('Insufficient Balance', 'Insufficient balance in selected bank')
       return
     }
 
@@ -93,9 +95,20 @@ export function TransactionManager({
     const allocation = availableAllocations.find(a => a.objective_id === formData.objective_id)
     if (!allocation || amount > allocation.allocated_amount) {
       const availableAmount = allocation?.allocated_amount || 0
-      toast.error(`Insufficient allocation for this objective. Available: ${availableAmount.toFixed(2)} MAD`)
+      await showError(
+        'Insufficient Allocation',
+        `Insufficient allocation for this objective. Available: ${availableAmount.toFixed(2)} MAD`
+      )
       return
     }
+
+    // Show confirmation dialog
+    const result = await showConfirm(
+      'Confirm Withdrawal',
+      `Are you sure you want to withdraw ${amount.toFixed(2)} MAD from ${selectedBank.name} for ${allocation.objective_name}?`
+    )
+
+    if (!result.isConfirmed) return
 
     setLoading(true)
     try {
@@ -130,7 +143,10 @@ export function TransactionManager({
 
       if (allocationError) throw allocationError
 
-      toast.success('Withdrawal recorded successfully!')
+      await showSuccess(
+        'Withdrawal Recorded!',
+        `${amount.toFixed(2)} MAD has been withdrawn from ${selectedBank.name}`
+      )
 
       // Reset form
       setFormData({ bank_id: '', objective_id: '', amount: '', description: '' })
@@ -139,7 +155,7 @@ export function TransactionManager({
       // Notify parent to refresh data
       onTransactionAdded()
     } catch (error: any) {
-      toast.error('Error recording withdrawal: ' + error.message)
+      await showError('Transaction Failed', error.message)
     } finally {
       setLoading(false)
     }

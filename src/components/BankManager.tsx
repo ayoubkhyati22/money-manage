@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Bank, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useSweetAlert } from '../hooks/useSweetAlert'
 import { Plus, Edit2, Trash2, Building2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -11,6 +12,7 @@ interface BankManagerProps {
 
 export function BankManager({ banks, onUpdate }: BankManagerProps) {
   const { user } = useAuth()
+  const { showDeleteConfirm, showSuccess, showError } = useSweetAlert()
   const [showForm, setShowForm] = useState(false)
   const [editingBank, setEditingBank] = useState<Bank | null>(null)
   const [loading, setLoading] = useState(false)
@@ -26,7 +28,7 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
 
   const loadBanks = async () => {
     if (!user) return
-    
+
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -37,7 +39,7 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
       if (error) throw error
       onUpdate(data || [])
     } catch (error: any) {
-      toast.error('Error loading banks: ' + error.message)
+      await showError('Error Loading Banks', error.message)
     } finally {
       setLoading(false)
     }
@@ -60,7 +62,7 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
           .eq('id', editingBank.id)
 
         if (error) throw error
-        toast.success('Bank updated successfully!')
+        await showSuccess('Bank Updated!', `${formData.name} has been updated successfully.`)
       } else {
         const { error } = await supabase
           .from('banks')
@@ -72,13 +74,13 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
           }])
 
         if (error) throw error
-        toast.success('Bank created successfully!')
+        await showSuccess('Bank Added!', `${formData.name} has been added to your account.`)
       }
 
       resetForm()
       loadBanks()
     } catch (error: any) {
-      toast.error('Error saving bank: ' + error.message)
+      await showError('Operation Failed', error.message)
     } finally {
       setLoading(false)
     }
@@ -95,25 +97,28 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
   }
 
   const handleDelete = async (bank: Bank) => {
-    if (!confirm('Are you sure you want to delete this bank? This will also delete all related transactions.')) {
-      return
-    }
+    const result = await showDeleteConfirm(
+      'Delete Bank?',
+      `Are you sure you want to delete "${bank.name}"? This will also delete all related transactions and cannot be undone.`
+    )
 
-    setLoading(true)
-    try {
-      const { error } = await supabase
-        .from('banks')
-        .delete()
-        .eq('id', bank.id)
+    if (result.isConfirmed) {
+      setLoading(true)
+      try {
+        const { error } = await supabase
+          .from('banks')
+          .delete()
+          .eq('id', bank.id)
 
-      if (error) throw error
-      
-      toast.success('Bank deleted successfully!')
-      loadBanks()
-    } catch (error: any) {
-      toast.error('Error deleting bank: ' + error.message)
-    } finally {
-      setLoading(false)
+        if (error) throw error
+
+        await showSuccess('Bank Deleted!', `${bank.name} has been removed from your account.`)
+        loadBanks()
+      } catch (error: any) {
+        await showError('Delete Failed', error.message)
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -156,7 +161,7 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             {editingBank ? 'Edit Bank' : 'Add New Bank'}
           </h3>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -172,7 +177,7 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Initial Balance (MAD) *
@@ -228,7 +233,7 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Your Banks</h3>
         </div>
-        
+
         <div className="p-6">
           {banks.length === 0 ? (
             <div className="text-center py-8">
@@ -258,18 +263,20 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
                       <button
                         onClick={() => handleEdit(bank)}
                         className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                        title="Edit Bank"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(bank)}
                         className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                        title="Delete Bank"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                  
+
                   <p className="text-2xl font-bold text-gray-900">{Number(bank.balance).toFixed(2)} MAD</p>
                 </div>
               ))}

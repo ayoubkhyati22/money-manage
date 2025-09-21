@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { History, Calendar, Building2, ArrowDownCircle, Target, RotateCcw } from 'lucide-react'
+import { useSweetAlert } from '../hooks/useSweetAlert'
+import { History, Calendar, Building2, ArrowDownCircle, Target, RotateCcw, Filter } from 'lucide-react' // Import Filter icon
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -22,19 +23,21 @@ interface TransactionHistoryProps {
 
 export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
   const { user } = useAuth()
+  const { showConfirm, showSuccess, showError } = useSweetAlert()
   const [transactions, setTransactions] = useState<ObjectiveTransaction[]>([])
   const [loading, setLoading] = useState(false)
+  const [showWithdrawnOnly, setShowWithdrawnOnly] = useState(false) // New state for filter
 
   useEffect(() => {
     loadTransactions()
-  }, [user])
+  }, [user, showWithdrawnOnly]) // Add showWithdrawnOnly to dependencies
 
   const loadTransactions = async () => {
     if (!user) return
 
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('objectives_transactions')
         .select(`
           *,
@@ -42,7 +45,14 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
           goals:objective_id(name)
         `)
         .order('created_at', { ascending: false })
-        .limit(50) // Limit to last 50 transactions
+        .limit(50)
+
+      // Apply filter if showWithdrawnOnly is true
+      if (showWithdrawnOnly) {
+        query = query.lt('amount', 0) // Filter where amount is less than 0 (withdrawals)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
 
@@ -59,26 +69,29 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
 
       setTransactions(transactionsWithDetails)
     } catch (error: any) {
-      toast.error('Error loading transaction history: ' + error.message)
+      await showError('Loading Failed', error.message)
     } finally {
       setLoading(false)
     }
   }
 
   const handleReturnMoney = async (transaction: ObjectiveTransaction) => {
-    if (!confirm(`Return ${Math.abs(transaction.amount).toFixed(2)} MAD to ${transaction.bank_name}?`)) {
+    // Only allow returning money for withdrawal transactions (negative amounts)
+    if (transaction.amount >= 0) {
+      await showError('Invalid Operation', 'Can only return withdrawal transactions')
       return
     }
 
+    const returnAmount = Math.abs(transaction.amount)
+
+    const result = await showConfirm(
+      'Return Money?',
+      `Are you sure you want to return ${returnAmount.toFixed(2)} MAD to ${transaction.bank_name}? This will reverse the withdrawal transaction.`
+    )
+
+    if (!result.isConfirmed) return
+
     try {
-      // Only allow returning money for withdrawal transactions (negative amounts)
-      if (transaction.amount >= 0) {
-        toast.error('Can only return withdrawal transactions')
-        return
-      }
-
-      const returnAmount = Math.abs(transaction.amount) // Make it positive
-
       // 1. Delete the original transaction
       const { error: deleteError } = await supabase
         .from('objectives_transactions')
@@ -123,14 +136,21 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
 
       if (allocationUpdateError) throw allocationUpdateError
 
-      toast.success(`${returnAmount.toFixed(2)} MAD returned successfully!`)
+      await showSuccess(
+        'Money Returned!',
+        `${returnAmount.toFixed(2)} MAD has been returned to ${transaction.bank_name}`
+      )
 
       // Refresh data
       loadTransactions()
       if (onUpdate) onUpdate()
     } catch (error: any) {
-      toast.error('Error returning money: ' + error.message)
+      await showError('Return Failed', error.message)
     }
+  }
+
+  const toggleWithdrawnFilter = () => {
+    setShowWithdrawnOnly(prev => !prev)
   }
 
   if (loading) {
@@ -152,26 +172,45 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Transaction History</h2>
-        <button
-          onClick={loadTransactions}
-          className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 font-medium"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={toggleWithdrawnFilter}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200
+              ${showWithdrawnOnly
+                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+          >
+            <Filter className="w-4 h-4" />
+            <span>{showWithdrawnOnly ? 'Showing Withdrawals' : 'Show Withdrawals Only'}</span>
+          </button>
+          <button
+            onClick={loadTransactions}
+            className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 font-medium"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">All Transactions</h3>
-          <p className="text-sm text-gray-500 mt-1">Recent financial activities across all objectives</p>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {showWithdrawnOnly ? 'Withdrawn Transactions' : 'All Transactions'}
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            {showWithdrawnOnly ? 'Only transactions where money was withdrawn from objectives.' : 'Recent financial activities across all objectives.'}
+          </p>
         </div>
 
         <div className="p-6">
           {transactions.length === 0 ? (
             <div className="text-center py-12">
               <History className="mx-auto w-12 h-12 text-gray-400 mb-4" />
-              <p className="text-gray-500">No transactions yet</p>
+              <p className="text-gray-500">
+                {showWithdrawnOnly ? 'No withdrawn transactions found.' : 'No transactions yet.'}
+              </p>
               <p className="text-sm text-gray-400 mt-1">Your transaction history will appear here</p>
             </div>
           ) : (

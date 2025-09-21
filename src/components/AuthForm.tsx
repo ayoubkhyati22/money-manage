@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useSweetAlert } from '../hooks/useSweetAlert'
 import { DollarSign, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export function AuthForm() {
@@ -9,20 +10,38 @@ export function AuthForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAuth()
+  const { showError, showSuccess, showInfo } = useSweetAlert()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) return
+    if (!email || !password) {
+      await showError('Missing Information', 'Please enter both email and password')
+      return
+    }
+
+    if (password.length < 6) {
+      await showError('Password Too Short', 'Password must be at least 6 characters long')
+      return
+    }
 
     setLoading(true)
     try {
       if (isLogin) {
         await signIn(email, password)
+        await showSuccess('Welcome Back!', 'You have successfully logged in')
       } else {
         await signUp(email, password)
+        await showInfo(
+          'Account Created!',
+          'Please check your email for verification link before signing in'
+        )
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Auth error:', error)
+      await showError(
+        isLogin ? 'Login Failed' : 'Sign Up Failed',
+        error.message || 'An unexpected error occurred'
+      )
     } finally {
       setLoading(false)
     }

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useSweetAlert } from '../hooks/useSweetAlert'
 import { History, Calendar, Building2, ArrowUpCircle, ArrowDownCircle, RotateCcw } from 'lucide-react'
 import { format } from 'date-fns'
-import { toast } from 'react-hot-toast'
 
 interface ObjectiveTransaction {
   id: string
@@ -28,6 +28,7 @@ export function ObjectiveTransactionsViewer({
   onUpdate
 }: ObjectiveTransactionsViewerProps) {
   const { user } = useAuth()
+  const { showConfirm, showSuccess, showError } = useSweetAlert()
   const [transactions, setTransactions] = useState<ObjectiveTransaction[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -95,19 +96,22 @@ export function ObjectiveTransactionsViewer({
   }
 
   const handleReturnMoney = async (transaction: ObjectiveTransaction) => {
-    if (!confirm(`Return ${Math.abs(transaction.amount).toFixed(2)} MAD to ${transaction.bank_name}?`)) {
+    // Only allow returning money for withdrawal transactions (negative amounts)
+    if (transaction.amount >= 0) {
+      await showError('Invalid Operation', 'Can only return withdrawal transactions')
       return
     }
 
+    const returnAmount = Math.abs(transaction.amount)
+
+    const result = await showConfirm(
+      'Return Money?',
+      `Are you sure you want to return ${returnAmount.toFixed(2)} MAD to ${transaction.bank_name}? This will reverse the withdrawal.`
+    )
+
+    if (!result.isConfirmed) return
+
     try {
-      // Only allow returning money for withdrawal transactions (negative amounts)
-      if (transaction.amount >= 0) {
-        toast.error('Can only return withdrawal transactions')
-        return
-      }
-
-      const returnAmount = Math.abs(transaction.amount) // Make it positive
-
       // 1. Delete the original transaction
       const { error: deleteError } = await supabase
         .from('objectives_transactions')
@@ -152,13 +156,16 @@ export function ObjectiveTransactionsViewer({
 
       if (allocationUpdateError) throw allocationUpdateError
 
-      toast.success(`${returnAmount.toFixed(2)} MAD returned successfully!`)
+      await showSuccess(
+        'Money Returned!',
+        `${returnAmount.toFixed(2)} MAD has been returned to ${transaction.bank_name}`
+      )
 
       // Refresh data
       loadTransactions()
       if (onUpdate) onUpdate()
     } catch (error: any) {
-      toast.error('Error returning money: ' + error.message)
+      await showError('Return Failed', error.message)
     }
   }
 
