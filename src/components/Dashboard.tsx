@@ -188,33 +188,38 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Navigation Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1">
-        <div className="flex space-x-1">
-          {tabs.map((tab) => {
-            const Icon = tab.icon
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium text-sm transition-all flex-1 justify-center ${
-                  activeTab === tab.id
-                    ? 'bg-emerald-500 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50">
+      {/* Padding top pour compenser la barre de titre native mobile */}
+      <div className="pt-safe-top">
+        <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto">
+          {/* Navigation Tabs */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 p-2">
+            <div className="flex space-x-1 sm:space-x-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-6 py-3 sm:py-4 rounded-xl font-medium text-xs sm:text-sm transition-all flex-1 justify-center duration-300 transform hover:scale-105 ${
+                      activeTab === tab.id
+                        ? 'bg-gradient-to-r from-primary-400 to-primary-500 text-white shadow-lg shadow-primary-200'
+                        : 'text-dark-500 hover:text-dark-600 hover:bg-mint-100/70'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden sm:inline font-medium">{tab.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
-      {/* Content */}
-      <div className="animate-fadeIn">
-        {renderContent()}
+          {/* Content */}
+          <div className="animate-fadeIn">
+            {renderContent()}
+          </div>
+        </div>
       </div>
     </div>
   )

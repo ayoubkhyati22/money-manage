@@ -182,14 +182,14 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
               }`}
           >
             <Filter className="w-4 h-4" />
-            <span>{showWithdrawnOnly ? 'Showing Withdrawals' : 'Withdrawals Only'}</span>
+            <span>{showWithdrawnOnly ? 'Withdrawals' : 'Withdrawals'}</span>
           </button>
           <button
             onClick={loadTransactions}
             className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 font-medium"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Refresh</span>
+            {/* <span>Refresh</span> */}
           </button>
         </div>
       </div>

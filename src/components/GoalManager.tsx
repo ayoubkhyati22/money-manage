@@ -636,7 +636,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
           className="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
-          <span>Add Objective</span>
+          <span>Add</span>
         </button>
       </div>
 
