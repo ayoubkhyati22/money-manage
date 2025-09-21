@@ -36,7 +36,7 @@ export function Dashboard() {
       case 'banks':
         return <BankManager banks={banks} onUpdate={setBanks} />
       case 'goals':
-        return <GoalManager goals={goals} banks={banks} onUpdate={setGoals} />
+        return <GoalManager goals={goals} banks={banks} onUpdate={setGoals} onBanksUpdate={setBanks} />
       case 'transactions':
         return (
           <TransactionManager 
@@ -51,7 +51,10 @@ export function Dashboard() {
           />
         )
       case 'history':
-        return <TransactionHistory transactions={transactions} onUpdate={setTransactions} />
+        return <TransactionHistory onUpdate={() => {
+          // Refresh all data when a transaction is returned
+          window.location.reload()
+        }} />
       default:
         return <OverviewCards banks={banks} goals={goals} transactions={transactions} />
     }

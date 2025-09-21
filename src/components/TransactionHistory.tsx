@@ -1,17 +1,28 @@
 import { useState, useEffect } from 'react'
-import { TransactionWithDetails, supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { History, Calendar, Building2, ArrowDownCircle } from 'lucide-react'
+import { History, Calendar, Building2, ArrowDownCircle, Target, RotateCcw } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
-interface TransactionHistoryProps {
-  transactions: TransactionWithDetails[]
-  onUpdate: (transactions: TransactionWithDetails[]) => void
+interface ObjectiveTransaction {
+  id: string
+  objective_id: string
+  bank_id: string
+  amount: number
+  description: string
+  created_at: string
+  bank_name: string
+  objective_name: string
 }
 
-export function TransactionHistory({ transactions, onUpdate }: TransactionHistoryProps) {
+interface TransactionHistoryProps {
+  onUpdate?: () => void
+}
+
+export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
   const { user } = useAuth()
+  const [transactions, setTransactions] = useState<ObjectiveTransaction[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -20,55 +31,105 @@ export function TransactionHistory({ transactions, onUpdate }: TransactionHistor
 
   const loadTransactions = async () => {
     if (!user) return
-    
+
     setLoading(true)
     try {
-      const { data: transactionsData, error: transactionsError } = await supabase
-        .from('transactions')
+      const { data, error } = await supabase
+        .from('objectives_transactions')
         .select(`
           *,
-          banks:bank_id(name)
+          banks:bank_id(name),
+          goals:objective_id(name)
         `)
         .order('created_at', { ascending: false })
+        .limit(50) // Limit to last 50 transactions
 
-      if (transactionsError) throw transactionsError
+      if (error) throw error
 
-      // Load transaction goals for each transaction
-      const transactionIds = transactionsData?.map(t => t.id) || []
-      
-      if (transactionIds.length > 0) {
-        const { data: transactionGoals, error: goalsError } = await supabase
-          .from('transaction_goals')
-          .select(`
-            transaction_id,
-            amount,
-            goals:goal_id(name)
-          `)
-          .in('transaction_id', transactionIds)
+      const transactionsWithDetails: ObjectiveTransaction[] = data?.map(transaction => ({
+        id: transaction.id,
+        objective_id: transaction.objective_id,
+        bank_id: transaction.bank_id,
+        amount: Number(transaction.amount),
+        description: transaction.description || '',
+        created_at: transaction.created_at,
+        bank_name: (transaction.banks as any)?.name || 'Unknown Bank',
+        objective_name: (transaction.goals as any)?.name || 'Unknown Objective'
+      })) || []
 
-        if (goalsError) throw goalsError
-
-        // Combine data
-        const transactionsWithDetails: TransactionWithDetails[] = transactionsData?.map(transaction => ({
-          ...transaction,
-          bank_name: (transaction.banks as any)?.name || 'Unknown Bank',
-          transaction_goals: transactionGoals
-            ?.filter(tg => tg.transaction_id === transaction.id)
-            ?.map(tg => ({
-              goal_name: (tg.goals as any)?.name || 'Unknown Goal',
-              amount: Number(tg.amount)
-            })) || []
-        })) || []
-
-        onUpdate(transactionsWithDetails)
-      } else {
-        onUpdate([])
-      }
+      setTransactions(transactionsWithDetails)
     } catch (error: any) {
       toast.error('Error loading transaction history: ' + error.message)
-      onUpdate([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleReturnMoney = async (transaction: ObjectiveTransaction) => {
+    if (!confirm(`Return ${Math.abs(transaction.amount).toFixed(2)} MAD to ${transaction.bank_name}?`)) {
+      return
+    }
+
+    try {
+      // Only allow returning money for withdrawal transactions (negative amounts)
+      if (transaction.amount >= 0) {
+        toast.error('Can only return withdrawal transactions')
+        return
+      }
+
+      const returnAmount = Math.abs(transaction.amount) // Make it positive
+
+      // 1. Delete the original transaction
+      const { error: deleteError } = await supabase
+        .from('objectives_transactions')
+        .delete()
+        .eq('id', transaction.id)
+
+      if (deleteError) throw deleteError
+
+      // 2. Return money to bank balance
+      const { data: bankData, error: bankFetchError } = await supabase
+        .from('banks')
+        .select('balance')
+        .eq('id', transaction.bank_id)
+        .single()
+
+      if (bankFetchError) throw bankFetchError
+
+      const newBankBalance = Number(bankData.balance) + returnAmount
+      const { error: bankUpdateError } = await supabase
+        .from('banks')
+        .update({ balance: newBankBalance })
+        .eq('id', transaction.bank_id)
+
+      if (bankUpdateError) throw bankUpdateError
+
+      // 3. Return money to allocation
+      const { data: allocationData, error: allocationFetchError } = await supabase
+        .from('allocations')
+        .select('amount')
+        .eq('goal_id', transaction.objective_id)
+        .eq('bank_id', transaction.bank_id)
+        .single()
+
+      if (allocationFetchError) throw allocationFetchError
+
+      const newAllocationAmount = Number(allocationData.amount) + returnAmount
+      const { error: allocationUpdateError } = await supabase
+        .from('allocations')
+        .update({ amount: newAllocationAmount })
+        .eq('goal_id', transaction.objective_id)
+        .eq('bank_id', transaction.bank_id)
+
+      if (allocationUpdateError) throw allocationUpdateError
+
+      toast.success(`${returnAmount.toFixed(2)} MAD returned successfully!`)
+
+      // Refresh data
+      loadTransactions()
+      if (onUpdate) onUpdate()
+    } catch (error: any) {
+      toast.error('Error returning money: ' + error.message)
     }
   }
 
@@ -91,29 +152,44 @@ export function TransactionHistory({ transactions, onUpdate }: TransactionHistor
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Transaction History</h2>
+        <button
+          onClick={loadTransactions}
+          className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 font-medium"
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span>Refresh</span>
+        </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Withdrawals</h3>
+          <h3 className="text-lg font-semibold text-gray-900">All Transactions</h3>
+          <p className="text-sm text-gray-500 mt-1">Recent financial activities across all objectives</p>
         </div>
-        
+
         <div className="p-6">
           {transactions.length === 0 ? (
             <div className="text-center py-12">
               <History className="mx-auto w-12 h-12 text-gray-400 mb-4" />
               <p className="text-gray-500">No transactions yet</p>
-              <p className="text-sm text-gray-400 mt-1">Your withdrawal history will appear here</p>
+              <p className="text-sm text-gray-400 mt-1">Your transaction history will appear here</p>
             </div>
           ) : (
             <div className="space-y-4">
               {transactions.map((transaction) => (
                 <div key={transaction.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  {/* Transaction Header */}
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-lg">
-                        <ArrowDownCircle className="w-5 h-5 text-red-600" />
+                      <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${
+                        transaction.amount >= 0
+                          ? 'bg-green-100'
+                          : 'bg-red-100'
+                      }`}>
+                        {transaction.amount >= 0 ? (
+                          <Target className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <ArrowDownCircle className="w-5 h-5 text-red-600" />
+                        )}
                       </div>
                       <div>
                         <div className="flex items-center space-x-2">
@@ -126,41 +202,44 @@ export function TransactionHistory({ transactions, onUpdate }: TransactionHistor
                           <Building2 className="w-4 h-4 text-gray-400" />
                           <span className="text-sm text-gray-600">{transaction.bank_name}</span>
                         </div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Target className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-600">{transaction.objective_name}</span>
+                        </div>
+                        {transaction.description && (
+                          <p className="text-sm text-gray-500 mt-1 italic">
+                            "{transaction.description}"
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-red-600">
-                        -{Number(transaction.total_amount).toFixed(2)} MAD
-                      </p>
-                      <p className="text-xs text-gray-500">Total Withdrawal</p>
+
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right">
+                        <p className={`text-lg font-bold ${
+                          transaction.amount >= 0
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                        }`}>
+                          {transaction.amount >= 0 ? '+' : ''}{transaction.amount.toFixed(2)} MAD
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {transaction.amount >= 0 ? 'Added to Objective' : 'Withdrawn'}
+                        </p>
+                      </div>
+
+                      {/* Return Money Button (only for withdrawals) */}
+                      {transaction.amount < 0 && (
+                        <button
+                          onClick={() => handleReturnMoney(transaction)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                          title="Return Money"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
-
-                  {/* Goal Breakdown */}
-                  {transaction.transaction_goals.length > 0 && (
-                    <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Goal Breakdown:</h4>
-                      <div className="space-y-1">
-                        {transaction.transaction_goals.map((tg, index) => (
-                          <div key={index} className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">• {tg.goal_name}</span>
-                            <span className="font-medium text-gray-900">
-                              -{tg.amount.toFixed(2)} MAD
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Description */}
-                  {transaction.description && (
-                    <div className="bg-blue-50 rounded-lg p-3">
-                      <p className="text-sm text-blue-800">
-                        <span className="font-medium">Description:</span> {transaction.description}
-                      </p>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

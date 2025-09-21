@@ -12,68 +12,69 @@ interface TransactionManagerProps {
   onTransactionAdded: () => void
 }
 
-interface GoalAllocation {
-  goal_id: string
-  amount: number
+interface ObjectiveAllocation {
+  objective_id: string
+  objective_name: string
+  allocated_amount: number
 }
 
-export function TransactionManager({ 
-  banks, 
-  goals, 
-  onBanksUpdate, 
-  onGoalsUpdate, 
-  onTransactionAdded 
+export function TransactionManager({
+  banks,
+  goals,
+  onBanksUpdate,
+  onGoalsUpdate,
+  onTransactionAdded
 }: TransactionManagerProps) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     bank_id: '',
-    total_amount: '',
+    objective_id: '',
+    amount: '',
     description: ''
   })
-  const [goalAllocations, setGoalAllocations] = useState<GoalAllocation[]>([])
-  const [goalAllocationsByBank, setGoalAllocationsByBank] = useState<{ [goalId: string]: number }>({})
+  const [availableAllocations, setAvailableAllocations] = useState<ObjectiveAllocation[]>([])
 
   useEffect(() => {
     if (formData.bank_id && goals.length > 0) {
-      loadGoalAllocationsForBank(formData.bank_id)
+      loadAllocationsForBank(formData.bank_id)
     }
   }, [formData.bank_id, goals])
 
-  const loadGoalAllocationsForBank = async (bankId: string) => {
+  const loadAllocationsForBank = async (bankId: string) => {
     try {
       const { data, error } = await supabase
         .from('allocations')
-        .select('goal_id, amount')
+        .select(`
+          goal_id,
+          amount,
+          goals:goal_id(name)
+        `)
         .eq('bank_id', bankId)
+        .gt('amount', 0)
 
       if (error) throw error
 
-      const allocMap: { [goalId: string]: number } = {}
-      data?.forEach(alloc => {
-        allocMap[alloc.goal_id] = Number(alloc.amount)
-      })
-      
-      setGoalAllocationsByBank(allocMap)
+      const allocations: ObjectiveAllocation[] = data?.map(alloc => ({
+        objective_id: alloc.goal_id,
+        objective_name: (alloc.goals as any)?.name || 'Unknown Objective',
+        allocated_amount: Number(alloc.amount)
+      })) || []
+
+      setAvailableAllocations(allocations)
     } catch (error: any) {
-      console.error('Error loading goal allocations:', error)
+      console.error('Error loading allocations:', error)
+      setAvailableAllocations([])
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !formData.bank_id || !formData.total_amount) return
+    if (!user || !formData.bank_id || !formData.objective_id || !formData.amount) return
 
-    const totalAmount = parseFloat(formData.total_amount)
-    const allocatedAmount = goalAllocations.reduce((sum, alloc) => sum + alloc.amount, 0)
-
-    if (allocatedAmount !== totalAmount) {
-      toast.error('Total allocation must equal withdrawal amount')
-      return
-    }
-
-    if (allocatedAmount <= 0) {
-      toast.error('Please allocate the withdrawal amount to at least one goal')
+    const amount = parseFloat(formData.amount)
+    if (amount <= 0) {
+      toast.error('Amount must be greater than 0')
       return
     }
 
@@ -83,56 +84,35 @@ export function TransactionManager({
       return
     }
 
-    if (totalAmount > Number(selectedBank.balance)) {
+    if (amount > Number(selectedBank.balance)) {
       toast.error('Insufficient balance in selected bank')
       return
     }
 
-    // Validate goal allocations
-    for (const allocation of goalAllocations) {
-      const availableAmount = goalAllocationsByBank[allocation.goal_id] || 0
-      if (allocation.amount > availableAmount) {
-        const goal = goals.find(g => g.id === allocation.goal_id)
-        toast.error(`Insufficient allocation for ${goal?.name}. Available: ${availableAmount.toFixed(2)} MAD`)
-        return
-      }
+    // Check if there's enough allocation for this objective from this bank
+    const allocation = availableAllocations.find(a => a.objective_id === formData.objective_id)
+    if (!allocation || amount > allocation.allocated_amount) {
+      const availableAmount = allocation?.allocated_amount || 0
+      toast.error(`Insufficient allocation for this objective. Available: ${availableAmount.toFixed(2)} MAD`)
+      return
     }
 
     setLoading(true)
     try {
-      // Create transaction
-      const { data: transaction, error: transactionError } = await supabase
-        .from('transactions')
+      // Create withdrawal transaction in objectives_transactions (negative amount)
+      const { error: transactionError } = await supabase
+        .from('objectives_transactions')
         .insert([{
-          user_id: user.id,
+          objective_id: formData.objective_id,
           bank_id: formData.bank_id,
-          total_amount: totalAmount,
-          description: formData.description
+          amount: -amount, // Negative for withdrawal
+          description: formData.description || `Withdrawal: ${amount.toFixed(2)} MAD`
         }])
-        .select()
-        .single()
 
       if (transactionError) throw transactionError
 
-      // Create transaction goals
-      const transactionGoals = goalAllocations
-        .filter(alloc => alloc.amount > 0)
-        .map(alloc => ({
-          transaction_id: transaction.id,
-          goal_id: alloc.goal_id,
-          amount: alloc.amount
-        }))
-
-      if (transactionGoals.length > 0) {
-        const { error: transactionGoalsError } = await supabase
-          .from('transaction_goals')
-          .insert(transactionGoals)
-
-        if (transactionGoalsError) throw transactionGoalsError
-      }
-
-      // Update bank balance
-      const newBankBalance = Number(selectedBank.balance) - totalAmount
+      // Update bank balance (decrease)
+      const newBankBalance = Number(selectedBank.balance) - amount
       const { error: bankError } = await supabase
         .from('banks')
         .update({ balance: newBankBalance })
@@ -140,29 +120,22 @@ export function TransactionManager({
 
       if (bankError) throw bankError
 
-      // Update goal allocations
-      for (const allocation of goalAllocations) {
-        if (allocation.amount > 0) {
-          const currentAmount = goalAllocationsByBank[allocation.goal_id]
-          const newAmount = currentAmount - allocation.amount
+      // Update allocation (decrease)
+      const newAllocationAmount = allocation.allocated_amount - amount
+      const { error: allocationError } = await supabase
+        .from('allocations')
+        .update({ amount: newAllocationAmount })
+        .eq('goal_id', formData.objective_id)
+        .eq('bank_id', formData.bank_id)
 
-          const { error: allocationError } = await supabase
-            .from('allocations')
-            .update({ amount: newAmount })
-            .eq('goal_id', allocation.goal_id)
-            .eq('bank_id', formData.bank_id)
-
-          if (allocationError) throw allocationError
-        }
-      }
+      if (allocationError) throw allocationError
 
       toast.success('Withdrawal recorded successfully!')
-      
+
       // Reset form
-      setFormData({ bank_id: '', total_amount: '', description: '' })
-      setGoalAllocations([])
-      setGoalAllocationsByBank({})
-      
+      setFormData({ bank_id: '', objective_id: '', amount: '', description: '' })
+      setAvailableAllocations([])
+
       // Notify parent to refresh data
       onTransactionAdded()
     } catch (error: any) {
@@ -172,29 +145,8 @@ export function TransactionManager({
     }
   }
 
-  const handleAllocationChange = (goalId: string, amount: number) => {
-    setGoalAllocations(prev => {
-      const existing = prev.find(a => a.goal_id === goalId)
-      if (existing) {
-        return prev.map(a => 
-          a.goal_id === goalId ? { ...a, amount } : a
-        ).filter(a => a.amount > 0)
-      } else if (amount > 0) {
-        return [...prev, { goal_id: goalId, amount }]
-      }
-      return prev
-    })
-  }
-
   const selectedBank = banks.find(b => b.id === formData.bank_id)
-  const totalAllocated = goalAllocations.reduce((sum, alloc) => sum + alloc.amount, 0)
-  const totalAmount = parseFloat(formData.total_amount) || 0
-  const remainingAmount = totalAmount - totalAllocated
-
-  // Filter goals that have allocations in the selected bank
-  const availableGoals = goals.filter(goal => 
-    goalAllocationsByBank[goal.id] > 0
-  )
+  const selectedAllocation = availableAllocations.find(a => a.objective_id === formData.objective_id)
 
   return (
     <div className="space-y-6">
@@ -211,7 +163,7 @@ export function TransactionManager({
             </label>
             <select
               value={formData.bank_id}
-              onChange={(e) => setFormData({ ...formData, bank_id: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, bank_id: e.target.value, objective_id: '' })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               required
             >
@@ -224,7 +176,35 @@ export function TransactionManager({
             </select>
           </div>
 
-          {/* Amount */}
+          {/* Objective Selection */}
+          {formData.bank_id && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Objective *
+              </label>
+              <select
+                value={formData.objective_id}
+                onChange={(e) => setFormData({ ...formData, objective_id: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                required
+              >
+                <option value="">Choose an objective...</option>
+                {availableAllocations.map((allocation) => (
+                  <option key={allocation.objective_id} value={allocation.objective_id}>
+                    {allocation.objective_name} - Available: {allocation.allocated_amount.toFixed(2)} MAD
+                  </option>
+                ))}
+              </select>
+
+              {availableAllocations.length === 0 && (
+                <p className="text-sm text-yellow-600 mt-1">
+                  No allocations found for this bank. Please allocate funds to objectives first.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Amount and Description */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -233,106 +213,65 @@ export function TransactionManager({
               <input
                 type="number"
                 step="0.01"
-                min="0"
-                max={selectedBank?.balance}
-                value={formData.total_amount}
-                onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
+                min="0.01"
+                max={Math.min(
+                  selectedBank?.balance || 0,
+                  selectedAllocation?.allocated_amount || 0
+                )}
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 placeholder="0.00"
                 required
               />
+              {selectedAllocation && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Max available: {selectedAllocation.allocated_amount.toFixed(2)} MAD
+                </p>
+              )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
+                Description *
               </label>
               <input
                 type="text"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="e.g., Grocery shopping"
+                placeholder="e.g., Grocery shopping, Gas, etc."
+                required
               />
             </div>
           </div>
 
-          {/* Goal Allocations */}
-          {formData.bank_id && totalAmount > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-700">
-                  Allocate to Goals *
-                </h4>
-                <div className="text-sm">
-                  <span className={`font-medium ${remainingAmount === 0 ? 'text-green-600' : 'text-orange-600'}`}>
-                    Remaining: {remainingAmount.toFixed(2)} MAD
-                  </span>
-                </div>
-              </div>
-              
-              {availableGoals.length === 0 ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-yellow-800">
-                    No goals have allocations in the selected bank. Please allocate funds to goals first.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
-                  {availableGoals.map((goal) => {
-                    const availableAmount = goalAllocationsByBank[goal.id] || 0
-                    const allocation = goalAllocations.find(a => a.goal_id === goal.id)
-                    
-                    return (
-                      <div key={goal.id} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center justify-center w-8 h-8 bg-orange-100 rounded-lg">
-                            <ArrowDownCircle className="w-4 h-4 text-orange-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{goal.name}</p>
-                            <p className="text-sm text-gray-500">
-                              Available: {availableAmount.toFixed(2)} MAD
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max={Math.min(availableAmount, remainingAmount + (allocation?.amount || 0))}
-                            value={allocation?.amount || 0}
-                            onChange={(e) => handleAllocationChange(goal.id, parseFloat(e.target.value) || 0)}
-                            className="w-24 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                            placeholder="0.00"
-                          />
-                          <span className="text-sm text-gray-500">MAD</span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Summary */}
-          {totalAmount > 0 && (
+          {formData.amount && selectedBank && selectedAllocation && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-blue-700">Total Withdrawal:</span>
-                  <span className="font-semibold text-blue-900">{totalAmount.toFixed(2)} MAD</span>
+                  <span className="text-blue-700">Bank:</span>
+                  <span className="font-semibold text-blue-900">{selectedBank.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-blue-700">Total Allocated:</span>
-                  <span className="font-semibold text-blue-900">{totalAllocated.toFixed(2)} MAD</span>
+                  <span className="text-blue-700">Objective:</span>
+                  <span className="font-semibold text-blue-900">{selectedAllocation.objective_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-blue-700">Withdrawal Amount:</span>
+                  <span className="font-semibold text-red-600">-{parseFloat(formData.amount).toFixed(2)} MAD</span>
                 </div>
                 <div className="flex justify-between border-t border-blue-200 pt-2">
-                  <span className="text-blue-700">Remaining:</span>
-                  <span className={`font-semibold ${remainingAmount === 0 ? 'text-green-600' : 'text-orange-600'}`}>
-                    {remainingAmount.toFixed(2)} MAD
+                  <span className="text-blue-700">Remaining in Bank:</span>
+                  <span className="font-semibold text-blue-900">
+                    {(Number(selectedBank.balance) - parseFloat(formData.amount)).toFixed(2)} MAD
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-blue-700">Remaining in Allocation:</span>
+                  <span className="font-semibold text-blue-900">
+                    {(selectedAllocation.allocated_amount - parseFloat(formData.amount)).toFixed(2)} MAD
                   </span>
                 </div>
               </div>
@@ -342,7 +281,7 @@ export function TransactionManager({
           <div className="flex items-center space-x-3 pt-4">
             <button
               type="submit"
-              disabled={loading || remainingAmount !== 0 || totalAmount === 0 || availableGoals.length === 0}
+              disabled={loading || !formData.bank_id || !formData.objective_id || !formData.amount || !formData.description}
               className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Recording...' : 'Record Withdrawal'}
