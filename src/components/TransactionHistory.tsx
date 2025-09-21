@@ -182,7 +182,7 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
               }`}
           >
             <Filter className="w-4 h-4" />
-            <span>{showWithdrawnOnly ? 'Showing Withdrawals' : 'Show Withdrawals Only'}</span>
+            <span>{showWithdrawnOnly ? 'Showing Withdrawals' : 'Withdrawals Only'}</span>
           </button>
           <button
             onClick={loadTransactions}
