@@ -14,6 +14,12 @@ interface OverviewCardsProps {
 export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps) {
   const [objectivesWithAmounts, setObjectivesWithAmounts] = useState<ObjectiveWithAmount[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Pagination states
+  const [banksCurrentPage, setBanksCurrentPage] = useState(1)
+  const [objectivesCurrentPage, setObjectivesCurrentPage] = useState(1)
+  const banksPerPage = 4
+  const objectivesPerPage = 4
 
   useEffect(() => {
     loadObjectiveAmounts()
@@ -68,15 +74,105 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
   const totalBalance = banks.reduce((sum, bank) => sum + Number(bank.balance), 0)
   const totalObjectives = objectivesWithAmounts.reduce((sum, obj) => sum + obj.total_amount, 0)
 
+  // Pagination calculations
+  const totalBanks = banks.length
+  const totalBanksPages = Math.ceil(totalBanks / banksPerPage)
+  const banksStartIndex = (banksCurrentPage - 1) * banksPerPage
+  const banksEndIndex = banksStartIndex + banksPerPage
+  const currentBanks = banks.slice(banksStartIndex, banksEndIndex)
+
+  const totalObjectivesCount = objectivesWithAmounts.length
+  const totalObjectivesPages = Math.ceil(totalObjectivesCount / objectivesPerPage)
+  const objectivesStartIndex = (objectivesCurrentPage - 1) * objectivesPerPage
+  const objectivesEndIndex = objectivesStartIndex + objectivesPerPage
+  const currentObjectives = objectivesWithAmounts.slice(objectivesStartIndex, objectivesEndIndex)
+
+  // Pagination handlers
+  const handleBanksPageChange = (page: number) => {
+    setBanksCurrentPage(page)
+  }
+
+  const handleObjectivesPageChange = (page: number) => {
+    setObjectivesCurrentPage(page)
+  }
+
+  // Pagination component
+  const PaginationControls = ({ 
+    currentPage, 
+    totalPages, 
+    onPageChange, 
+    itemName 
+  }: { 
+    currentPage: number
+    totalPages: number
+    onPageChange: (page: number) => void
+    itemName: string
+  }) => {
+    if (totalPages <= 1) return null
+
+    return (
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-dark-600">
+        <div className="text-sm text-dark-400 dark:text-dark-300">
+          Page {currentPage} of {totalPages}
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm font-medium text-dark-500 dark:text-dark-300 bg-white dark:bg-dark-700 border border-gray-300 dark:border-dark-600 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Previous
+          </button>
+          
+          {/* Page numbers */}
+          <div className="flex space-x-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => onPageChange(page)}
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  page === currentPage
+                    ? 'bg-primary-500 text-white'
+                    : 'text-dark-500 dark:text-dark-300 bg-white dark:bg-dark-700 border border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-600'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm font-medium text-dark-500 dark:text-dark-300 bg-white dark:bg-dark-700 border border-gray-300 dark:border-dark-600 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg border border-mint-200/50 animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* Mobile: 3 cards, Desktop: 4 cards */}
+        <div className="bg-white/80 dark:bg-dark-800/80 backdrop-blur rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 animate-pulse">
+          <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
+          <div className="h-6 sm:h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
+        </div>
+        <div className="bg-white/80 dark:bg-dark-800/80 backdrop-blur rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 animate-pulse">
+          <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
+          <div className="h-6 sm:h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
+        </div>
+        <div className="bg-white/80 dark:bg-dark-800/80 backdrop-blur rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 animate-pulse">
+          <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
+          <div className="h-6 sm:h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
+        </div>
+        <div className="hidden sm:block bg-white/80 dark:bg-dark-800/80 backdrop-blur rounded-2xl p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 animate-pulse">
+          <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
+          <div className="h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
+        </div>
       </div>
     )
   }
@@ -84,24 +180,53 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
   return (
     <div className="space-y-8">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="group bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-mint-200/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* Total Balance Card */}
+        <div className="group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-dark-400">Total Balance</p>
-              <p className="text-2xl font-semibold text-dark-500 mt-1">{totalBalance.toFixed(2)} MAD</p>
+              <p className="text-sm font-medium text-dark-400 dark:text-dark-300">Total Balance</p>
+              <p className="text-xl sm:text-2xl font-semibold text-dark-500 dark:text-dark-100 mt-1">{totalBalance.toFixed(2)} MAD</p>
             </div>
-            <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-              <DollarSign className="w-7 h-7 text-white" />
+            <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+              <DollarSign className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
           </div>
         </div>
 
-        <div className="group bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-mint-200/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
+        {/* Combined Banks & Objectives Card (Mobile) / Separate Cards (Desktop) */}
+        <div className="sm:hidden group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-mint-200/50 dark:border-dark-600/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm font-medium text-dark-400 dark:text-dark-300">Summary</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-accent-400 to-accent-600 rounded-lg shadow-md">
+                <Building2 className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-mint-400 to-mint-600 rounded-lg shadow-md">
+                <Target className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-lg font-semibold text-dark-500 dark:text-dark-100">{banks.length}</p>
+              <p className="text-xs text-dark-400 dark:text-dark-300">Banks</p>
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-dark-500 dark:text-dark-100">{goals.length}</p>
+              <p className="text-xs text-dark-400 dark:text-dark-300">Objectives</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Banks Card (Desktop Only) */}
+        <div className="hidden sm:block group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-dark-400">Active Banks</p>
-              <p className="text-2xl font-semibold text-dark-500 mt-1">{banks.length}</p>
+              <p className="text-sm font-medium text-dark-400 dark:text-dark-300">Active Banks</p>
+              <p className="text-2xl font-semibold text-dark-500 dark:text-dark-100 mt-1">{banks.length}</p>
             </div>
             <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-accent-400 to-accent-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
               <Building2 className="w-7 h-7 text-white" />
@@ -109,11 +234,12 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
           </div>
         </div>
 
-        <div className="group bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-mint-200/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
+        {/* Objectives Card (Desktop Only) */}
+        <div className="hidden sm:block group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-dark-400">Objectives</p>
-              <p className="text-2xl font-semibold text-dark-500 mt-1">{goals.length}</p>
+              <p className="text-sm font-medium text-dark-400 dark:text-dark-300">Objectives</p>
+              <p className="text-2xl font-semibold text-dark-500 dark:text-dark-100 mt-1">{goals.length}</p>
             </div>
             <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-mint-400 to-mint-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
               <Target className="w-7 h-7 text-white" />
@@ -121,14 +247,15 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
           </div>
         </div>
 
-        <div className="group bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-mint-200/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
+        {/* Total Objectives Amount Card */}
+        <div className="group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-dark-400">Total Objectives</p>
-              <p className="text-2xl font-semibold text-dark-500 mt-1">{totalObjectives.toFixed(2)} MAD</p>
+              <p className="text-sm font-medium text-dark-400 dark:text-dark-300">Total Objectives</p>
+              <p className="text-xl sm:text-2xl font-semibold text-dark-500 dark:text-dark-100 mt-1">{totalObjectives.toFixed(2)} MAD</p>
             </div>
-            <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-dark-400 to-dark-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-              <TrendingUp className="w-7 h-7 text-white" />
+            <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-dark-400 to-dark-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+              <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
           </div>
         </div>
@@ -137,76 +264,105 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
       {/* Banks and Objectives Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Banks Overview */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 overflow-hidden">
-          <div className="bg-gradient-to-r from-accent-50 to-accent-100 p-6 border-b border-accent-200">
-            <h3 className="text-xl font-semibold text-dark-500">Banks Overview</h3>
-            <p className="text-sm text-dark-400 mt-1">Your financial institutions</p>
+        <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 overflow-hidden">
+          <div className="bg-gradient-to-r from-accent-50 to-accent-100 dark:from-accent-900/30 dark:to-accent-800/30 p-6 border-b border-accent-200 dark:border-dark-600">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-dark-500 dark:text-dark-100">Banks Overview</h3>
+                <p className="text-sm text-dark-400 dark:text-dark-300 mt-1">Your financial institutions</p>
+              </div>
+              {totalBanks > 0 && (
+                <div className="text-right">
+                  <p className="text-sm font-medium text-dark-500 dark:text-dark-200">
+                    {totalBanks} bank{totalBanks !== 1 ? 's' : ''}
+                  </p>
+                  <p className="text-xs text-dark-400 dark:text-dark-300">
+                    Showing {banksStartIndex + 1}-{Math.min(banksEndIndex, totalBanks)}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
           <div className="p-6">
             {banks.length === 0 ? (
               <div className="text-center py-12">
-                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-accent-100 to-accent-200 rounded-full mx-auto mb-6">
-                  <Building2 className="w-10 h-10 text-accent-600" />
+                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-accent-100 to-accent-200 dark:from-accent-900/30 dark:to-accent-800/30 rounded-full mx-auto mb-6">
+                  <Building2 className="w-10 h-10 text-accent-600 dark:text-accent-400" />
                 </div>
-                <p className="text-dark-500 text-lg font-medium">No banks added yet</p>
-                <p className="text-sm text-dark-400 mt-2">Add your first bank to get started</p>
+                <p className="text-dark-500 dark:text-dark-200 text-lg font-medium">No banks added yet</p>
+                <p className="text-sm text-dark-400 dark:text-dark-300 mt-2">Add your first bank to get started</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {banks.map((bank) => (
-                  <div key={bank.id} className="group flex items-center justify-between p-5 bg-gradient-to-r from-accent-50 to-accent-100 border border-accent-200 rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-102">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center justify-center w-14 h-14 bg-white border-2 border-accent-300 rounded-xl shadow-md group-hover:shadow-lg transition-shadow">
-                        {bank.logo ? (
-                          <img src={bank.logo} alt={bank.name} className="w-7 h-7 object-contain" />
-                        ) : (
-                          <Building2 className="w-7 h-7 text-accent-600" />
-                        )}
+              <>
+                <div className="space-y-4">
+                  {currentBanks.map((bank) => (
+                    <div key={bank.id} className="group flex items-center justify-between p-5 bg-gradient-to-r from-accent-50 to-accent-100 dark:from-accent-900/20 dark:to-accent-800/20 border border-accent-200 dark:border-dark-600 rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-102">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center justify-center w-14 h-14 bg-white dark:bg-dark-700 border-2 border-accent-300 dark:border-accent-600 rounded-xl shadow-md group-hover:shadow-lg transition-shadow">
+                          {bank.logo ? (
+                            <img src={bank.logo} alt={bank.name} className="w-7 h-7 object-contain" />
+                          ) : (
+                            <Building2 className="w-7 h-7 text-accent-600 dark:text-accent-400" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-dark-600 dark:text-dark-100 text-sm">{bank.name}</p>
+                          <p className="text-sm text-dark-400 dark:text-dark-300">Current Balance</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-dark-600 text-sm">{bank.name}</p>
-                        <p className="text-sm text-dark-400">Current Balance</p>
+                      <div className="text-right">
+                        <p className="text-2xl font-semibold text-dark-600 dark:text-dark-100">{Number(bank.balance).toFixed(2)}</p>
+                        <p className="text-sm text-dark-400 dark:text-dark-300 font-medium">MAD</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-semibold text-dark-600">{Number(bank.balance).toFixed(2)}</p>
-                      <p className="text-sm text-dark-400 font-medium">MAD</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                
+                <PaginationControls
+                  currentPage={banksCurrentPage}
+                  totalPages={totalBanksPages}
+                  onPageChange={handleBanksPageChange}
+                  itemName="banks"
+                />
+              </>
             )}
           </div>
         </div>
 
         {/* Objectives Overview */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 overflow-hidden">
-          <div className="bg-gradient-to-r from-primary-50 to-primary-100 p-6 border-b border-primary-200">
-            <h3 className="text-xl font-semibold text-dark-500">Objectives Overview</h3>
-            <p className="text-sm text-dark-400 mt-1">Your financial goals</p>
+        <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 overflow-hidden">
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 p-6 border-b border-primary-200 dark:border-dark-600">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-dark-500 dark:text-dark-100">Objectives Overview</h3>
+                <p className="text-sm text-dark-400 dark:text-dark-300 mt-1">Your financial goals</p>
+              </div>
+              {totalObjectivesCount > 0 && (
+                <div className="text-right">
+                  <p className="text-sm font-medium text-dark-500 dark:text-dark-200">
+                    {totalObjectivesCount} objective{totalObjectivesCount !== 1 ? 's' : ''}
+                  </p>
+                  <p className="text-xs text-dark-400 dark:text-dark-300">
+                    Showing {objectivesStartIndex + 1}-{Math.min(objectivesEndIndex, totalObjectivesCount)}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
           <div className="p-6">
             {objectivesWithAmounts.length === 0 ? (
               <div className="text-center py-12">
-                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full mx-auto mb-6">
-                  <Target className="w-10 h-10 text-primary-600" />
+                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 rounded-full mx-auto mb-6">
+                  <Target className="w-10 h-10 text-primary-600 dark:text-primary-400" />
                 </div>
-                <p className="text-dark-500 text-lg font-medium">No objectives created yet</p>
-                <p className="text-sm text-dark-400 mt-2">Start by creating your first financial goal</p>
+                <p className="text-dark-500 dark:text-dark-200 text-lg font-medium">No objectives created yet</p>
+                <p className="text-sm text-dark-400 dark:text-dark-300 mt-2">Start by creating your first financial goal</p>
               </div>
             ) : (
-              <div className="p-2 ">
-                {objectivesWithAmounts.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full mx-auto mb-6">
-                      <Target className="w-10 h-10 text-primary-600" />
-                    </div>
-                    <p className="text-dark-500 text-lg font-medium">No objectives created yet</p>
-                    <p className="text-sm text-dark-400 mt-2">Start by creating your first financial goal</p>
-                  </div>
-                ) : (
+              <>
+                <div className="p-2">
                   <div className="flex flex-wrap gap-4">
-                    {objectivesWithAmounts.map((objective) => {
+                    {currentObjectives.map((objective) => {
                       const progress = objective.target_amount
                         ? (objective.total_amount / objective.target_amount) * 100
                         : 0
@@ -214,7 +370,7 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
                       return (
                         <div
                           key={objective.id}
-                          className="group relative bg-gradient-to-br from-primary-50 to-mint-50 border border-primary-200 rounded-xl p-5 hover:shadow-lg transition-all duration-300 hover:scale-102 w-full md:w-[calc(50%-0.5rem)]"
+                          className="group relative bg-gradient-to-br from-primary-50 to-mint-50 dark:from-primary-900/20 dark:to-mint-900/20 border border-primary-200 dark:border-dark-600 rounded-xl p-5 hover:shadow-lg transition-all duration-300 hover:scale-102 w-full md:w-[calc(50%-0.5rem)]"
                         >
                           {/* Header */}
                           <div className="flex items-start justify-between mb-4">
@@ -223,11 +379,11 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
                                 <Target className="w-6 h-6 text-white" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-dark-600 text-lg truncate group-hover:text-primary-700 transition-colors">
+                                <h4 className="font-semibold text-dark-600 dark:text-dark-100 text-lg truncate group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors">
                                   {objective.name}
                                 </h4>
                                 {objective.category && (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 mt-1">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/40 text-primary-800 dark:text-primary-200 mt-1">
                                     {objective.category}
                                   </span>
                                 )}
@@ -238,13 +394,13 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
                           {/* Amount Display */}
                           <div className="mb-4">
                             <div className="flex items-baseline space-x-2">
-                              <span className="text-2xl font-semibold text-dark-600">
+                              <span className="text-2xl font-semibold text-dark-600 dark:text-dark-100">
                                 {objective.total_amount.toFixed(2)}
                               </span>
-                              <span className="text-sm font-medium text-dark-400">MAD</span>
+                              <span className="text-sm font-medium text-dark-400 dark:text-dark-300">MAD</span>
                             </div>
                             {objective.target_amount && (
-                              <p className="text-sm text-dark-400 mt-1">
+                              <p className="text-sm text-dark-400 dark:text-dark-300 mt-1">
                                 of {Number(objective.target_amount).toFixed(2)} MAD target
                               </p>
                             )}
@@ -254,12 +410,12 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
                           {objective.target_amount && (
                             <div className="mb-4">
                               <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-medium text-dark-500">Progress</span>
-                                <span className="text-sm font-semibold text-primary-600">
+                                <span className="text-sm font-medium text-dark-500 dark:text-dark-200">Progress</span>
+                                <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
                                   {progress.toFixed(1)}%
                                 </span>
                               </div>
-                              <div className="w-full bg-primary-100 rounded-full h-3 overflow-hidden">
+                              <div className="w-full bg-primary-100 dark:bg-dark-700 rounded-full h-3 overflow-hidden">
                                 <div
                                   className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full transition-all duration-500 ease-out shadow-sm"
                                   style={{
@@ -269,8 +425,8 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
                               </div>
                               {progress >= 100 && (
                                 <div className="flex items-center space-x-1 mt-2">
-                                  <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
-                                  <span className="text-xs font-medium text-primary-600">Goal Achieved!</span>
+                                  <div className="w-2 h-2 bg-primary-500 dark:bg-primary-400 rounded-full animate-pulse"></div>
+                                  <span className="text-xs font-medium text-primary-600 dark:text-primary-400">Goal Achieved!</span>
                                 </div>
                               )}
                             </div>
@@ -278,9 +434,9 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
 
                           {/* Target Date */}
                           {objective.target_date && (
-                            <div className="flex items-center space-x-2 text-sm text-dark-400">
-                              <div className="w-4 h-4 rounded-full bg-primary-200 flex items-center justify-center">
-                                <div className="w-1.5 h-1.5 bg-primary-600 rounded-full"></div>
+                            <div className="flex items-center space-x-2 text-sm text-dark-400 dark:text-dark-300">
+                              <div className="w-4 h-4 rounded-full bg-primary-200 dark:bg-primary-800 flex items-center justify-center">
+                                <div className="w-1.5 h-1.5 bg-primary-600 dark:bg-primary-400 rounded-full"></div>
                               </div>
                               <span>Due: {format(new Date(objective.target_date), 'MMM dd, yyyy')}</span>
                             </div>
@@ -288,8 +444,8 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
 
                           {/* Notes Preview */}
                           {objective.notes && (
-                            <div className="mt-3 p-3 bg-white/70 rounded-lg border border-primary-100">
-                              <p className="text-xs text-dark-500 italic line-clamp-2">
+                            <div className="mt-3 p-3 bg-white/70 dark:bg-dark-700/70 rounded-lg border border-primary-100 dark:border-dark-600">
+                              <p className="text-xs text-dark-500 dark:text-dark-300 italic line-clamp-2">
                                 "{objective.notes}"
                               </p>
                             </div>
@@ -301,9 +457,15 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
                       )
                     })}
                   </div>
-                )}
-              </div>
+                </div>
 
+                <PaginationControls
+                  currentPage={objectivesCurrentPage}
+                  totalPages={totalObjectivesPages}
+                  onPageChange={handleObjectivesPageChange}
+                  itemName="objectives"
+                />
+              </>
             )}
           </div>
         </div>

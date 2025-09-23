@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class', // Enable class-based dark mode
   theme: {
     extend: {
       fontFamily: {
@@ -74,6 +75,17 @@ export default {
           800: '#065f46',
           900: '#064e3b',
         }
+      },
+      // Add specific dark mode background colors
+      backgroundColor: {
+        'dark-primary': '#0f1419',
+        'dark-secondary': '#1a2028',
+        'dark-tertiary': '#252d38',
+      },
+      textColor: {
+        'dark-primary': '#e6e6e6',
+        'dark-secondary': '#b3b3b3',
+        'dark-muted': '#808080',
       }
     },
   },

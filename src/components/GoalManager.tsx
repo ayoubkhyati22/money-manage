@@ -615,12 +615,12 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
   if (loading && goals.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+      <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600 p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-6 bg-gray-200 dark:bg-dark-600 rounded w-1/4"></div>
           <div className="space-y-3">
-            <div className="h-16 bg-gray-200 rounded"></div>
-            <div className="h-16 bg-gray-200 rounded"></div>
+            <div className="h-16 bg-gray-200 dark:bg-dark-600 rounded"></div>
+            <div className="h-16 bg-gray-200 dark:bg-dark-600 rounded"></div>
           </div>
         </div>
       </div>
@@ -630,10 +630,10 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Financial Objectives</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-dark-100">Financial Objectives</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center space-x-2 bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>Add</span>
@@ -642,35 +642,35 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
       {/* Add Objective Form */}
       {showForm && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-100 mb-4">
             {editingGoal ? 'Edit Objective' : 'Add New Objective'}
           </h3>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                   Objective Name *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
                   placeholder="e.g., Car, Marriage, Bike"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                   Category
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
                 >
                   <option value="">Select category...</option>
                   {categories.map(category => (
@@ -682,7 +682,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                   Target Amount (MAD)
                 </label>
                 <input
@@ -691,32 +691,32 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                   min="0"
                   value={formData.target_amount}
                   onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
                   placeholder="10000.00"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                   Target Date
                 </label>
                 <input
                   type="date"
                   value={formData.target_date}
                   onChange={(e) => setFormData({ ...formData, target_date: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                 Notes
               </label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
                 rows={3}
                 placeholder="Optional notes about this objective..."
               />
@@ -726,14 +726,14 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                className="bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
               >
                 {loading ? 'Saving...' : (editingGoal ? 'Update Objective' : 'Add Objective')}
               </button>
               <button
                 type="button"
                 onClick={resetForm}
-                className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg transition-colors"
+                className="text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 px-4 py-2 rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -744,21 +744,21 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
       {/* Add Money Form */}
       {showAddMoneyForm && selectedObjective && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-100 mb-4">
             Add Money to "{selectedObjective.name}"
           </h3>
 
           <form onSubmit={handleAddMoney} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                   Select Bank *
                 </label>
                 <select
                   value={addMoneyData.bank_id}
                   onChange={(e) => setAddMoneyData({ ...addMoneyData, bank_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
                   required
                 >
                   <option value="">Choose a bank...</option>
@@ -771,7 +771,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                   Amount (MAD) *
                 </label>
                 <input
@@ -780,7 +780,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                   min="0.01"
                   value={addMoneyData.amount}
                   onChange={(e) => setAddMoneyData({ ...addMoneyData, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
                   placeholder="500.00"
                   required
                 />
@@ -788,14 +788,14 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                 Description
               </label>
               <input
                 type="text"
                 value={addMoneyData.description}
                 onChange={(e) => setAddMoneyData({ ...addMoneyData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
                 placeholder="e.g., Initial savings for car"
               />
             </div>
@@ -804,14 +804,14 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                className="bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
               >
                 {loading ? 'Adding...' : 'Add Money'}
               </button>
               <button
                 type="button"
                 onClick={resetAddMoneyForm}
-                className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg transition-colors"
+                className="text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 px-4 py-2 rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -823,15 +823,15 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       {/* Allocations Modal */}
       {showAllocationsModal && selectedObjective && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white dark:bg-dark-800 rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto border dark:border-dark-600">
+            <div className="p-6 border-b border-gray-200 dark:border-dark-600">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-100">
                   Manage Allocations for "{selectedObjective.name}"
                 </h3>
                 <button
                   onClick={closeAllocationsModal}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-200 text-2xl"
                 >
                   ✕
                 </button>
@@ -844,26 +844,26 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                 <div className="space-y-6">
                   {/* Edit Forms */}
                   {(editingAllocation || editingBankBalance) && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    <div className="bg-gray-50 dark:bg-dark-700 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-dark-200 mb-3">
                         {editingAllocation ? 'Edit Allocation' : 'Edit Bank Balance'}
                       </h4>
 
                       {editingBankBalance ? (
                         // Bank Balance Edit Form
                         <form onSubmit={handleBankBalanceSubmit} className="space-y-4">
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                            <p className="text-sm text-blue-800">
+                          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-4">
+                            <p className="text-sm text-blue-800 dark:text-blue-200">
                               <strong>Editing:</strong> {editingBankBalance.bankName}
                             </p>
-                            <p className="text-sm text-blue-600">
+                            <p className="text-sm text-blue-600 dark:text-blue-300">
                               Current Balance: {editingBankBalance.currentBalance.toFixed(2)} MAD
                             </p>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                                 New Balance (MAD) *
                               </label>
                               <input
@@ -872,21 +872,21 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                                 min="0"
                                 value={bankBalanceData.newBalance}
                                 onChange={(e) => setBankBalanceData({ ...bankBalanceData, newBalance: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
                                 placeholder="0.00"
                                 required
                               />
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                                 Description
                               </label>
                               <input
                                 type="text"
                                 value={bankBalanceData.description}
                                 onChange={(e) => setBankBalanceData({ ...bankBalanceData, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
                                 placeholder="Reason for balance change..."
                               />
                             </div>
@@ -894,22 +894,22 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
                           {/* Balance Change Preview */}
                           {bankBalanceData.newBalance && (
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3">
                               <div className="text-sm">
                                 <div className="flex justify-between">
-                                  <span className="text-yellow-700">Current Balance:</span>
-                                  <span className="font-medium">{editingBankBalance.currentBalance.toFixed(2)} MAD</span>
+                                  <span className="text-yellow-700 dark:text-yellow-200">Current Balance:</span>
+                                  <span className="font-medium text-gray-900 dark:text-dark-100">{editingBankBalance.currentBalance.toFixed(2)} MAD</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-yellow-700">New Balance:</span>
-                                  <span className="font-medium">{parseFloat(bankBalanceData.newBalance || '0').toFixed(2)} MAD</span>
+                                  <span className="text-yellow-700 dark:text-yellow-200">New Balance:</span>
+                                  <span className="font-medium text-gray-900 dark:text-dark-100">{parseFloat(bankBalanceData.newBalance || '0').toFixed(2)} MAD</span>
                                 </div>
-                                <div className="flex justify-between border-t border-yellow-200 pt-2 mt-2">
-                                  <span className="text-yellow-700">Change:</span>
+                                <div className="flex justify-between border-t border-yellow-200 dark:border-yellow-700 pt-2 mt-2">
+                                  <span className="text-yellow-700 dark:text-yellow-200">Change:</span>
                                   <span className={`font-semibold ${
                                     (parseFloat(bankBalanceData.newBalance || '0') - editingBankBalance.currentBalance) >= 0
-                                      ? 'text-green-600'
-                                      : 'text-red-600'
+                                      ? 'text-green-600 dark:text-green-400'
+                                      : 'text-red-600 dark:text-red-400'
                                   }`}>
                                     {(parseFloat(bankBalanceData.newBalance || '0') - editingBankBalance.currentBalance) >= 0 ? '+' : ''}
                                     {(parseFloat(bankBalanceData.newBalance || '0') - editingBankBalance.currentBalance).toFixed(2)} MAD
@@ -933,7 +933,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                                 setEditingBankBalance(null)
                                 setBankBalanceData({ newBalance: '', description: '' })
                               }}
-                              className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg transition-colors"
+                              className="text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 px-4 py-2 rounded-lg transition-colors"
                             >
                               Cancel
                             </button>
@@ -944,19 +944,19 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                         <form onSubmit={handleAllocationSubmit} className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                                 Bank
                               </label>
                               <input
                                 type="text"
                                 value={banks.find(b => b.id === allocationData.bank_id)?.name || ''}
-                                className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg"
+                                className="w-full px-3 py-2 bg-gray-100 dark:bg-dark-600 border border-gray-300 dark:border-dark-600 rounded-lg text-gray-900 dark:text-dark-100"
                                 disabled
                               />
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
                                 Amount (MAD) *
                               </label>
                               <input
@@ -965,7 +965,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                                 min="0"
                                 value={allocationData.amount}
                                 onChange={(e) => setAllocationData({ ...allocationData, amount: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
                                 placeholder="0.00"
                                 required
                               />
@@ -976,7 +976,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                             <button
                               type="submit"
                               disabled={loading}
-                              className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                              className="bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
                             >
                               {loading ? 'Updating...' : 'Update Allocation'}
                             </button>
@@ -986,7 +986,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                                 setEditingAllocation(null)
                                 setAllocationData({ bank_id: '', amount: '' })
                               }}
-                              className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg transition-colors"
+                              className="text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 px-4 py-2 rounded-lg transition-colors"
                             >
                               Cancel
                             </button>
@@ -998,10 +998,10 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
                   {/* Allocations List */}
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Current Allocations</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-dark-200 mb-3">Current Allocations</h4>
 
                     {allocations.length === 0 ? (
-                      <p className="text-gray-500 text-center py-8">No allocations yet</p>
+                      <p className="text-gray-500 dark:text-dark-400 text-center py-8">No allocations yet</p>
                     ) : (
                       <div className="space-y-3">
                         {allocations.map((allocation) => {
@@ -1009,31 +1009,31 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                           const bankBalance = bank ? Number(bank.balance) : 0
 
                           return (
-                            <div key={allocation.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
+                            <div key={allocation.id} className="flex items-center justify-between p-4 bg-white dark:bg-dark-700 border border-gray-200 dark:border-dark-600 rounded-lg">
                               <div>
-                                <p className="font-medium text-gray-900">{allocation.bank_name}</p>
-                                <p className="text-sm text-gray-500">
+                                <p className="font-medium text-gray-900 dark:text-dark-100">{allocation.bank_name}</p>
+                                <p className="text-sm text-gray-500 dark:text-dark-400">
                                   Allocated: {allocation.amount.toFixed(2)} MAD
                                 </p>
                               </div>
                               <div className="flex items-center space-x-3">
                                 <div className="text-right">
-                                  <p className="text-lg font-semibold text-gray-900">
+                                  <p className="text-lg font-semibold text-gray-900 dark:text-dark-100">
                                     {bankBalance.toFixed(2)} MAD
                                   </p>
-                                  <p className="text-xs text-gray-500">Bank Balance</p>
+                                  <p className="text-xs text-gray-500 dark:text-dark-400">Bank Balance</p>
                                 </div>
                                 <div className="flex flex-col space-y-1">
                                   <button
                                     onClick={() => startEditAllocation(allocation)}
-                                    className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                    className="p-1 text-gray-400 dark:text-dark-400 hover:text-blue-600 dark:hover:text-primary-400 transition-colors"
                                     title="Edit Allocation"
                                   >
                                     <Edit2 className="w-4 h-4" />
                                   </button>
                                   <button
                                     onClick={() => startEditBankBalance(allocation)}
-                                    className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                                    className="p-1 text-gray-400 dark:text-dark-400 hover:text-green-600 dark:hover:text-primary-400 transition-colors"
                                     title="Edit Bank Balance"
                                   >
                                     <DollarSign className="w-4 h-4" />
@@ -1041,7 +1041,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                                 </div>
                                 <button
                                   onClick={() => handleDeleteAllocation(allocation)}
-                                  className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                  className="p-1 text-gray-400 dark:text-dark-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                                   title="Delete Allocation"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -1057,7 +1057,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
                 {/* Right Column - Real-time Transactions */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Real-time Transactions</h4>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-dark-200 mb-3">Real-time Transactions</h4>
                   <ObjectiveTransactionsViewer
                     objectiveId={selectedObjective.id}
                     objectiveName={selectedObjective.name}
@@ -1075,17 +1075,17 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       )}
 
       {/* Objectives List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Your Objectives</h3>
+      <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600">
+        <div className="p-6 border-b border-gray-200 dark:border-dark-600">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-100">Your Objectives</h3>
         </div>
 
         <div className="p-6">
           {goals.length === 0 ? (
             <div className="text-center py-8">
-              <Target className="mx-auto w-12 h-12 text-gray-400 mb-4" />
-              <p className="text-gray-500">No objectives created yet</p>
-              <p className="text-sm text-gray-400 mt-1">Click "Add Objective" to get started</p>
+              <Target className="mx-auto w-12 h-12 text-gray-400 dark:text-dark-500 mb-4" />
+              <p className="text-gray-500 dark:text-dark-300">No objectives created yet</p>
+              <p className="text-sm text-gray-400 dark:text-dark-400 mt-1">Click "Add Objective" to get started</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1094,24 +1094,24 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                 const progress = goal.target_amount ? (currentAmount / goal.target_amount) * 100 : 0
 
                 return (
-                  <div key={goal.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div key={goal.id} className="border border-gray-200 dark:border-dark-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-dark-800">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-lg">
-                          <Target className="w-5 h-5 text-orange-600" />
+                        <div className="flex items-center justify-center w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                          <Target className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900">{goal.name}</h4>
+                          <h4 className="font-semibold text-gray-900 dark:text-dark-100">{goal.name}</h4>
                           {goal.category && (
                             <div className="flex items-center space-x-1 mt-1">
-                              <Tag className="w-3 h-3 text-gray-400" />
-                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                              <Tag className="w-3 h-3 text-gray-400 dark:text-dark-400" />
+                              <span className="text-xs text-gray-500 dark:text-dark-400 bg-gray-100 dark:bg-dark-600 px-2 py-1 rounded-full">
                                 {goal.category}
                               </span>
                             </div>
                           )}
                           {goal.target_date && (
-                            <div className="flex items-center space-x-1 text-sm text-gray-500 mt-1">
+                            <div className="flex items-center space-x-1 text-sm text-gray-500 dark:text-dark-400 mt-1">
                               <Calendar className="w-3 h-3" />
                               <span>{format(new Date(goal.target_date), 'MMM dd, yyyy')}</span>
                             </div>
@@ -1121,20 +1121,20 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                       <div className="flex items-center space-x-1">
                         <button
                           onClick={() => openAllocationsModal(goal)}
-                          className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                          className="p-1 text-gray-400 dark:text-dark-400 hover:text-purple-600 dark:hover:text-primary-400 transition-colors"
                           title="Manage Allocations"
                         >
                           <Settings className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleEdit(goal)}
-                          className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                          className="p-1 text-gray-400 dark:text-dark-400 hover:text-blue-600 dark:hover:text-primary-400 transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(goal)}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                          className="p-1 text-gray-400 dark:text-dark-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1143,21 +1143,21 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
                     <div className="space-y-3">
                       <div>
-                        <p className="text-2xl font-bold text-gray-900">{currentAmount.toFixed(2)} MAD</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-dark-100">{currentAmount.toFixed(2)} MAD</p>
                         {goal.target_amount && (
-                          <p className="text-sm text-gray-500">of {Number(goal.target_amount).toFixed(2)} MAD</p>
+                          <p className="text-sm text-gray-500 dark:text-dark-400">of {Number(goal.target_amount).toFixed(2)} MAD</p>
                         )}
                       </div>
 
                       {goal.target_amount && (
                         <div>
                           <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600">Progress</span>
-                            <span className="text-gray-600">{progress.toFixed(1)}%</span>
+                            <span className="text-gray-600 dark:text-dark-300">Progress</span>
+                            <span className="text-gray-600 dark:text-dark-300">{progress.toFixed(1)}%</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="w-full bg-gray-200 dark:bg-dark-600 rounded-full h-2">
                             <div
-                              className="bg-emerald-500 h-2 rounded-full transition-all"
+                              className="bg-emerald-500 dark:bg-primary-500 h-2 rounded-full transition-all"
                               style={{
                                 width: `${Math.min(100, progress)}%`
                               }}
@@ -1167,7 +1167,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                       )}
 
                       {goal.notes && (
-                        <p className="text-sm text-gray-600 italic">"{goal.notes}"</p>
+                        <p className="text-sm text-gray-600 dark:text-dark-400 italic">"{goal.notes}"</p>
                       )}
 
                       <div className="flex space-x-2">
@@ -1176,7 +1176,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                             setSelectedObjective(goal)
                             setShowAddMoneyForm(true)
                           }}
-                          className="flex-1 flex items-center justify-center space-x-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg transition-colors"
+                          className="flex-1 flex items-center justify-center space-x-2 bg-emerald-50 dark:bg-primary-900/30 hover:bg-emerald-100 dark:hover:bg-primary-900/50 text-emerald-700 dark:text-primary-400 px-3 py-2 rounded-lg transition-colors"
                         >
                           <DollarSign className="w-4 h-4" />
                           <span>Add Money</span>
@@ -1184,7 +1184,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
                         <button
                           onClick={() => openAllocationsModal(goal)}
-                          className="flex items-center justify-center bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-2 rounded-lg transition-colors"
+                          className="flex items-center justify-center bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-400 px-3 py-2 rounded-lg transition-colors"
                           title="View Allocations"
                         >
                           <Eye className="w-4 h-4" />

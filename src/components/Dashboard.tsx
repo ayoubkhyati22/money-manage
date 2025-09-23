@@ -1,3 +1,4 @@
+// src/components/Dashboard.tsx
 import { useState, useEffect } from 'react'
 import { Bank, Goal, Transaction, TransactionWithDetails, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -133,9 +134,9 @@ export function Dashboard() {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+            <div key={i} className="bg-white dark:bg-dark-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-dark-600 animate-pulse">
+              <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
+              <div className="h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
             </div>
           ))}
         </div>
@@ -188,12 +189,12 @@ export function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50">
+    <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900">
       {/* Padding top pour compenser la barre de titre native mobile */}
       <div className="pt-safe-top">
         <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto">
           {/* Navigation Tabs */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 p-2">
+          <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 p-2">
             <div className="flex space-x-1 sm:space-x-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon
@@ -203,8 +204,8 @@ export function Dashboard() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-6 py-3 sm:py-4 rounded-xl font-medium text-xs sm:text-sm transition-all flex-1 justify-center duration-300 transform hover:scale-105 ${
                       activeTab === tab.id
-                        ? 'bg-gradient-to-r from-primary-400 to-primary-500 text-white shadow-lg shadow-primary-200'
-                        : 'text-dark-500 hover:text-dark-600 hover:bg-mint-100/70'
+                        ? 'bg-gradient-to-r from-primary-400 to-primary-500 text-white shadow-lg shadow-primary-200 dark:shadow-primary-900/30'
+                        : 'text-dark-500 dark:text-dark-200 hover:text-dark-600 dark:hover:text-dark-100 hover:bg-mint-100/70 dark:hover:bg-dark-700/70'
                     }`}
                   >
                     <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
