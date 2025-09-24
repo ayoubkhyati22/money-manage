@@ -44,7 +44,7 @@ export function Layout({ children }: LayoutProps) {
                 <DollarSign className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-2xl font-semibold text-dark-500 dark:text-white">FinanceFlow</h1>
+                <h1 className="text-sm sm:text-2xl font-semibold text-dark-500 dark:text-white">FinanceFlow</h1>
                 <p className="text-xs sm:text-sm text-dark-400 dark:text-dark-300 font-medium hidden sm:block">
                   Manage your funds smartly
                 </p>
