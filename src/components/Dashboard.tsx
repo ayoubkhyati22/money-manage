@@ -1,6 +1,5 @@
-// src/components/Dashboard.tsx
 import { useState, useEffect } from 'react'
-import { Bank, Goal, Transaction, TransactionWithDetails, supabase } from '../lib/supabase'
+import { Bank, Goal, TransactionWithDetails, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { BankManager } from './BankManager'
 import { GoalManager } from './GoalManager'
@@ -29,30 +28,22 @@ export function Dashboard() {
   const tabs = [
     { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
     { id: 'banks' as const, label: 'Banks', icon: Building2 },
-    { id: 'goals' as const, label: 'Objectives', icon: Target },
+    { id: 'goals' as const, label: 'Goals', icon: Target },
     { id: 'transactions' as const, label: 'Withdraw', icon: ArrowDownCircle },
     { id: 'history' as const, label: 'History', icon: History },
   ]
 
-  // Charger toutes les données au montage du composant
   useEffect(() => {
-    if (user) {
-      loadAllData()
-    }
+    if (user) loadAllData()
   }, [user])
 
   const loadAllData = async () => {
     if (!user) return
-
     setLoading(true)
     try {
-      await Promise.all([
-        loadBanks(),
-        loadGoals(),
-        loadTransactions()
-      ])
+      await Promise.all([loadBanks(), loadGoals(), loadTransactions()])
     } catch (error: any) {
-      console.error('Error loading dashboard data:', error)
+      console.error(error)
       toast.error('Error loading data: ' + error.message)
     } finally {
       setLoading(false)
@@ -60,111 +51,74 @@ export function Dashboard() {
   }
 
   const loadBanks = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('banks')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setBanks(data || [])
-    } catch (error: any) {
-      console.error('Error loading banks:', error)
-    }
+    const { data, error } = await supabase.from('banks').select('*').order('created_at', { ascending: false })
+    if (!error) setBanks(data || [])
   }
 
   const loadGoals = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('goals')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setGoals(data || [])
-    } catch (error: any) {
-      console.error('Error loading goals:', error)
-    }
+    const { data, error } = await supabase.from('goals').select('*').order('created_at', { ascending: false })
+    if (!error) setGoals(data || [])
   }
 
   const loadTransactions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(`
-          *,
-          banks:bank_id(name),
-          transaction_goals(
-            amount,
-            goals:goal_id(name)
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(10)
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(`
+        *,
+        banks:bank_id(name),
+        transaction_goals(amount, goals:goal_id(name))
+      `)
+      .order('created_at', { ascending: false })
+      .limit(10)
 
-      if (error) throw error
-
-      const transactionsWithDetails: TransactionWithDetails[] = data?.map(transaction => ({
-        id: transaction.id,
-        user_id: transaction.user_id,
-        bank_id: transaction.bank_id,
-        total_amount: Number(transaction.total_amount),
-        description: transaction.description || '',
-        created_at: transaction.created_at,
-        bank_name: (transaction.banks as any)?.name || 'Unknown Bank',
-        transaction_goals: transaction.transaction_goals?.map((tg: any) => ({
-          goal_name: tg.goals?.name || 'Unknown Goal',
-          amount: Number(tg.amount)
+    if (!error) {
+      const mapped: TransactionWithDetails[] =
+        data?.map((t) => ({
+          id: t.id,
+          user_id: t.user_id,
+          bank_id: t.bank_id,
+          total_amount: Number(t.total_amount),
+          description: t.description || '',
+          created_at: t.created_at,
+          bank_name: (t.banks as any)?.name || 'Unknown Bank',
+          transaction_goals:
+            t.transaction_goals?.map((tg: any) => ({
+              goal_name: tg.goals?.name || 'Unknown Goal',
+              amount: Number(tg.amount),
+            })) || [],
         })) || []
-      })) || []
-
-      setTransactions(transactionsWithDetails)
-    } catch (error: any) {
-      console.error('Error loading transactions:', error)
+      setTransactions(mapped)
     }
   }
 
-  // Fonction pour rafraîchir toutes les données
-  const refreshAllData = () => {
-    loadAllData()
-  }
+  const refreshAllData = () => loadAllData()
 
   const renderContent = () => {
-    if (loading && activeTab === 'overview') {
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-dark-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-dark-600 animate-pulse">
-              <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
-              <div className="h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
-            </div>
-          ))}
-        </div>
-      )
-    }
-
     switch (activeTab) {
       case 'overview':
         return <OverviewCards banks={banks} goals={goals} transactions={transactions} />
       case 'banks':
-        return <BankManager banks={banks} onUpdate={(updatedBanks) => {
-          setBanks(updatedBanks)
-          // Rafraîchir les données de l'overview aussi
-          if (activeTab === 'overview') {
-            refreshAllData()
-          }
-        }} />
+        return (
+          <BankManager
+            banks={banks}
+            onUpdate={(updated) => {
+              setBanks(updated)
+              refreshAllData()
+            }}
+          />
+        )
       case 'goals':
-        return <GoalManager
-          goals={goals}
-          banks={banks}
-          onUpdate={(updatedGoals) => {
-            setGoals(updatedGoals)
-            // Rafraîchir les banques car les soldes peuvent changer
-            loadBanks()
-          }}
-          onBanksUpdate={setBanks}
-        />
+        return (
+          <GoalManager
+            goals={goals}
+            banks={banks}
+            onUpdate={(updated) => {
+              setGoals(updated)
+              loadBanks()
+            }}
+            onBanksUpdate={setBanks}
+          />
+        )
       case 'transactions':
         return (
           <TransactionManager
@@ -172,54 +126,71 @@ export function Dashboard() {
             goals={goals}
             onBanksUpdate={setBanks}
             onGoalsUpdate={setGoals}
-            onTransactionAdded={() => {
-              // Rafraîchir toutes les données après une transaction
-              refreshAllData()
-            }}
+            onTransactionAdded={refreshAllData}
           />
         )
       case 'history':
-        return <TransactionHistory onUpdate={() => {
-          // Rafraîchir toutes les données quand une transaction est retournée
-          refreshAllData()
-        }} />
+        return <TransactionHistory onUpdate={refreshAllData} />
       default:
-        return <OverviewCards banks={banks} goals={goals} transactions={transactions} />
+        return null
     }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900">
-      {/* Padding top pour compenser la barre de titre native mobile */}
-      <div className="pt-safe-top">
+      <div className="pt-safe-top pb-20 sm:pb-0"> {/* espace pour bottom nav sur mobile */}
         <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto">
-          {/* Navigation Tabs */}
-          <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 p-2">
-            <div className="flex space-x-1 sm:space-x-2">
-              {tabs.map((tab) => {
-                const Icon = tab.icon
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-6 py-3 sm:py-4 rounded-xl font-medium text-xs sm:text-sm transition-all flex-1 justify-center duration-300 transform hover:scale-105 ${
-                      activeTab === tab.id
-                        ? 'bg-gradient-to-r from-primary-400 to-primary-500 text-white shadow-lg shadow-primary-200 dark:shadow-primary-900/30'
-                        : 'text-dark-500 dark:text-dark-200 hover:text-dark-600 dark:hover:text-dark-100 hover:bg-mint-100/70 dark:hover:bg-dark-700/70'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="hidden sm:inline font-medium">{tab.label}</span>
-                  </button>
-                )
-              })}
+          {/* --- TABS DESKTOP --- */}
+          <div className="hidden sm:block">
+            <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 p-2">
+              <div className="flex space-x-1 sm:space-x-2">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-6 py-3 sm:py-4 rounded-xl font-medium text-xs sm:text-sm transition-all flex-1 justify-center duration-300 transform hover:scale-105 ${
+                        activeTab === tab.id
+                          ? 'bg-gradient-to-r from-primary-400 to-primary-500 text-white shadow-lg shadow-primary-200 dark:shadow-primary-900/30'
+                          : 'text-dark-500 dark:text-dark-200 hover:text-dark-600 dark:hover:text-dark-100 hover:bg-mint-100/70 dark:hover:bg-dark-700/70'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="hidden sm:inline font-medium">{tab.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="animate-fadeIn">
-            {renderContent()}
-          </div>
+          {/* --- CONTENU --- */}
+          <div className="animate-fadeIn">{renderContent()}</div>
+        </div>
+      </div>
+
+      {/* --- BOTTOM NAV MOBILE --- */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-dark-800 border-t border-gray-200 dark:border-dark-700 shadow-lg z-50">
+        <div className="flex justify-around">
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            const active = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex flex-col items-center justify-center flex-1 py-2 text-xs transition-colors ${
+                  active
+                    ? 'text-primary-600 dark:text-primary-400'
+                    : 'text-gray-500 dark:text-dark-300'
+                }`}
+              >
+                <Icon className={`w-5 h-5 mb-0.5 ${active ? 'scale-110' : ''}`} />
+                <span>{tab.label}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>

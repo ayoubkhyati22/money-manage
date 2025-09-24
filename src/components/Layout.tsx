@@ -37,7 +37,7 @@ export function Layout({ children }: LayoutProps) {
       <header className="sticky top-0 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm shadow-lg border-b border-mint-200/50 dark:border-dark-600/50 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
-            
+
             {/* Logo */}
             <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl sm:rounded-2xl shadow-lg">
@@ -55,12 +55,12 @@ export function Layout({ children }: LayoutProps) {
             <div className="hidden lg:flex items-center space-x-6">
               {/* Theme Selector */}
               <ThemeSelector />
-              
+
               <div className="text-right">
                 <p className="text-sm font-medium text-dark-500 dark:text-dark-200">{user?.email}</p>
                 <p className="text-xs text-dark-400 dark:text-dark-300">Welcome back!</p>
               </div>
-              
+
               <button
                 onClick={signOut}
                 className="flex items-center space-x-2 px-4 py-3 text-sm font-medium text-dark-500 dark:text-dark-200 hover:text-white hover:bg-gradient-to-r hover:from-accent-400 hover:to-accent-500 rounded-xl transition-all duration-300 hover:shadow-lg border border-mint-200 dark:border-dark-600 hover:border-accent-400"
@@ -88,10 +88,10 @@ export function Layout({ children }: LayoutProps) {
                     <p className="text-sm font-medium text-dark-600 dark:text-dark-200 truncate">{user?.email}</p>
                     <p className="text-xs text-dark-400 dark:text-dark-300">Welcome back!</p>
                   </div>
-                  
+
                   {/* Theme Selector in Mobile Dropdown */}
                   <ThemeSelector inDropdown={true} />
-                  
+
                   <div className="border-t border-mint-200/70 dark:border-dark-600 my-1"></div>
                   <button
                     onClick={handleSignOut}
@@ -113,7 +113,7 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm border-t border-mint-200/50 dark:border-dark-600/50 mt-12">
+      <footer className="hidden md:block bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm border-t border-mint-200/50 dark:border-dark-600/50 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8 sm:py-12">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -126,7 +126,7 @@ export function Layout({ children }: LayoutProps) {
                   <h3 className="text-xl font-semibold text-dark-500 dark:text-dark-100">FinanceFlow</h3>
                 </div>
                 <p className="text-sm text-dark-400 dark:text-dark-300 mb-4 max-w-md">
-                  Manage your funds smartly across multiple banks with intelligent goal tracking and transaction management. 
+                  Manage your funds smartly across multiple banks with intelligent goal tracking and transaction management.
                   Take control of your financial future today.
                 </p>
                 <div className="flex items-center space-x-4">
@@ -136,60 +136,6 @@ export function Layout({ children }: LayoutProps) {
                   </div>
                 </div>
               </div>
-
-              {/* Quick Links */}
-              {/* <div>
-                <h4 className="text-sm font-semibold text-dark-600 dark:text-dark-200 mb-4">Quick Links</h4>
-                <ul className="space-y-2">
-                  <li>
-                    <button className="text-sm text-dark-400 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                      Overview
-                    </button>
-                  </li>
-                  <li>
-                    <button className="text-sm text-dark-400 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                      Banks
-                    </button>
-                  </li>
-                  <li>
-                    <button className="text-sm text-dark-400 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                      Objectives
-                    </button>
-                  </li>
-                  <li>
-                    <button className="text-sm text-dark-400 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                      Transactions
-                    </button>
-                  </li>
-                </ul>
-              </div> */}
-
-              {/* Support */}
-              {/* <div>
-                <h4 className="text-sm font-semibold text-dark-600 dark:text-dark-200 mb-4">Support</h4>
-                <ul className="space-y-2">
-                  <li>
-                    <button className="text-sm text-dark-400 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                      Help Center
-                    </button>
-                  </li>
-                  <li>
-                    <button className="text-sm text-dark-400 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                      Privacy Policy
-                    </button>
-                  </li>
-                  <li>
-                    <button className="text-sm text-dark-400 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                      Terms of Service
-                    </button>
-                  </li>
-                  <li>
-                    <button className="text-sm text-dark-400 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                      Contact Us
-                    </button>
-                  </li>
-                </ul>
-              </div> */}
             </div>
 
             {/* Bottom Section */}
@@ -200,14 +146,8 @@ export function Layout({ children }: LayoutProps) {
                     © {new Date().getFullYear()} FinanceFlow. All rights reserved.
                   </p>
                 </div>
-                
+
                 <div className="flex items-center space-x-6">
-                  {/* <div className="flex items-center space-x-2">
-                    <span className="text-xs text-dark-400 dark:text-dark-300">Made with</span>
-                    <span className="text-red-500 animate-pulse">♥</span>
-                    <span className="text-xs text-dark-400 dark:text-dark-300">for better finance management</span>
-                  </div> */}
-                  
                   {/* Version Info */}
                   <div className="hidden sm:flex items-center space-x-2">
                     <div className="w-1 h-1 bg-dark-400 dark:bg-dark-500 rounded-full"></div>
@@ -219,6 +159,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </div>
       </footer>
+
     </div>
   )
 }
