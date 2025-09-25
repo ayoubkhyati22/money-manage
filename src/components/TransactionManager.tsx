@@ -167,144 +167,208 @@ export function TransactionManager({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Record Withdrawal</h2>
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl shadow-lg">
+            <ArrowDownCircle className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-dark-100">Record Withdrawal</h2>
+            <p className="text-sm text-gray-500 dark:text-dark-300">Withdraw money from your objectives</p>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Bank Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Bank *
-            </label>
-            <select
-              value={formData.bank_id}
-              onChange={(e) => setFormData({ ...formData, bank_id: e.target.value, objective_id: '' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              required
-            >
-              <option value="">Choose a bank...</option>
-              {banks.map((bank) => (
-                <option key={bank.id} value={bank.id}>
-                  {bank.name} - {Number(bank.balance).toFixed(2)} MAD
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Objective Selection */}
-          {formData.bank_id && (
+      <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 overflow-hidden">
+        <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 p-6 border-b border-red-200 dark:border-dark-600">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center w-10 h-10 bg-white dark:bg-dark-800 border-2 border-red-300 dark:border-red-600 rounded-xl shadow-md">
+              <DollarSign className="w-5 h-5 text-red-600 dark:text-red-400" />
+            </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Objective *
+              <h3 className="text-lg font-semibold text-red-900 dark:text-red-100">Withdrawal Form</h3>
+              <p className="text-sm text-red-700 dark:text-red-300">Select bank, objective, and amount to withdraw</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Bank Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
+                Select Bank *
               </label>
               <select
-                value={formData.objective_id}
-                onChange={(e) => setFormData({ ...formData, objective_id: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                value={formData.bank_id}
+                onChange={(e) => setFormData({ ...formData, bank_id: e.target.value, objective_id: '' })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
                 required
               >
-                <option value="">Choose an objective...</option>
-                {availableAllocations.map((allocation) => (
-                  <option key={allocation.objective_id} value={allocation.objective_id}>
-                    {allocation.objective_name} - Available: {allocation.allocated_amount.toFixed(2)} MAD
+                <option value="">Choose a bank...</option>
+                {banks.map((bank) => (
+                  <option key={bank.id} value={bank.id}>
+                    {bank.name} - {Number(bank.balance).toFixed(2)} MAD
                   </option>
                 ))}
               </select>
-
-              {availableAllocations.length === 0 && (
-                <p className="text-sm text-yellow-600 mt-1">
-                  No allocations found for this bank. Please allocate funds to objectives first.
-                </p>
-              )}
             </div>
-          )}
 
-          {/* Amount and Description */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Withdrawal Amount (MAD) *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                max={Math.min(
-                  selectedBank?.balance || 0,
-                  selectedAllocation?.allocated_amount || 0
+            {/* Objective Selection */}
+            {formData.bank_id && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
+                  Select Objective *
+                </label>
+                <select
+                  value={formData.objective_id}
+                  onChange={(e) => setFormData({ ...formData, objective_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
+                  required
+                >
+                  <option value="">Choose an objective...</option>
+                  {availableAllocations.map((allocation) => (
+                    <option key={allocation.objective_id} value={allocation.objective_id}>
+                      {allocation.objective_name} - Available: {allocation.allocated_amount.toFixed(2)} MAD
+                    </option>
+                  ))}
+                </select>
+
+                {availableAllocations.length === 0 && (
+                  <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                      No allocations found for this bank. Please allocate funds to objectives first.
+                    </p>
+                  </div>
                 )}
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="0.00"
-                required
-              />
-              {selectedAllocation && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Max available: {selectedAllocation.allocated_amount.toFixed(2)} MAD
-                </p>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <input
-                type="text"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="e.g., Grocery shopping, Gas, etc."
-                required
-              />
-            </div>
-          </div>
+            {/* Amount and Description */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
+                  Withdrawal Amount (MAD) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max={Math.min(
+                    selectedBank?.balance || 0,
+                    selectedAllocation?.allocated_amount || 0
+                  )}
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
+                  placeholder="0.00"
+                  required
+                />
+                {selectedAllocation && (
+                  <p className="text-sm text-gray-500 dark:text-dark-400 mt-1">
+                    Max available: {selectedAllocation.allocated_amount.toFixed(2)} MAD
+                  </p>
+                )}
+              </div>
 
-          {/* Summary */}
-          {formData.amount && selectedBank && selectedAllocation && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Bank:</span>
-                  <span className="font-semibold text-blue-900">{selectedBank.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Objective:</span>
-                  <span className="font-semibold text-blue-900">{selectedAllocation.objective_name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Withdrawal Amount:</span>
-                  <span className="font-semibold text-red-600">-{parseFloat(formData.amount).toFixed(2)} MAD</span>
-                </div>
-                <div className="flex justify-between border-t border-blue-200 pt-2">
-                  <span className="text-blue-700">Remaining in Bank:</span>
-                  <span className="font-semibold text-blue-900">
-                    {(Number(selectedBank.balance) - parseFloat(formData.amount)).toFixed(2)} MAD
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Remaining in Allocation:</span>
-                  <span className="font-semibold text-blue-900">
-                    {(selectedAllocation.allocated_amount - parseFloat(formData.amount)).toFixed(2)} MAD
-                  </span>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
+                  Description *
+                </label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
+                  placeholder="e.g., Grocery shopping, Gas, etc."
+                  required
+                />
               </div>
             </div>
-          )}
 
-          <div className="flex items-center space-x-3 pt-4">
-            <button
-              type="submit"
-              disabled={loading || !formData.bank_id || !formData.objective_id || !formData.amount || !formData.description}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Recording...' : 'Record Withdrawal'}
-            </button>
-          </div>
-        </form>
+            {/* Summary */}
+            {formData.amount && selectedBank && selectedAllocation && (
+              <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100">Transaction Summary</h4>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-blue-700 dark:text-blue-300">Bank:</span>
+                    <span className="font-semibold text-blue-900 dark:text-blue-100">{selectedBank.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-700 dark:text-blue-300">Objective:</span>
+                    <span className="font-semibold text-blue-900 dark:text-blue-100">{selectedAllocation.objective_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-700 dark:text-blue-300">Withdrawal Amount:</span>
+                    <span className="font-semibold text-red-600 dark:text-red-400">-{parseFloat(formData.amount).toFixed(2)} MAD</span>
+                  </div>
+                  <div className="border-t border-blue-200 dark:border-blue-700 pt-2 space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-blue-700 dark:text-blue-300">Remaining in Bank:</span>
+                      <span className="font-semibold text-blue-900 dark:text-blue-100">
+                        {(Number(selectedBank.balance) - parseFloat(formData.amount)).toFixed(2)} MAD
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-700 dark:text-blue-300">Remaining in Allocation:</span>
+                      <span className="font-semibold text-blue-900 dark:text-blue-100">
+                        {(selectedAllocation.allocated_amount - parseFloat(formData.amount)).toFixed(2)} MAD
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center space-x-3 pt-4">
+              <button
+                type="submit"
+                disabled={loading || !formData.bank_id || !formData.objective_id || !formData.amount || !formData.description}
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100"
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Recording...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <ArrowDownCircle className="w-5 h-5" />
+                    <span>Add</span>
+                  </div>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({ bank_id: '', objective_id: '', amount: '', description: '' })
+                  setAvailableAllocations([])
+                }}
+                className="text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 px-4 py-3 rounded-xl transition-colors font-medium"
+              >
+                Clear
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
+
+      {/* Empty State or Help Text */}
+      {banks.length === 0 && (
+        <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 p-8 text-center">
+          <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-dark-700 dark:to-dark-600 rounded-full mx-auto mb-4">
+            <ArrowDownCircle className="w-8 h-8 text-gray-400 dark:text-dark-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-100 mb-2">No Banks Available</h3>
+          <p className="text-gray-600 dark:text-dark-300">
+            You need to add banks and create objectives with allocations before you can record withdrawals.
+          </p>
+        </div>
+      )}
     </div>
   )
 }

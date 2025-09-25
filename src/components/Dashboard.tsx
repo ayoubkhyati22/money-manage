@@ -170,9 +170,9 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* --- BOTTOM NAV MOBILE --- */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-dark-800 border-t border-gray-200 dark:border-dark-700 shadow-lg z-50">
-        <div className="flex justify-around">
+      {/* --- BOTTOM NAV MOBILE - ENHANCED DARK VERSION --- */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-dark-900/95 backdrop-blur-sm border-t border-gray-200/50 dark:border-dark-600/30 shadow-2xl z-50">
+        <div className="flex justify-around px-2 py-1">
           {tabs.map((tab) => {
             const Icon = tab.icon
             const active = activeTab === tab.id
@@ -180,14 +180,14 @@ export function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center flex-1 py-2 text-xs transition-colors ${
+                className={`flex flex-col items-center justify-center flex-1 py-3 px-2 text-xs transition-all duration-300 rounded-xl mx-1 ${
                   active
-                    ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-gray-500 dark:text-dark-300'
+                    ? 'text-white bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 shadow-lg scale-105'
+                    : 'text-gray-600 dark:text-dark-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100/50 dark:hover:bg-dark-800/50'
                 }`}
               >
-                <Icon className={`w-5 h-5 mb-0.5 ${active ? 'scale-110' : ''}`} />
-                <span>{tab.label}</span>
+                <Icon className={`w-5 h-5 mb-1 transition-transform ${active ? 'scale-110' : ''}`} />
+                <span className="font-medium">{tab.label}</span>
               </button>
             )
           })}

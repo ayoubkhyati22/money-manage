@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Bank, Goal, TransactionWithDetails, ObjectiveWithAmount } from '../lib/supabase'
 import { supabase } from '../lib/supabase'
-import { Building2, Target, TrendingUp, DollarSign } from 'lucide-react'
+import { Building2, Target, TrendingUp, DollarSign, CreditCard, Wallet, Eye, EyeOff, ArrowDownCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -14,6 +14,7 @@ interface OverviewCardsProps {
 export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps) {
   const [objectivesWithAmounts, setObjectivesWithAmounts] = useState<ObjectiveWithAmount[]>([])
   const [loading, setLoading] = useState(true)
+  const [showBalance, setShowBalance] = useState(true)
   
   // Pagination states
   const [banksCurrentPage, setBanksCurrentPage] = useState(1)
@@ -73,6 +74,14 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
 
   const totalBalance = banks.reduce((sum, bank) => sum + Number(bank.balance), 0)
   const totalObjectives = objectivesWithAmounts.reduce((sum, obj) => sum + obj.total_amount, 0)
+  
+  // Calculate total withdrawn (negative amounts from objectives_transactions)
+  const totalWithdrawn = objectivesWithAmounts.reduce((sum, obj) => {
+    const withdrawnAmount = obj.transactions
+      .filter(trans => trans.amount < 0)
+      .reduce((transSum, trans) => transSum + Math.abs(trans.amount), 0)
+    return sum + withdrawnAmount
+  }, 0)
 
   // Pagination calculations
   const totalBanks = banks.length
@@ -155,23 +164,19 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {/* Mobile: 3 cards, Desktop: 4 cards */}
-        <div className="bg-white/80 dark:bg-dark-800/80 backdrop-blur rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
-          <div className="h-6 sm:h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
+      <div className="space-y-8">
+        {/* Loading Credit Card */}
+        <div className="w-full">
+          <div className="w-full max-w-md mx-auto h-48 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-dark-600 dark:to-dark-700 rounded-2xl animate-pulse shadow-xl"></div>
         </div>
-        <div className="bg-white/80 dark:bg-dark-800/80 backdrop-blur rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
-          <div className="h-6 sm:h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
-        </div>
-        <div className="bg-white/80 dark:bg-dark-800/80 backdrop-blur rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
-          <div className="h-6 sm:h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
-        </div>
-        <div className="hidden sm:block bg-white/80 dark:bg-dark-800/80 backdrop-blur rounded-2xl p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
-          <div className="h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white/80 dark:bg-dark-800/80 backdrop-blur rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 animate-pulse">
+              <div className="h-4 bg-gray-200 dark:bg-dark-600 rounded w-3/4 mb-4"></div>
+              <div className="h-6 sm:h-8 bg-gray-200 dark:bg-dark-600 rounded w-1/2"></div>
+            </div>
+          ))}
         </div>
       </div>
     )
@@ -179,44 +184,126 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
 
   return (
     <div className="space-y-8">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {/* Total Balance Card */}
-        <div className="group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-dark-400 dark:text-dark-300">Total Balance</p>
-              <p className="text-xl sm:text-2xl font-semibold text-dark-500 dark:text-dark-100 mt-1">{totalBalance.toFixed(2)} MAD</p>
+      {/* CREDIT CARD - TOTAL BALANCE */}
+      <div className="w-full">
+        <div className="w-full max-w-md mx-auto relative group">
+          
+          {/* Main Credit Card */}
+          <div className="relative w-full h-48 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900 rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105 hover:rotate-1 border border-slate-700/50 dark:border-dark-600/50 overflow-hidden">
+            
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full -translate-x-16 -translate-y-16"></div>
+              <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-accent-400 to-accent-600 rounded-full translate-x-12 translate-y-12"></div>
+              <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-gradient-to-r from-mint-400 to-mint-600 rounded-full opacity-5 -translate-x-1/2 -translate-y-1/2"></div>
             </div>
-            <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-              <DollarSign className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-            </div>
-          </div>
-        </div>
 
-        {/* Combined Banks & Objectives Card (Mobile) / Separate Cards (Desktop) */}
+            {/* Card Header */}
+            <div className="absolute top-6 left-6 right-6 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center shadow-lg">
+                  <Wallet className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-white/90 text-sm font-medium">FinanceFlow</p>
+                  <p className="text-white/60 text-xs">Total Balance</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBalance(!showBalance)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                title={showBalance ? 'Hide balance' : 'Show balance'}
+              >
+                {showBalance ? (
+                  <Eye className="w-4 h-4 text-white/70 hover:text-white" />
+                ) : (
+                  <EyeOff className="w-4 h-4 text-white/70 hover:text-white" />
+                )}
+              </button>
+            </div>
+
+            {/* Balance Display */}
+            <div className="absolute top-1/2 left-6 right-6 -translate-y-1/2">
+              <div className="text-center">
+                <p className="text-white/60 text-xs uppercase tracking-wider mb-2">Available Balance</p>
+                <div className="relative">
+                  {showBalance ? (
+                    <h2 className="text-3xl font-bold text-white mb-1 tracking-wide">
+                      {totalBalance.toLocaleString('en-US', { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                      })} <span className="text-lg font-medium text-white/80">MAD</span>
+                    </h2>
+                  ) : (
+                    <h2 className="text-3xl font-bold text-white mb-1 tracking-wide">
+                      ••••••• <span className="text-lg font-medium text-white/80">MAD</span>
+                    </h2>
+                  )}
+                  
+                  {/* Animated shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000 ease-in-out"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card Footer */}
+            <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
+              <div>
+                <p className="text-white/60 text-xs">Last updated</p>
+                <p className="text-white/90 text-sm font-medium">{format(new Date(), 'MMM dd, yyyy')}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center">
+                  <Building2 className="w-3 h-3 text-white/70" />
+                </div>
+                <span className="text-white/60 text-xs">{banks.length} Banks</span>
+              </div>
+            </div>
+
+            {/* Holographic effect overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            {/* Card chip simulation */}
+            <div className="absolute top-16 left-6 w-8 h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-sm shadow-inner opacity-80"></div>
+          </div>
+
+          {/* Card shadow effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-800/50 to-transparent rounded-2xl blur-xl scale-105 -z-10 opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+        </div>
+      </div>
+
+      {/* Stats Cards Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* Combined Summary Card (Mobile Only) - includes Banks, Objectives, and Withdrawn */}
         <div className="sm:hidden group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-mint-200/50 dark:border-dark-600/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-sm font-medium text-dark-400 dark:text-dark-300">Summary</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-accent-400 to-accent-600 rounded-lg shadow-md">
-                <Building2 className="w-4 h-4 text-white" />
+            <div className="flex items-center space-x-1">
+              <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-accent-400 to-accent-600 rounded-md shadow-sm">
+                <Building2 className="w-3 h-3 text-white" />
               </div>
-              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-mint-400 to-mint-600 rounded-lg shadow-md">
-                <Target className="w-4 h-4 text-white" />
+              <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-mint-400 to-mint-600 rounded-md shadow-sm">
+                <Target className="w-3 h-3 text-white" />
+              </div>
+              <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-red-400 to-red-600 rounded-md shadow-sm">
+                <ArrowDownCircle className="w-3 h-3 text-white" />
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="text-center">
               <p className="text-lg font-semibold text-dark-500 dark:text-dark-100">{banks.length}</p>
               <p className="text-xs text-dark-400 dark:text-dark-300">Banks</p>
             </div>
-            <div>
+            <div className="text-center">
               <p className="text-lg font-semibold text-dark-500 dark:text-dark-100">{goals.length}</p>
-              <p className="text-xs text-dark-400 dark:text-dark-300">Objectives</p>
+              <p className="text-xs text-dark-400 dark:text-dark-300">Goals</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-red-600 dark:text-red-400">{totalWithdrawn.toFixed(0)}</p>
+              <p className="text-xs text-dark-400 dark:text-dark-300">Withdrawn</p>
             </div>
           </div>
         </div>
@@ -256,6 +343,19 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
             </div>
             <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-dark-400 to-dark-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
               <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            </div>
+          </div>
+        </div>
+
+        {/* Total Withdrawn Card (Desktop Only) */}
+        <div className="hidden sm:block group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-mint-200/50 dark:border-dark-600/50 hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-dark-400 dark:text-dark-300">Total Withdrawn</p>
+              <p className="text-2xl font-semibold text-red-600 dark:text-red-400 mt-1">{totalWithdrawn.toFixed(2)} MAD</p>
+            </div>
+            <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+              <ArrowDownCircle className="w-7 h-7 text-white" />
             </div>
           </div>
         </div>
