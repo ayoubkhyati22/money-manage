@@ -411,7 +411,7 @@ export function OverviewCards({ banks, goals, transactions }: OverviewCardsProps
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-semibold text-dark-600 dark:text-dark-100">{Number(bank.balance).toFixed(2)}</p>
+                        <p className="text-md font-semibold text-dark-600 dark:text-dark-100">{Number(bank.balance).toFixed(2)}</p>
                         <p className="text-sm text-dark-400 dark:text-dark-300 font-medium">MAD</p>
                       </div>
                     </div>
