@@ -1,4 +1,4 @@
-import { Building2, CreditCard, Edit2, Trash2, Eye, EyeOff } from 'lucide-react'
+import { Building2, CreditCard, CreditCard as Edit2, Trash2, Eye, EyeOff } from 'lucide-react'
 import { Bank } from '../../types/bank'
 
 interface BankCardProps {
