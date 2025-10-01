@@ -1,6 +1,7 @@
 import { CreditCard } from 'lucide-react'
 import { Bank } from '../../types/bank'
 import { BankCard } from './BankCard'
+import { BankCardSwiper } from './BankCardSwiper' // Import the new swiper component
 
 interface BankGridProps {
   banks: Bank[]
@@ -43,19 +44,31 @@ export function BankGrid({
             <p className="text-gray-500 dark:text-dark-300">Add your first bank to get started with beautiful card management</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {banks.map((bank, index) => (
-              <BankCard
-                key={bank.id}
-                bank={bank}
-                index={index}
-                isBalanceHidden={hiddenBalances.has(bank.id)}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onToggleVisibility={onToggleVisibility}
-              />
-            ))}
-          </div>
+          <>
+            {/* Swiper for mobile (hidden on medium screens and up) */}
+            <BankCardSwiper
+              banks={banks}
+              hiddenBalances={hiddenBalances}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onToggleVisibility={onToggleVisibility}
+            />
+
+            {/* Grid for desktop (hidden on mobile) */}
+            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {banks.map((bank, index) => (
+                <BankCard
+                  key={bank.id}
+                  bank={bank}
+                  index={index}
+                  isBalanceHidden={hiddenBalances.has(bank.id)}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onToggleVisibility={onToggleVisibility}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>
