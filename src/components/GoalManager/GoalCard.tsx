@@ -1,5 +1,5 @@
 import { Goal } from '../../lib/supabase'
-import { Target, Calendar, Tag, Edit2, Trash2, DollarSign, Settings, Eye } from 'lucide-react'
+import { Target, Calendar, Tag, CreditCard as Edit2, Trash2, DollarSign, Settings, Eye } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface GoalCardProps {

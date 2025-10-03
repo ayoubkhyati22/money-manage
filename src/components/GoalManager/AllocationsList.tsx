@@ -1,6 +1,6 @@
 import { Bank } from '../../lib/supabase'
 import type { Allocation } from '../../types/goal'
-import { Edit2, Trash2, DollarSign } from 'lucide-react'
+import { CreditCard as Edit2, Trash2, DollarSign } from 'lucide-react'
 
 interface AllocationsListProps {
   allocations: Allocation[]
