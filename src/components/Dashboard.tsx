@@ -5,7 +5,7 @@ import { BankManager } from './BankManager'
 import { GoalManager } from './GoalManager/index'
 import { TransactionManager } from './TransactionManager'
 import { TransactionHistory } from './TransactionHistory'
-import { OverviewCards } from './OverviewCards'
+import { OverviewCards } from './OverviewCards/index'
 import {
   Building2,
   Target,
