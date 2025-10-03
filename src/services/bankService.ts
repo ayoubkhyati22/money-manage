@@ -1,6 +1,18 @@
 import { supabase } from '../lib/supabase'
 import { Bank, BankFormData } from '../types/bank'
 
+export const bankService = {
+  async loadBanks(userId: string): Promise<Bank[]> {
+    const { data, error } = await supabase
+      .from('banks')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  }
+}
+
 export const fetchBanks = async (): Promise<Bank[]> => {
   const { data, error } = await supabase
     .from('banks')
