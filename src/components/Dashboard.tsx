@@ -180,7 +180,7 @@ export function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center flex-1 py-3 px-2 text-xs transition-all duration-300 rounded-xl mx-1 ${
+                className={`flex flex-col items-center justify-center flex-1 py-2 px-2 text-xs transition-all duration-300 rounded-xl mx-2 ${
                   active
                     ? 'text-white bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 shadow-lg scale-105'
                     : 'text-gray-600 dark:text-dark-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100/50 dark:hover:bg-dark-800/50'

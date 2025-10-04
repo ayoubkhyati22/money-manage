@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import { CreditCard } from './CreditCard'
 import { StatsCards } from './StatsCards'
+import { FinancialGraphs } from './FinancialGraphs'
 import { BanksSection } from './BanksSection'
 import { ObjectivesSection } from './ObjectivesSection'
 
@@ -122,6 +123,13 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
         goalsCount={goals.length}
         totalObjectives={totalObjectives}
         totalWithdrawn={totalWithdrawn}
+      />
+
+      {/* Financial Graphs Section */}
+      <FinancialGraphs 
+        banks={banks} 
+        goals={goals} 
+        objectives={objectivesWithAmounts} 
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
