@@ -144,3 +144,72 @@ CREATE TRIGGER update_goals_updated_at BEFORE UPDATE ON goals
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_allocations_updated_at BEFORE UPDATE ON allocations 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+
+
+    -- Migration script to add user profiles table
+-- This will NOT impact existing data
+
+-- Create user_profiles table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.user_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    phone_number VARCHAR(20),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id)
+);
+
+-- Enable Row Level Security
+ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for user_profiles
+-- Users can only read their own profile
+CREATE POLICY "Users can view own profile"
+    ON public.user_profiles
+    FOR SELECT
+    USING (auth.uid() = user_id);
+
+-- Users can insert their own profile
+CREATE POLICY "Users can insert own profile"
+    ON public.user_profiles
+    FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile"
+    ON public.user_profiles
+    FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- Create index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON public.user_profiles(user_id);
+
+-- Create function to automatically update updated_at timestamp
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for updated_at
+DROP TRIGGER IF EXISTS set_updated_at ON public.user_profiles;
+CREATE TRIGGER set_updated_at
+    BEFORE UPDATE ON public.user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_updated_at();
+
+-- Grant necessary permissions
+GRANT ALL ON public.user_profiles TO authenticated;
+GRANT ALL ON public.user_profiles TO service_role;
+
+-- Success message
+DO $$
+BEGIN
+    RAISE NOTICE 'Migration completed successfully! User profiles table created.';
+END $$;

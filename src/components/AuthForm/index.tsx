@@ -6,57 +6,125 @@ import { DollarSign } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 import { TermsModal } from './TermsModal'
 import { LoginForm } from './LoginForm'
-import { SignUpForm } from './SignUpForm'
+import { MultiStepSignUpForm } from './MultiStepSignUpForm'
+import { supabase } from '../../lib/supabase'
 
 export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
+  
+  // Registration data state
+  const [registrationData, setRegistrationData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    password: '',
+    confirmPassword: ''
+  })
+  
   const { signIn, signUp } = useAuth()
   const { theme, setTheme } = useDarkMode()
   const { showError, showSuccess, showInfo } = useSweetAlert()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) {
-      await showError('Missing Information', 'Please enter both email and password')
-      return
-    }
+    
+    if (isLogin) {
+      // Login flow
+      if (!email || !password) {
+        await showError('Missing Information', 'Please enter both email and password')
+        return
+      }
 
-    if (password.length < 6) {
-      await showError('Password Too Short', 'Password must be at least 6 characters long')
-      return
-    }
+      if (password.length < 6) {
+        await showError('Password Too Short', 'Password must be at least 6 characters long')
+        return
+      }
 
-    if (!isLogin && !acceptTerms) {
-      await showError('Terms Required', 'Please accept the terms and conditions to continue')
-      return
-    }
-
-    setLoading(true)
-    try {
-      if (isLogin) {
+      setLoading(true)
+      try {
         await signIn(email, password)
         await showSuccess('Welcome Back!', 'You have successfully logged in')
-      } else {
-        await signUp(email, password)
+      } catch (error: any) {
+        console.error('Auth error:', error)
+        await showError('Login Failed', error.message || 'An unexpected error occurred')
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      // Registration flow
+      if (!registrationData.email || !registrationData.password) {
+        await showError('Missing Information', 'Please complete all required fields')
+        return
+      }
+
+      if (registrationData.password.length < 6) {
+        await showError('Password Too Short', 'Password must be at least 6 characters long')
+        return
+      }
+
+      if (registrationData.password !== registrationData.confirmPassword) {
+        await showError('Password Mismatch', 'Passwords do not match')
+        return
+      }
+
+      if (!acceptTerms) {
+        await showError('Terms Required', 'Please accept the terms and conditions to continue')
+        return
+      }
+
+      setLoading(true)
+      try {
+        // Create auth account
+        await signUp(registrationData.email, registrationData.password)
+        
+        // Get the user after signup
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          // Create user profile
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .insert([{
+              user_id: user.id,
+              first_name: registrationData.firstName,
+              last_name: registrationData.lastName,
+              phone_number: registrationData.phoneNumber || null
+            }])
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError)
+          }
+        }
+        
         await showInfo(
           'Account Created!',
           'Please check your email for verification link before signing in'
         )
+        
+        // Reset registration form
+        setRegistrationData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phoneNumber: '',
+          password: '',
+          confirmPassword: ''
+        })
+        setAcceptTerms(false)
+      } catch (error: any) {
+        console.error('Auth error:', error)
+        await showError('Sign Up Failed', error.message || 'An unexpected error occurred')
+      } finally {
+        setLoading(false)
       }
-    } catch (error: any) {
-      console.error('Auth error:', error)
-      await showError(
-        isLogin ? 'Login Failed' : 'Sign Up Failed',
-        error.message || 'An unexpected error occurred'
-      )
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -70,6 +138,17 @@ export function AuthForm() {
   const toggleAuthMode = () => {
     setIsLogin(!isLogin)
     setAcceptTerms(false)
+    // Reset forms when switching
+    setEmail('')
+    setPassword('')
+    setRegistrationData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phoneNumber: '',
+      password: '',
+      confirmPassword: ''
+    })
   }
 
   return (
@@ -81,15 +160,15 @@ export function AuthForm() {
 
       <ThemeToggle theme={theme} onToggle={cycleTheme} />
 
-      <div className="relative w-full max-w-sm">
-        <div className="bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-mint-200/50 dark:border-dark-600/50 p-6">
+      <div className="relative w-full max-w-2xl">
+        <div className="bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-mint-200/50 dark:border-dark-600/50 p-6 sm:p-8">
           <div className="text-center mb-6">
             <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl mx-auto mb-4 shadow-lg">
               <DollarSign className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-2xl font-semibold text-dark-500 dark:text-dark-100 mb-1">FinanceFlow</h1>
             <p className="text-sm text-dark-400 dark:text-dark-300 font-medium">
-              {isLogin ? 'Welcome back!' : 'Start your journey'}
+              {isLogin ? 'Welcome back!' : 'Create your account'}
             </p>
           </div>
 
@@ -105,15 +184,15 @@ export function AuthForm() {
               onSubmit={handleSubmit}
             />
           ) : (
-            <SignUpForm
-              email={email}
-              password={password}
+            <MultiStepSignUpForm
+              registrationData={registrationData}
+              onRegistrationDataChange={setRegistrationData}
               showPassword={showPassword}
-              acceptTerms={acceptTerms}
+              showConfirmPassword={showConfirmPassword}
               loading={loading}
-              onEmailChange={setEmail}
-              onPasswordChange={setPassword}
+              acceptTerms={acceptTerms}
               onTogglePassword={() => setShowPassword(!showPassword)}
+              onToggleConfirmPassword={() => setShowConfirmPassword(!showConfirmPassword)}
               onAcceptTermsChange={setAcceptTerms}
               onShowTerms={() => setShowTermsModal(true)}
               onSubmit={handleSubmit}
