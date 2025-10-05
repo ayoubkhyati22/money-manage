@@ -193,7 +193,7 @@ export function Dashboard() {
 
       {/* --- BOTTOM NAV MOBILE - ENHANCED DARK VERSION --- */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-dark-900/95 backdrop-blur-sm border-t border-gray-200/50 dark:border-dark-600/30 shadow-2xl z-50">
-        <div className="flex justify-around px-1 py-0.5">
+        <div className="flex justify-around px-1 py-0.5 m-3">
           {tabs.map((tab) => {
             const Icon = tab.icon
             const active = activeTab === tab.id

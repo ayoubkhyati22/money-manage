@@ -40,9 +40,11 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900">
+      <br />
+      <br />
       {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm shadow-md border-b border-mint-200/50 dark:border-dark-600/50 z-50">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <header className="fixed top-0 h-20 left-0 right-0 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm shadow-md border-b border-mint-200/50 dark:border-dark-600/50 z-50">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 m-6">
           <div className="flex justify-between items-center h-12 sm:h-14">
 
             {/* Logo */}
