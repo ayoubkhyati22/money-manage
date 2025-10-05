@@ -6,16 +6,19 @@ import { GoalManager } from './GoalManager/index'
 import { TransactionManager } from './TransactionManager'
 import { TransactionHistory } from './TransactionHistory'
 import { OverviewCards } from './OverviewCards/index'
+import { DCAManager } from './DCAManager'
+import { DCAPerformanceChart } from './DCAManager/DCAPerformanceChart'
 import {
   Building2,
   Target,
   ArrowDownCircle,
   History,
-  TrendingUp
+  TrendingUp,
+  LineChart
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-type ActiveTab = 'overview' | 'banks' | 'goals' | 'transactions' | 'history'
+type ActiveTab = 'overview' | 'banks' | 'goals' | 'transactions' | 'history' | 'dca'
 
 export function Dashboard() {
   const { user } = useAuth()
@@ -31,6 +34,7 @@ export function Dashboard() {
     { id: 'goals' as const, label: 'Goals', icon: Target },
     { id: 'transactions' as const, label: 'Withdraw', icon: ArrowDownCircle },
     { id: 'history' as const, label: 'History', icon: History },
+    { id: 'dca' as const, label: 'DCA', icon: LineChart },
   ]
 
   useEffect(() => {
@@ -131,6 +135,13 @@ export function Dashboard() {
         )
       case 'history':
         return <TransactionHistory onUpdate={refreshAllData} />
+      case 'dca':
+        return (
+          <div className="space-y-6">
+            <DCAManager />
+            <DCAPerformanceChart />
+          </div>
+        )
       default:
         return null
     }
