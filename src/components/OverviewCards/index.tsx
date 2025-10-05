@@ -7,6 +7,7 @@ import { StatsCards } from './StatsCards'
 import { FinancialGraphs } from './FinancialGraphs'
 import { BanksSection } from './BanksSection'
 import { ObjectivesSection } from './ObjectivesSection'
+import { BarChart3, Building2, Target } from 'lucide-react'
 
 interface OverviewCardsProps {
   banks: Bank[]
@@ -14,9 +15,12 @@ interface OverviewCardsProps {
   transactions: TransactionWithDetails[]
 }
 
+type OverviewTab = 'analytics' | 'banks' | 'objectives'
+
 export function OverviewCards({ banks, goals }: OverviewCardsProps) {
   const [objectivesWithAmounts, setObjectivesWithAmounts] = useState<ObjectiveWithAmount[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<OverviewTab>('analytics')
 
   const [banksCurrentPage, setBanksCurrentPage] = useState(1)
   const [objectivesCurrentPage, setObjectivesCurrentPage] = useState(1)
@@ -95,6 +99,12 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
   const objectivesEndIndex = objectivesStartIndex + objectivesPerPage
   const currentObjectives = objectivesWithAmounts.slice(objectivesStartIndex, objectivesEndIndex)
 
+  const tabs = [
+    { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
+    { id: 'banks' as const, label: 'Banks', icon: Building2 },
+    { id: 'objectives' as const, label: 'Objectives', icon: Target },
+  ]
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -115,7 +125,8 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
+      {/* Credit Card and Stats Cards */}
       <CreditCard totalBalance={totalBalance} banksCount={banks.length} />
 
       <StatsCards
@@ -125,35 +136,72 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
         totalWithdrawn={totalWithdrawn}
       />
 
-      {/* Financial Graphs Section */}
-      <FinancialGraphs 
-        banks={banks} 
-        goals={goals} 
-        objectives={objectivesWithAmounts} 
-      />
+      {/* Tabs Navigation */}
+      <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 overflow-hidden">
+        <div className="p-2 sm:p-3 bg-gradient-to-r from-gray-50 to-mint-50 dark:from-dark-900/30 dark:to-mint-900/20">
+          <div className="flex space-x-1 sm:space-x-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-primary-400 to-primary-500 text-white shadow-lg'
+                      : 'text-dark-500 dark:text-dark-300 hover:bg-primary-100 dark:hover:bg-dark-700'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline sm:inline">{tab.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <BanksSection
-          banks={banks}
-          currentPage={banksCurrentPage}
-          totalPages={totalBanksPages}
-          onPageChange={setBanksCurrentPage}
-          currentBanks={currentBanks}
-          startIndex={banksStartIndex}
-          endIndex={banksEndIndex}
-          totalCount={totalBanks}
-        />
+        {/* Tab Content */}
+        <div className="p-4 sm:p-6">
+          {activeTab === 'analytics' && (
+            <div className="animate-fadeIn">
+              <FinancialGraphs 
+                banks={banks} 
+                goals={goals} 
+                objectives={objectivesWithAmounts} 
+              />
+            </div>
+          )}
 
-        <ObjectivesSection
-          objectives={objectivesWithAmounts}
-          currentPage={objectivesCurrentPage}
-          totalPages={totalObjectivesPages}
-          onPageChange={setObjectivesCurrentPage}
-          currentObjectives={currentObjectives}
-          startIndex={objectivesStartIndex}
-          endIndex={objectivesEndIndex}
-          totalCount={totalObjectivesCount}
-        />
+          {activeTab === 'banks' && (
+            <div className="animate-fadeIn">
+              <BanksSection
+                banks={banks}
+                currentPage={banksCurrentPage}
+                totalPages={totalBanksPages}
+                onPageChange={setBanksCurrentPage}
+                currentBanks={currentBanks}
+                startIndex={banksStartIndex}
+                endIndex={banksEndIndex}
+                totalCount={totalBanks}
+              />
+            </div>
+          )}
+
+          {activeTab === 'objectives' && (
+            <div className="animate-fadeIn">
+              <ObjectivesSection
+                objectives={objectivesWithAmounts}
+                currentPage={objectivesCurrentPage}
+                totalPages={totalObjectivesPages}
+                onPageChange={setObjectivesCurrentPage}
+                currentObjectives={currentObjectives}
+                startIndex={objectivesStartIndex}
+                endIndex={objectivesEndIndex}
+                totalCount={totalObjectivesCount}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
