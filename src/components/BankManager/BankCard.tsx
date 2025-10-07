@@ -47,7 +47,7 @@ export function BankCard({
 
   return (
     <div className="group relative">
-      <div className={`relative w-full h-48 bg-gradient-to-br ${gradient} dark:${gradient} rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105 hover:-rotate-1 border border-white/10 overflow-hidden`}>
+      <div className={`relative w-full h-36 sm:h-48 bg-gradient-to-br ${gradient} dark:${gradient} rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105 hover:-rotate-1 border border-white/10 overflow-hidden`}>
 
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white to-transparent rounded-full -translate-y-16 translate-x-16"></div>
@@ -55,36 +55,36 @@ export function BankCard({
           <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-gradient-to-r from-white to-transparent rounded-full opacity-5 -translate-x-1/2 -translate-y-1/2"></div>
         </div>
 
-        <div className="absolute top-4 left-6 right-6 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+        <div className="absolute top-2 sm:top-4 left-3 sm:left-6 right-3 sm:right-6 flex items-center justify-between">
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
             {bank.logo ? (
-              <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center p-1">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center p-1">
                 <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
               </div>
             ) : (
-              <div className={`w-8 h-8 bg-gradient-to-br ${accent} rounded-lg flex items-center justify-center shadow-lg`}>
-                <Building2 className="w-4 h-4 text-white" />
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br ${accent} rounded-lg flex items-center justify-center shadow-lg`}>
+                <Building2 className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
               </div>
             )}
             <div>
-              <p className="text-white/90 text-sm font-medium">{bank.name}</p>
-              <p className="text-white/60 text-xs">FinanceFlow</p>
+              <p className="text-white/90 text-xs sm:text-sm font-medium">{bank.name}</p>
+              <p className="text-white/60 text-[10px] sm:text-xs hidden sm:block">FinanceFlow</p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-0.5 sm:space-x-1">
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 onToggleVisibility(bank.id)
               }}
-              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors z-10"
+              className="p-1 sm:p-1.5 hover:bg-white/10 rounded-lg transition-colors z-10"
               title={isBalanceHidden ? 'Show balance' : 'Hide balance'}
             >
               {isBalanceHidden ? (
-                <EyeOff className="w-4 h-4 text-white/70 hover:text-white" />
+                <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70 hover:text-white" />
               ) : (
-                <Eye className="w-4 h-4 text-white/70 hover:text-white" />
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70 hover:text-white" />
               )}
             </button>
             <button
@@ -92,38 +92,38 @@ export function BankCard({
                 e.stopPropagation()
                 onEdit(bank)
               }}
-              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors z-10"
+              className="p-1 sm:p-1.5 hover:bg-white/10 rounded-lg transition-colors z-10"
               title="Edit Bank"
             >
-              <Edit2 className="w-4 h-4 text-white/70 hover:text-white" />
+              <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70 hover:text-white" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 onDelete(bank)
               }}
-              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors z-10"
+              className="p-1 sm:p-1.5 hover:bg-white/10 rounded-lg transition-colors z-10"
               title="Delete Bank"
             >
-              <Trash2 className="w-4 h-4 text-white/70 hover:text-red-300" />
+              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70 hover:text-red-300" />
             </button>
           </div>
         </div>
 
-        <div className="absolute top-1/2 left-6 right-6 -translate-y-1/2">
+        <div className="absolute top-1/2 left-3 sm:left-6 right-3 sm:right-6 -translate-y-1/2">
           <div>
-            <p className="text-white/60 text-xs uppercase tracking-wider mb-1">Available Balance</p>
+            <p className="text-white/60 text-[10px] sm:text-xs uppercase tracking-wider mb-0.5 sm:mb-1">Available Balance</p>
             <div className="relative">
               {isBalanceHidden ? (
-                <h3 className="text-2xl font-bold text-white tracking-wide">
-                  ••••••• <span className="text-sm font-medium text-white/80">MAD</span>
+                <h3 className="text-lg sm:text-2xl font-bold text-white tracking-wide">
+                  ••••••• <span className="text-xs sm:text-sm font-medium text-white/80">MAD</span>
                 </h3>
               ) : (
-                <h3 className="text-2xl font-bold text-white tracking-wide">
+                <h3 className="text-lg sm:text-2xl font-bold text-white tracking-wide">
                   {Number(bank.balance).toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
-                  })} <span className="text-sm font-medium text-white/80">MAD</span>
+                  })} <span className="text-xs sm:text-sm font-medium text-white/80">MAD</span>
                 </h3>
               )}
 
@@ -134,12 +134,12 @@ export function BankCard({
 
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-        <div className="absolute top-16 left-6 w-8 h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-sm shadow-inner opacity-80"></div>
+        <div className="absolute top-10 sm:top-16 left-3 sm:left-6 w-6 h-4 sm:w-8 sm:h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-sm shadow-inner opacity-80"></div>
 
-        <div className="absolute bottom-4 right-6">
+        <div className="absolute bottom-2 sm:bottom-4 right-3 sm:right-6">
           <div className="flex items-center space-x-1">
-            <div className="w-6 h-4 bg-white/20 rounded-sm flex items-center justify-center">
-              <CreditCard className="w-3 h-3 text-white/60" />
+            <div className="w-5 h-3 sm:w-6 sm:h-4 bg-white/20 rounded-sm flex items-center justify-center">
+              <CreditCard className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white/60" />
             </div>
           </div>
         </div>

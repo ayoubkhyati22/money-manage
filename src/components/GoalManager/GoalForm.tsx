@@ -18,35 +18,35 @@ interface GoalFormProps {
 
 export function GoalForm({ formData, editingGoal, loading, onSubmit, onChange, onCancel }: GoalFormProps) {
   return (
-    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-100 mb-4">
+    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600 p-3 sm:p-6">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-dark-100 mb-3 sm:mb-4">
         {editingGoal ? 'Edit Objective' : 'Add New Objective'}
       </h3>
 
-      <form onSubmit={onSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={onSubmit} className="space-y-3 sm:space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
               Objective Name *
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => onChange({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
+              className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
               placeholder="e.g., Car, Marriage, Bike"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
               Category
             </label>
             <select
               value={formData.category}
               onChange={(e) => onChange({ ...formData, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
+              className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
             >
               <option value="">Select category...</option>
               {categories.map(category => (
@@ -56,9 +56,9 @@ export function GoalForm({ formData, editingGoal, loading, onSubmit, onChange, o
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
               Target Amount (MAD)
             </label>
             <input
@@ -67,49 +67,49 @@ export function GoalForm({ formData, editingGoal, loading, onSubmit, onChange, o
               min="0"
               value={formData.target_amount}
               onChange={(e) => onChange({ ...formData, target_amount: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
+              className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
               placeholder="10000.00"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
               Target Date
             </label>
             <input
               type="date"
               value={formData.target_date}
               onChange={(e) => onChange({ ...formData, target_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
+              className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
             Notes
           </label>
           <textarea
             value={formData.notes}
             onChange={(e) => onChange({ ...formData, notes: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
-            rows={3}
+            className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
+            rows={2}
             placeholder="Optional notes about this objective..."
           />
         </div>
 
-        <div className="flex items-center space-x-3 pt-4">
+        <div className="flex items-center space-x-2 sm:space-x-3 pt-2 sm:pt-4">
           <button
             type="submit"
             disabled={loading}
-            className="bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            className="bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 text-sm rounded-lg transition-colors disabled:opacity-50"
           >
-            {loading ? 'Saving...' : (editingGoal ? 'Update Objective' : 'Add Objective')}
+            {loading ? 'Saving...' : (editingGoal ? 'Update' : 'Add')}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 px-4 py-2 rounded-lg transition-colors"
+            className="text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 px-3 py-1.5 sm:px-4 sm:py-2 text-sm rounded-lg transition-colors"
           >
             Cancel
           </button>

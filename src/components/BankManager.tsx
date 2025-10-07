@@ -26,7 +26,7 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <BankHeader onAddClick={toggleForm} />
 
       {showForm && (

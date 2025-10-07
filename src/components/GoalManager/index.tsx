@@ -390,14 +390,14 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-dark-100">Financial Objectives</h2>
+        <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-dark-100">Financial Objectives</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center space-x-2 bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center space-x-1.5 sm:space-x-2 bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 text-sm rounded-lg transition-colors"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span>Add</span>
         </button>
       </div>
@@ -453,19 +453,19 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       )}
 
       <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600">
-        <div className="p-6 border-b border-gray-200 dark:border-dark-600">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-100">Your Objectives</h3>
+        <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-dark-600">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-dark-100">Your Objectives</h3>
         </div>
 
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
           {goals.length === 0 ? (
-            <div className="text-center py-8">
-              <Target className="mx-auto w-12 h-12 text-gray-400 dark:text-dark-500 mb-4" />
-              <p className="text-gray-500 dark:text-dark-300">No objectives created yet</p>
-              <p className="text-sm text-gray-400 dark:text-dark-400 mt-1">Click "Add Objective" to get started</p>
+            <div className="text-center py-6 sm:py-8">
+              <Target className="mx-auto w-10 h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-dark-500 mb-3 sm:mb-4" />
+              <p className="text-sm sm:text-base text-gray-500 dark:text-dark-300">No objectives created yet</p>
+              <p className="text-xs sm:text-sm text-gray-400 dark:text-dark-400 mt-1">Click "Add" to get started</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {goals.map((goal) => (
                 <GoalCard
                   key={goal.id}

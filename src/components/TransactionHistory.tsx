@@ -21,7 +21,7 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
   } = useTransactionHistory(onUpdate)
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <TransactionHeader
         showWithdrawnOnly={showWithdrawnOnly}
         onToggleFilter={toggleFilter}
@@ -29,11 +29,11 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
       />
 
       <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600">
-        <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-dark-600">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-100">
+        <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-dark-600">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-dark-100">
             {showWithdrawnOnly ? 'Withdrawn Transactions' : 'All Transactions'}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-dark-300 mt-1">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-dark-300 mt-0.5 sm:mt-1">
             {showWithdrawnOnly ? 'Only withdrawals from objectives.' : 'Recent financial activities.'}
           </p>
         </div>
