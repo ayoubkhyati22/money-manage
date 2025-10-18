@@ -8,28 +8,34 @@ interface CreditCardProps {
 }
 
 export function CreditCard({ totalBalance, banksCount }: CreditCardProps) {
-  const [showBalance, setShowBalance] = useState(true)
+  const [showBalance, setShowBalance] = useState(false)
 
   return (
-    <div className="w-full">
-      <div className="w-full max-w-md mx-auto relative group">
+    <div className="w-full flex justify-center py-10">
+      <div className="relative w-full max-w-md group">
+        {/* Outer glowing ring */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+        {/* Card container */}
         <div
           className="
-            relative w-full h-48 
+            relative w-full h-52 
+            rounded-2xl shadow-2xl overflow-hidden
+            border border-white/10 backdrop-blur-xl
             bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 
             dark:from-[#0b0b0f] dark:via-[#12121a] dark:to-[#1a1a24]
-            rounded-2xl shadow-2xl transform transition-all duration-500 
-            hover:scale-105 hover:rotate-1 
-            border border-slate-700/40 dark:border-dark-600/40 
-            overflow-hidden
+            transition-all duration-500
           "
         >
-          {/* Gradient lights */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full -translate-x-16 -translate-y-16 blur-xl dark:opacity-30"></div>
-            <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-accent-400 to-accent-600 rounded-full translate-x-12 translate-y-12 blur-xl dark:opacity-30"></div>
-            <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-gradient-to-r from-mint-400 to-mint-600 rounded-full opacity-10 -translate-x-1/2 -translate-y-1/2 blur-2xl dark:opacity-20"></div>
+          {/* Dynamic gradient lights */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-20 -left-20 w-64 h-64 bg-gradient-to-br from-blue-400/40 via-cyan-400/30 to-transparent rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute top-24 -right-24 w-72 h-72 bg-gradient-to-tl from-fuchsia-500/30 via-purple-400/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-0 left-1/2 w-72 h-72 -translate-x-1/2 bg-gradient-to-t from-emerald-400/10 to-transparent rounded-full blur-2xl opacity-40"></div>
           </div>
+
+          {/* Animated light reflection */}
+          <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.05)_50%,transparent_100%)] bg-[length:200%_100%] animate-[shine_4s_infinite] pointer-events-none" />
 
           {/* Top section */}
           <div className="absolute top-6 left-6 right-6 flex items-center justify-between">
@@ -45,39 +51,50 @@ export function CreditCard({ totalBalance, banksCount }: CreditCardProps) {
 
             <button
               onClick={() => setShowBalance(!showBalance)}
-              className="p-2 hover:bg-white/10 dark:hover:bg-white/5 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/10 dark:hover:bg-white/5 rounded-lg transition-colors z-10 relative"
               title={showBalance ? 'Hide balance' : 'Show balance'}
             >
               {showBalance ? (
-                <Eye className="w-4 h-4 text-white/70 hover:text-white" />
-              ) : (
                 <EyeOff className="w-4 h-4 text-white/70 hover:text-white" />
+              ) : (
+                <Eye className="w-4 h-4 text-white/70 hover:text-white" />
               )}
             </button>
           </div>
 
-          {/* Balance */}
+          {/* Balance section */}
           <div className="absolute top-1/2 left-6 right-6 -translate-y-1/2">
             <div className="text-center">
               <p className="text-white/60 text-xs uppercase tracking-wider mb-2">
                 Available Balance
               </p>
               <div className="relative">
-                {showBalance ? (
-                  <h2 className="text-3xl font-bold text-white mb-1 tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.15)]">
-                    {totalBalance.toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}{' '}
-                    <span className="text-lg font-medium text-white/80">MAD</span>
-                  </h2>
-                ) : (
-                  <h2 className="text-3xl font-bold text-white mb-1 tracking-wide">
-                    ••••••• <span className="text-lg font-medium text-white/80">MAD</span>
-                  </h2>
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 transform translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000 ease-in-out"></div>
+                <h2
+                  className={`text-3xl font-bold text-white mb-1 tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.15)] transition-all duration-500 ${
+                    showBalance
+                      ? 'blur-0 opacity-100'
+                      : 'blur-md opacity-60 select-none'
+                  }`}
+                >
+                  {showBalance ? (
+                    <>
+                      {totalBalance.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}{' '}
+                      <span className="text-lg font-medium text-white/80">
+                        MAD
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      •••••••{' '}
+                      <span className="text-lg font-medium text-white/80">
+                        MAD
+                      </span>
+                    </>
+                  )}
+                </h2>
               </div>
             </div>
           </div>
@@ -97,17 +114,20 @@ export function CreditCard({ totalBalance, banksCount }: CreditCardProps) {
               <span className="text-white/70 text-xs">{banksCount} Banks</span>
             </div>
           </div>
-
-          {/* Subtle overlay shine */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-          {/* Chip element */}
-          {/* <div className="absolute top-16 left-6 w-8 h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-sm shadow-inner shadow-yellow-500/50 opacity-90"></div> */}
         </div>
-
-        {/* Soft glowing backdrop */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/70 to-transparent rounded-2xl blur-xl scale-105 -z-10 opacity-60 group-hover:opacity-80 transition-opacity duration-700"></div>
       </div>
+
+      {/* Shine keyframes */}
+      <style jsx>{`
+        @keyframes shine {
+          0% {
+            background-position: 200% 0;
+          }
+          100% {
+            background-position: -200% 0;
+          }
+        }
+      `}</style>
     </div>
   )
 }

@@ -20,7 +20,7 @@ type OverviewTab = 'analytics' | 'banks' | 'objectives'
 export function OverviewCards({ banks, goals }: OverviewCardsProps) {
   const [objectivesWithAmounts, setObjectivesWithAmounts] = useState<ObjectiveWithAmount[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<OverviewTab>('analytics')
+  const [activeTab, setActiveTab] = useState<OverviewTab>('objectives')
 
   const [banksCurrentPage, setBanksCurrentPage] = useState(1)
   const [objectivesCurrentPage, setObjectivesCurrentPage] = useState(1)
@@ -68,7 +68,14 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
         }
       })
 
-      setObjectivesWithAmounts(objectivesWithAmounts)
+      // Sort objectives by percentage (highest first)
+      const sortedObjectives = objectivesWithAmounts.sort((a, b) => {
+        const percentA = a.target_amount ? (a.total_amount / a.target_amount) * 100 : 0
+        const percentB = b.target_amount ? (b.total_amount / b.target_amount) * 100 : 0
+        return percentB - percentA
+      })
+
+      setObjectivesWithAmounts(sortedObjectives)
     } catch (error: any) {
       console.error('Error loading objective amounts:', error)
       toast.error('Error loading data: ' + error.message)
@@ -100,9 +107,9 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
   const currentObjectives = objectivesWithAmounts.slice(objectivesStartIndex, objectivesEndIndex)
 
   const tabs = [
+    { id: 'objectives' as const, label: 'Objectives', icon: Target },
     { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
     { id: 'banks' as const, label: 'Banks', icon: Building2 },
-    { id: 'objectives' as const, label: 'Objectives', icon: Target },
   ]
 
   if (loading) {
@@ -146,11 +153,10 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 ${
-                    activeTab === tab.id
-                      ? 'bg-gradient-to-r from-primary-400 to-primary-500 text-white shadow-lg'
-                      : 'text-dark-500 dark:text-dark-300 hover:bg-primary-100 dark:hover:bg-dark-700'
-                  }`}
+                  className={`flex-1 flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 ${activeTab === tab.id
+                    ? 'bg-gradient-to-r from-primary-400 to-primary-500 text-white shadow-lg'
+                    : 'text-dark-500 dark:text-dark-300 hover:bg-primary-100 dark:hover:bg-dark-700'
+                    }`}
                 >
                   <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span className="hidden xs:inline sm:inline">{tab.label}</span>
@@ -162,12 +168,27 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
 
         {/* Tab Content */}
         <div className="p-4 sm:p-6">
+          {activeTab === 'objectives' && (
+            <div className="animate-fadeIn">
+              <ObjectivesSection
+                objectives={objectivesWithAmounts}
+                currentPage={objectivesCurrentPage}
+                totalPages={totalObjectivesPages}
+                onPageChange={setObjectivesCurrentPage}
+                currentObjectives={currentObjectives}
+                startIndex={objectivesStartIndex}
+                endIndex={objectivesEndIndex}
+                totalCount={totalObjectivesCount}
+              />
+            </div>
+          )}
+
           {activeTab === 'analytics' && (
             <div className="animate-fadeIn">
-              <FinancialGraphs 
-                banks={banks} 
-                goals={goals} 
-                objectives={objectivesWithAmounts} 
+              <FinancialGraphs
+                banks={banks}
+                goals={goals}
+                objectives={objectivesWithAmounts}
               />
             </div>
           )}
@@ -183,21 +204,6 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
                 startIndex={banksStartIndex}
                 endIndex={banksEndIndex}
                 totalCount={totalBanks}
-              />
-            </div>
-          )}
-
-          {activeTab === 'objectives' && (
-            <div className="animate-fadeIn">
-              <ObjectivesSection
-                objectives={objectivesWithAmounts}
-                currentPage={objectivesCurrentPage}
-                totalPages={totalObjectivesPages}
-                onPageChange={setObjectivesCurrentPage}
-                currentObjectives={currentObjectives}
-                startIndex={objectivesStartIndex}
-                endIndex={objectivesEndIndex}
-                totalCount={totalObjectivesCount}
               />
             </div>
           )}

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-type ActiveTab = 'overview' | 'banks' | 'goals' | 'transactions' | 'history' | 'dca'
+type ActiveTab = 'overview' | 'goals' | 'banks' | 'transactions' | 'history' | 'dca'
 
 export function Dashboard() {
   const { user } = useAuth()
@@ -30,8 +30,8 @@ export function Dashboard() {
 
   const tabs = [
     { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
-    { id: 'banks' as const, label: 'Banks', icon: Building2 },
     { id: 'goals' as const, label: 'Goals', icon: Target },
+    { id: 'banks' as const, label: 'Banks', icon: Building2 },
     { id: 'transactions' as const, label: 'Withdraw', icon: ArrowDownCircle },
     { id: 'history' as const, label: 'History', icon: History },
     // { id: 'dca' as const, label: 'DCA', icon: LineChart },
@@ -111,16 +111,6 @@ export function Dashboard() {
     switch (activeTab) {
       case 'overview':
         return <OverviewCards banks={banks} goals={goals} transactions={transactions} />
-      case 'banks':
-        return (
-          <BankManager
-            banks={banks}
-            onUpdate={(updated) => {
-              setBanks(updated)
-              refreshAllData()
-            }}
-          />
-        )
       case 'goals':
         return (
           <GoalManager
@@ -131,6 +121,16 @@ export function Dashboard() {
               loadBanks()
             }}
             onBanksUpdate={setBanks}
+          />
+        )
+      case 'banks':
+        return (
+          <BankManager
+            banks={banks}
+            onUpdate={(updated) => {
+              setBanks(updated)
+              refreshAllData()
+            }}
           />
         )
       case 'transactions':
