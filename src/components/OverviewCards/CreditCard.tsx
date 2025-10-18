@@ -56,15 +56,15 @@ function CreditCard({ totalBalance, banksCount, banks }: CreditCardProps) {
               <p className="text-xs sm:text-sm text-gray-300 font-medium">Total Balance</p>
               <div className="flex items-center space-x-2">
                 <h2
-                  className={`text-2xl sm:text-3xl font-bold text-white transition-all duration-300 ${
-                    showTotalBalance ? 'blur-0' : 'blur-sm select-none'
-                  }`}
+                  className={`text-2xl sm:text-3xl font-bold transition-all duration-300 ${showTotalBalance ? 'blur-0' : 'blur-sm select-none'
+                    } ${showTotalBalance ? 'text-gray-900 dark:text-white' : 'text-gray-900/60 dark:text-white/60'}`}
                 >
                   {showTotalBalance
                     ? totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                     : '•••••••'}
                 </h2>
-                <span className="text-sm sm:text-base font-medium text-gray-300">MAD</span>
+                <span className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">MAD</span>
+
               </div>
               <p className="text-xs text-gray-400 mt-1">
                 Across {banksCount} bank{banksCount !== 1 ? 's' : ''}
