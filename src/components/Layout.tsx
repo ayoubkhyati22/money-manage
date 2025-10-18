@@ -94,7 +94,7 @@ export function Layout({ children }: LayoutProps) {
                 className="flex items-center space-x-1.5 px-2 py-1.5 text-xs font-medium text-dark-500 dark:text-dark-200 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-dark-700 rounded-lg border border-mint-200 dark:border-dark-600 transition-all duration-300"
               >
                 <User className="w-4 h-4" />
-                <span className="truncate max-w-[100px]">{user?.email}</span>
+                <span className="truncate max-w-[100px]">{user?.email?.split("@")[0]}</span>
                 {isMenuOpen ? <X className="w-3.5 h-3.5" /> : <Menu className="w-3.5 h-3.5" />}
               </button>
 
