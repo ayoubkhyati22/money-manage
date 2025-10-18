@@ -13,67 +13,96 @@ export default {
         'semibold': '600',
       },
       colors: {
-        // Primary Brand Colors
+        // Primary Brand Colors - Lime Green
         primary: {
-          50: '#f7fdf0',
-          100: '#ecfbdb',
-          200: '#daf6bd',
-          300: '#bfec90',
-          400: '#B3DD62', // Primary Green
-          500: '#9bc73f',
-          600: '#7ba42f',
-          700: '#5f7f27',
-          800: '#4d6624',
-          900: '#425521',
+          50: '#f9ffe6',
+          100: '#f0ffc7',
+          200: '#e5ff99',
+          300: '#d4f766',
+          400: '#C4D600', // Primary Lime Green
+          500: '#a8b800',
+          600: '#8BC34A', // Secondary Lime Green
+          700: '#6d9c36',
+          800: '#527a2b',
+          900: '#3d5c20',
         },
+        // Accent Colors - Orange/Coral
         accent: {
-          50: '#fdf9f3',
-          100: '#fbf1e3',
-          200: '#f6e0c1',
-          300: '#efc895',
-          400: '#DDAD71', // Accent Orange
-          500: '#d4924a',
-          600: '#c67a3f',
-          700: '#a56135',
-          800: '#845030',
-          900: '#6c4229',
+          50: '#fff5f0',
+          100: '#ffe8db',
+          200: '#ffcdb3',
+          300: '#ffab80',
+          400: '#FF6B35', // Primary Orange
+          500: '#FF7043', // Coral
+          600: '#f4511e',
+          700: '#e64a19',
+          800: '#d84315',
+          900: '#bf360c',
         },
+        // Cyan/Blue Highlights
+        cyan: {
+          50: '#e0f7fa',
+          100: '#b2ebf2',
+          200: '#80deea',
+          300: '#4DD0E1', // Light Cyan
+          400: '#00BCD4', // Primary Cyan
+          500: '#00acc1',
+          600: '#0097a7',
+          700: '#00838f',
+          800: '#006064',
+          900: '#004d40',
+        },
+        // Alert/Error Colors
+        alert: {
+          50: '#ffebee',
+          100: '#ffcdd2',
+          200: '#ef9a9a',
+          300: '#e57373',
+          400: '#FF5252', // Primary Red
+          500: '#F44336', // Error Red
+          600: '#e53935',
+          700: '#d32f2f',
+          800: '#c62828',
+          900: '#b71c1c',
+        },
+        // Gold/Yellow
+        gold: {
+          50: '#fffde7',
+          100: '#fff9c4',
+          200: '#fff59d',
+          300: '#fff176',
+          400: '#FFD700', // Primary Gold
+          500: '#FFC107', // Amber
+          600: '#ffb300',
+          700: '#ffa000',
+          800: '#ff8f00',
+          900: '#ff6f00',
+        },
+        // Neutrals - Gray Scale
+        gray: {
+          50: '#FAFAFA',
+          100: '#F5F5F5',
+          200: '#EEEEEE',
+          300: '#E0E0E0',
+          400: '#BDBDBD',
+          500: '#9E9E9E',
+          600: '#757575',
+          700: '#616161',
+          800: '#424242',
+          900: '#212121',
+        },
+        // Dark Theme Colors
         dark: {
-          50: '#f0f4f3',
-          100: '#dce6e4',
-          200: '#b9cec9',
-          300: '#90aea7',
-          400: '#6a8d84',
-          500: '#2C5E54', // Dark Green
-          600: '#245048',
-          700: '#1f423b',
-          800: '#1c3731',
-          900: '#1a2f2a',
-        },
-        mint: {
-          50: '#f2fbf7',
-          100: '#d3f5e8',
-          200: '#a7ebd1',
-          300: '#ABDAC5', // Soft Mint (using as 300)
-          400: '#6dd4ad',
-          500: '#4abe96',
-          600: '#37a07b',
-          700: '#2e8064',
-          800: '#286651',
-          900: '#235544',
-        },
-        // Keep existing colors for backward compatibility
-        emerald: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#10b981',
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
+          50: '#eceff1',
+          100: '#cfd8dc',
+          200: '#b0bec5',
+          300: '#90a4ae',
+          400: '#78909c',
+          500: '#607d8b',
+          600: '#546e7a',
+          700: '#455a64',
+          800: '#37474f',
+          900: '#263238',
         }
       },
       // Add specific dark mode background colors
@@ -86,6 +115,12 @@ export default {
         'dark-primary': '#e6e6e6',
         'dark-secondary': '#b3b3b3',
         'dark-muted': '#808080',
+      },
+      // Financial app specific gradients
+      backgroundImage: {
+        'gradient-lime': 'linear-gradient(135deg, #C4D600 0%, #8BC34A 100%)',
+        'gradient-orange': 'linear-gradient(135deg, #FF6B35 0%, #FF7043 100%)',
+        'gradient-cyan': 'linear-gradient(135deg, #4DD0E1 0%, #00BCD4 100%)',
       }
     },
   },

@@ -22,7 +22,7 @@ export function MobileView({
   onLoadMore
 }: MobileViewProps) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {transactions.length === 0 && !loading ? (
         <EmptyState showWithdrawnOnly={showWithdrawnOnly} />
       ) : (
@@ -36,10 +36,10 @@ export function MobileView({
       )}
 
       {hasMore && !loading && !isDesktop && (
-        <div className="mt-4 flex justify-center">
+        <div className="pt-3 flex justify-center">
           <button
             onClick={onLoadMore}
-            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-dark-700 hover:bg-gray-200 dark:hover:bg-dark-600 text-gray-700 dark:text-dark-200 text-sm font-medium"
+            className="px-6 py-2.5 rounded-xl bg-gradient-lime text-white text-sm font-medium shadow-brand hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
           >
             Load more
           </button>
@@ -47,8 +47,11 @@ export function MobileView({
       )}
 
       {loading && (
-        <div className="mt-4 text-center text-sm text-gray-500 dark:text-dark-400">
-          Loading...
+        <div className="pt-3 flex justify-center">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-dark-400">
+            <div className="spinner"></div>
+            <span>Loading...</span>
+          </div>
         </div>
       )}
     </div>

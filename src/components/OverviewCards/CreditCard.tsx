@@ -77,7 +77,6 @@ export function CreditCard({ totalBalance, banksCount }: CreditCardProps) {
                   </h2>
                 )}
 
-                {/* Shiny reflection line */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 transform translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000 ease-in-out"></div>
               </div>
             </div>
@@ -103,7 +102,7 @@ export function CreditCard({ totalBalance, banksCount }: CreditCardProps) {
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
           {/* Chip element */}
-          <div className="absolute top-16 left-6 w-8 h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-sm shadow-inner shadow-yellow-500/50 opacity-90"></div>
+          {/* <div className="absolute top-16 left-6 w-8 h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-sm shadow-inner shadow-yellow-500/50 opacity-90"></div> */}
         </div>
 
         {/* Soft glowing backdrop */}

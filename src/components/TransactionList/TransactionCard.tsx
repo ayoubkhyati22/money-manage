@@ -1,4 +1,4 @@
-import { Calendar, Building2, Target, ArrowDownCircle, RotateCcw } from 'lucide-react'
+import { Calendar, Building2, Target, ArrowDownCircle, TrendingUp, RotateCcw } from 'lucide-react'
 import { format } from 'date-fns'
 import { ObjectiveTransaction } from '../../types/transaction'
 
@@ -11,72 +11,70 @@ export function TransactionCard({ transaction, onReturn }: TransactionCardProps)
   const isPositive = transaction.amount >= 0
 
   return (
-    <div
-      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl p-4 sm:p-5 border transition-all duration-300 ${
-        isPositive
-          ? 'border-green-100 dark:border-green-800/40 bg-green-50/50 dark:bg-green-950/10'
-          : 'border-red-100 dark:border-red-800/40 bg-red-50/50 dark:bg-red-950/10'
-      } hover:shadow-lg hover:scale-[1.01]`}
-    >
-      {/* Left Side */}
-      <div className="flex items-start gap-4">
+    <div className="flex items-center justify-between rounded-xl p-3 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 hover:shadow-md transition-all duration-200">
+      {/* Left: Icon + Main Info */}
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        {/* Icon */}
         <div
-          className={`flex items-center justify-center w-12 h-12 rounded-xl ${
+          className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
             isPositive
-              ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400'
-              : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400'
+              ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
+              : 'bg-accent-100 dark:bg-accent-900/20 text-accent-600 dark:text-accent-400'
           }`}
         >
-          {isPositive ? <Target className="w-6 h-6" /> : <ArrowDownCircle className="w-6 h-6" />}
+          {isPositive ? <TrendingUp className="w-5 h-5" /> : <ArrowDownCircle className="w-5 h-5" />}
         </div>
 
-        <div className="flex flex-col text-sm sm:text-base text-gray-700 dark:text-dark-200">
-          <div className="flex items-center gap-2 text-gray-500 dark:text-dark-300 text-xs sm:text-sm">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            {format(new Date(transaction.created_at), 'MMM dd, yyyy HH:mm')}
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
+              {transaction.objective_name}
+            </h3>
+            <span className="text-xs text-gray-400 dark:text-dark-500">•</span>
+            <span className="text-xs text-gray-500 dark:text-dark-400 truncate">
+              {transaction.bank_name}
+            </span>
           </div>
-
-          <div className="flex items-center gap-2 mt-1">
-            <Building2 className="w-4 h-4 text-gray-400" />
-            <span className="font-medium">{transaction.bank_name}</span>
-          </div>
-
-          <div className="flex items-center gap-2 mt-1">
-            <Target className="w-4 h-4 text-gray-400" />
-            <span className="font-medium">{transaction.objective_name}</span>
+          
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-dark-400">
+            <Calendar className="w-3 h-3" />
+            <span>{format(new Date(transaction.created_at), 'MMM dd, HH:mm')}</span>
           </div>
 
           {transaction.description && (
-            <p className="italic text-gray-500 dark:text-dark-400 mt-2 text-xs sm:text-sm leading-snug line-clamp-2">
-              “{transaction.description}”
+            <p className="text-xs text-gray-500 dark:text-dark-400 mt-1 line-clamp-1 italic">
+              "{transaction.description}"
             </p>
           )}
         </div>
       </div>
 
-      {/* Right Side */}
-      <div className="flex items-center justify-between sm:justify-end gap-3 mt-4 sm:mt-0">
+      {/* Right: Amount + Action */}
+      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
         <div className="text-right">
           <p
-            className={`text-lg sm:text-xl font-semibold ${
-              isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+            className={`text-base font-semibold whitespace-nowrap ${
+              isPositive
+                ? 'text-primary-600 dark:text-primary-400'
+                : 'text-accent-600 dark:text-accent-400'
             }`}
           >
             {isPositive ? '+' : ''}
-            {transaction.amount.toFixed(2)} MAD
+            {transaction.amount.toFixed(2)}
           </p>
-          <p className="text-xs text-gray-500 dark:text-dark-400">
-            {isPositive ? 'Added' : 'Withdrawn'}
+          <p className="text-[10px] text-gray-400 dark:text-dark-500 uppercase tracking-wide">
+            MAD
           </p>
         </div>
 
         {!isPositive && (
           <button
             onClick={() => onReturn(transaction)}
-            className="p-2 rounded-xl text-gray-400 dark:text-dark-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+            className="p-1.5 rounded-lg text-cyan-500 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-all duration-200"
             title="Return Money"
           >
-            <RotateCcw className="w-5 h-5" />
+            <RotateCcw className="w-4 h-4" />
           </button>
         )}
       </div>

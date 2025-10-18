@@ -7,53 +7,89 @@
 
 /* Theme CSS Variables */
 :root {
-  /* Primary Colors */
-  --color-primary-50: #f7fdf0;
-  --color-primary-100: #ecfbdb;
-  --color-primary-200: #daf6bd;
-  --color-primary-300: #bfec90;
-  --color-primary-400: #B3DD62;
-  --color-primary-500: #9bc73f;
-  --color-primary-600: #7ba42f;
-  --color-primary-700: #5f7f27;
-  --color-primary-800: #4d6624;
-  --color-primary-900: #425521;
+  /* Primary Colors - Lime Green */
+  --color-primary-50: #f9ffe6;
+  --color-primary-100: #f0ffc7;
+  --color-primary-200: #e5ff99;
+  --color-primary-300: #d4f766;
+  --color-primary-400: #C4D600;
+  --color-primary-500: #a8b800;
+  --color-primary-600: #8BC34A;
+  --color-primary-700: #6d9c36;
+  --color-primary-800: #527a2b;
+  --color-primary-900: #3d5c20;
   
-  /* Accent Colors */
-  --color-accent-50: #fdf9f3;
-  --color-accent-100: #fbf1e3;
-  --color-accent-200: #f6e0c1;
-  --color-accent-300: #efc895;
-  --color-accent-400: #DDAD71;
-  --color-accent-500: #d4924a;
-  --color-accent-600: #c67a3f;
-  --color-accent-700: #a56135;
-  --color-accent-800: #845030;
-  --color-accent-900: #6c4229;
+  /* Accent Colors - Orange/Coral */
+  --color-accent-50: #fff5f0;
+  --color-accent-100: #ffe8db;
+  --color-accent-200: #ffcdb3;
+  --color-accent-300: #ffab80;
+  --color-accent-400: #FF6B35;
+  --color-accent-500: #FF7043;
+  --color-accent-600: #f4511e;
+  --color-accent-700: #e64a19;
+  --color-accent-800: #d84315;
+  --color-accent-900: #bf360c;
   
-  /* Dark Colors */
-  --color-dark-50: #f0f4f3;
-  --color-dark-100: #dce6e4;
-  --color-dark-200: #b9cec9;
-  --color-dark-300: #90aea7;
-  --color-dark-400: #6a8d84;
-  --color-dark-500: #2C5E54;
-  --color-dark-600: #245048;
-  --color-dark-700: #1f423b;
-  --color-dark-800: #1c3731;
-  --color-dark-900: #1a2f2a;
+  /* Cyan/Blue Highlights */
+  --color-cyan-50: #e0f7fa;
+  --color-cyan-100: #b2ebf2;
+  --color-cyan-200: #80deea;
+  --color-cyan-300: #4DD0E1;
+  --color-cyan-400: #00BCD4;
+  --color-cyan-500: #00acc1;
+  --color-cyan-600: #0097a7;
+  --color-cyan-700: #00838f;
+  --color-cyan-800: #006064;
+  --color-cyan-900: #004d40;
   
-  /* Mint Colors */
-  --color-mint-50: #f2fbf7;
-  --color-mint-100: #d3f5e8;
-  --color-mint-200: #a7ebd1;
-  --color-mint-300: #ABDAC5;
-  --color-mint-400: #6dd4ad;
-  --color-mint-500: #4abe96;
-  --color-mint-600: #37a07b;
-  --color-mint-700: #2e8064;
-  --color-mint-800: #286651;
-  --color-mint-900: #235544;
+  /* Alert Colors */
+  --color-alert-50: #ffebee;
+  --color-alert-100: #ffcdd2;
+  --color-alert-200: #ef9a9a;
+  --color-alert-300: #e57373;
+  --color-alert-400: #FF5252;
+  --color-alert-500: #F44336;
+  --color-alert-600: #e53935;
+  --color-alert-700: #d32f2f;
+  --color-alert-800: #c62828;
+  --color-alert-900: #b71c1c;
+  
+  /* Gold/Yellow */
+  --color-gold-50: #fffde7;
+  --color-gold-100: #fff9c4;
+  --color-gold-200: #fff59d;
+  --color-gold-300: #fff176;
+  --color-gold-400: #FFD700;
+  --color-gold-500: #FFC107;
+  --color-gold-600: #ffb300;
+  --color-gold-700: #ffa000;
+  --color-gold-800: #ff8f00;
+  --color-gold-900: #ff6f00;
+  
+  /* Neutrals - Gray Scale */
+  --color-gray-50: #FAFAFA;
+  --color-gray-100: #F5F5F5;
+  --color-gray-200: #EEEEEE;
+  --color-gray-300: #E0E0E0;
+  --color-gray-400: #BDBDBD;
+  --color-gray-500: #9E9E9E;
+  --color-gray-600: #757575;
+  --color-gray-700: #616161;
+  --color-gray-800: #424242;
+  --color-gray-900: #212121;
+  
+  /* Dark Theme Colors */
+  --color-dark-50: #eceff1;
+  --color-dark-100: #cfd8dc;
+  --color-dark-200: #b0bec5;
+  --color-dark-300: #90a4ae;
+  --color-dark-400: #78909c;
+  --color-dark-500: #607d8b;
+  --color-dark-600: #546e7a;
+  --color-dark-700: #455a64;
+  --color-dark-800: #37474f;
+  --color-dark-900: #263238;
   
   /* Neutral */
   --color-neutral-white: #FFFFFF;
@@ -68,28 +104,28 @@
 /* Dark Mode Variables */
 .dark {
   /* In dark mode, we adjust the color palette */
-  --color-primary-50: #425521;
-  --color-primary-100: #4d6624;
-  --color-primary-200: #5f7f27;
-  --color-primary-300: #7ba42f;
-  --color-primary-400: #9bc73f;
-  --color-primary-500: #B3DD62;
-  --color-primary-600: #bfec90;
-  --color-primary-700: #daf6bd;
-  --color-primary-800: #ecfbdb;
-  --color-primary-900: #f7fdf0;
+  --color-primary-50: #3d5c20;
+  --color-primary-100: #527a2b;
+  --color-primary-200: #6d9c36;
+  --color-primary-300: #8BC34A;
+  --color-primary-400: #a8b800;
+  --color-primary-500: #C4D600;
+  --color-primary-600: #d4f766;
+  --color-primary-700: #e5ff99;
+  --color-primary-800: #f0ffc7;
+  --color-primary-900: #f9ffe6;
 
   /* Dark theme specific colors */
-  --color-dark-50: #1a2f2a;
-  --color-dark-100: #1c3731;
-  --color-dark-200: #1f423b;
-  --color-dark-300: #245048;
-  --color-dark-400: #2C5E54;
-  --color-dark-500: #6a8d84;
-  --color-dark-600: #90aea7;
-  --color-dark-700: #b9cec9;
-  --color-dark-800: #dce6e4;
-  --color-dark-900: #f0f4f3;
+  --color-dark-50: #263238;
+  --color-dark-100: #37474f;
+  --color-dark-200: #455a64;
+  --color-dark-300: #546e7a;
+  --color-dark-400: #607d8b;
+  --color-dark-500: #78909c;
+  --color-dark-600: #90a4ae;
+  --color-dark-700: #b0bec5;
+  --color-dark-800: #cfd8dc;
+  --color-dark-900: #eceff1;
   
   /* Background colors for dark mode */
   --bg-primary: #0f1419;
@@ -142,22 +178,22 @@
 @layer components {
   /* Button styles */
   .btn-primary {
-    background: linear-gradient(135deg, var(--color-primary-400), var(--color-primary-600));
+    background: linear-gradient(135deg, #C4D600, #8BC34A);
     color: white;
     border: none;
     border-radius: 0.75rem;
     padding: 0.75rem 1.5rem;
     font-weight: var(--font-weight-medium);
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px -1px rgba(179, 221, 98, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(196, 214, 0, 0.3);
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
   
   .btn-primary:hover {
-    background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+    background: linear-gradient(135deg, #a8b800, #6d9c36);
     transform: translateY(-1px);
-    box-shadow: 0 6px 10px -1px rgba(179, 221, 98, 0.3);
+    box-shadow: 0 6px 10px -1px rgba(196, 214, 0, 0.4);
   }
   
   .btn-primary:active {
@@ -165,22 +201,22 @@
   }
   
   .btn-secondary {
-    background: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-600));
+    background: linear-gradient(135deg, #FF6B35, #FF7043);
     color: white;
     border: none;
     border-radius: 0.75rem;
     padding: 0.75rem 1.5rem;
     font-weight: var(--font-weight-medium);
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px -1px rgba(221, 173, 113, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(255, 107, 53, 0.3);
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
   
   .btn-secondary:hover {
-    background: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-700));
+    background: linear-gradient(135deg, #f4511e, #e64a19);
     transform: translateY(-1px);
-    box-shadow: 0 6px 10px -1px rgba(221, 173, 113, 0.3);
+    box-shadow: 0 6px 10px -1px rgba(255, 107, 53, 0.4);
   }
   
   .btn-secondary:active {
@@ -189,8 +225,8 @@
   
   .btn-outline {
     background: transparent;
-    color: var(--color-dark-500);
-    border: 2px solid var(--color-mint-300);
+    color: var(--color-gray-800);
+    border: 2px solid var(--color-cyan-300);
     border-radius: 0.75rem;
     padding: 0.75rem 1.5rem;
     font-weight: var(--font-weight-medium);
@@ -200,20 +236,20 @@
   }
   
   .dark .btn-outline {
-    color: var(--color-dark-300);
-    border-color: var(--color-dark-600);
+    color: var(--color-gray-200);
+    border-color: var(--color-cyan-600);
   }
   
   .btn-outline:hover {
-    background: var(--color-mint-50);
-    border-color: var(--color-primary-400);
-    color: var(--color-primary-600);
+    background: var(--color-cyan-50);
+    border-color: var(--color-cyan-400);
+    color: var(--color-cyan-700);
     transform: translateY(-1px);
   }
   
   .dark .btn-outline:hover {
     background: var(--color-dark-800);
-    color: var(--color-primary-400);
+    color: var(--color-cyan-300);
   }
   
   .btn-outline:active {
@@ -224,52 +260,66 @@
   .card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(171, 218, 197, 0.3);
+    border: 1px solid rgba(77, 208, 225, 0.2);
     border-radius: 1rem;
     padding: 1.5rem;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px -1px rgba(44, 94, 84, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
   
   .dark .card {
-    background: rgba(28, 55, 49, 0.95);
-    border-color: rgba(36, 80, 72, 0.5);
+    background: rgba(55, 71, 79, 0.95);
+    border-color: rgba(84, 110, 122, 0.5);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   }
   
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(44, 94, 84, 0.15);
-    border-color: rgba(179, 221, 98, 0.4);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    border-color: rgba(196, 214, 0, 0.4);
   }
   
   .dark .card:hover {
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-    border-color: rgba(155, 199, 63, 0.6);
+    border-color: rgba(139, 195, 74, 0.6);
   }
   
   .card-elevated {
     background: white;
     border-radius: 1.5rem;
     padding: 2rem;
-    box-shadow: 0 10px 25px -5px rgba(44, 94, 84, 0.1), 0 4px 6px -2px rgba(44, 94, 84, 0.05);
-    border: 1px solid rgba(171, 218, 197, 0.2);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(77, 208, 225, 0.15);
   }
 
   .dark .card-elevated {
     background: var(--color-dark-800);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
-    border-color: rgba(36, 80, 72, 0.3);
+    border-color: rgba(84, 110, 122, 0.3);
+  }
+
+  /* Balance Card - Financial App Style */
+  .balance-card {
+    background: linear-gradient(135deg, #C4D600 0%, #8BC34A 100%);
+    color: white;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 10px 30px -5px rgba(196, 214, 0, 0.4);
+    border: none;
+  }
+
+  .dark .balance-card {
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6);
   }
 
   /* Input styles */
   .input-field {
     width: 100%;
     padding: 0.875rem 1rem;
-    border: 2px solid var(--color-mint-200);
+    border: 2px solid var(--color-gray-300);
     border-radius: 0.75rem;
     font-weight: var(--font-weight-medium);
-    color: var(--color-dark-600);
+    color: var(--color-gray-800);
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(5px);
     transition: all 0.3s ease;
@@ -279,29 +329,29 @@
   
   .dark .input-field {
     border-color: var(--color-dark-600);
-    color: var(--color-dark-200);
-    background: rgba(28, 55, 49, 0.8);
+    color: var(--color-gray-200);
+    background: rgba(55, 71, 79, 0.8);
   }
   
   .input-field:focus {
     outline: none;
-    border-color: var(--color-primary-400);
+    border-color: var(--color-cyan-400);
     ring: 4px;
-    ring-color: rgba(179, 221, 98, 0.2);
+    ring-color: rgba(77, 208, 225, 0.2);
     background: white;
   }
   
   .dark .input-field:focus {
     background: var(--color-dark-800);
-    ring-color: rgba(155, 199, 63, 0.3);
+    ring-color: rgba(77, 208, 225, 0.3);
   }
   
   .input-field::placeholder {
-    color: var(--color-dark-400);
+    color: var(--color-gray-500);
   }
 
   .dark .input-field::placeholder {
-    color: var(--color-dark-500);
+    color: var(--color-gray-600);
   }
 
   /* Status badges */
@@ -334,8 +384,8 @@
   }
   
   .badge-info {
-    background: linear-gradient(135deg, var(--color-mint-100), var(--color-mint-200));
-    color: var(--color-mint-800);
+    background: linear-gradient(135deg, var(--color-cyan-100), var(--color-cyan-200));
+    color: var(--color-cyan-800);
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
@@ -343,15 +393,15 @@
   }
 
   .dark .badge-info {
-    background: linear-gradient(135deg, var(--color-mint-900), var(--color-mint-800));
-    color: var(--color-mint-200);
+    background: linear-gradient(135deg, var(--color-cyan-900), var(--color-cyan-800));
+    color: var(--color-cyan-200);
   }
 
   /* Progress bar */
   .progress-bar {
     width: 100%;
     height: 0.5rem;
-    background: var(--color-primary-100);
+    background: var(--color-gray-200);
     border-radius: 9999px;
     overflow: hidden;
   }
@@ -362,7 +412,7 @@
   
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600));
+    background: linear-gradient(90deg, #C4D600, #8BC34A);
     transition: width 0.5s ease;
     border-radius: 9999px;
   }
@@ -386,14 +436,14 @@
   .notification {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border: 1px solid var(--color-mint-200);
+    border: 1px solid var(--color-gray-300);
     border-radius: 0.75rem;
     padding: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(44, 94, 84, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
   .dark .notification {
-    background: rgba(28, 55, 49, 0.95);
+    background: rgba(55, 71, 79, 0.95);
     border-color: var(--color-dark-600);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   }
@@ -405,17 +455,17 @@
 
   .dark .notification.success {
     border-color: var(--color-primary-600);
-    background: linear-gradient(135deg, var(--color-primary-900), rgba(28, 55, 49, 0.95));
+    background: linear-gradient(135deg, var(--color-primary-900), rgba(55, 71, 79, 0.95));
   }
   
   .notification.error {
-    border-color: #fca5a5;
-    background: linear-gradient(135deg, #fef2f2, rgba(255, 255, 255, 0.95));
+    border-color: var(--color-alert-400);
+    background: linear-gradient(135deg, var(--color-alert-50), rgba(255, 255, 255, 0.95));
   }
 
   .dark .notification.error {
-    border-color: #dc2626;
-    background: linear-gradient(135deg, #7f1d1d, rgba(28, 55, 49, 0.95));
+    border-color: var(--color-alert-600);
+    background: linear-gradient(135deg, var(--color-alert-900), rgba(55, 71, 79, 0.95));
   }
 }
 
@@ -469,13 +519,13 @@
   }
 
   .dark .glass {
-    background: rgba(28, 55, 49, 0.9);
-    border-color: rgba(36, 80, 72, 0.3);
+    background: rgba(55, 71, 79, 0.9);
+    border-color: rgba(84, 110, 122, 0.3);
   }
   
   /* Gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, var(--color-primary-400), var(--color-accent-400));
+    background: linear-gradient(135deg, #C4D600, #FF6B35);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -483,7 +533,7 @@
   
   /* Custom shadows */
   .shadow-brand {
-    box-shadow: 0 10px 25px -5px rgba(179, 221, 98, 0.2), 0 4px 6px -2px rgba(179, 221, 98, 0.1);
+    box-shadow: 0 10px 25px -5px rgba(196, 214, 0, 0.3), 0 4px 6px -2px rgba(196, 214, 0, 0.15);
   }
 
   .dark .shadow-brand {
@@ -491,7 +541,7 @@
   }
   
   .shadow-accent {
-    box-shadow: 0 10px 25px -5px rgba(221, 173, 113, 0.2), 0 4px 6px -2px rgba(221, 173, 113, 0.1);
+    box-shadow: 0 10px 25px -5px rgba(255, 107, 53, 0.3), 0 4px 6px -2px rgba(255, 107, 53, 0.15);
   }
 
   .dark .shadow-accent {
@@ -581,7 +631,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-mint-100);
+  background: var(--color-gray-100);
   border-radius: 3px;
 }
 
@@ -609,22 +659,22 @@
 /* Selection colors */
 ::selection {
   background: var(--color-primary-200);
-  color: var(--color-dark-600);
+  color: var(--color-gray-800);
 }
 
 .dark ::selection {
   background: var(--color-primary-600);
-  color: var(--color-dark-100);
+  color: var(--color-gray-100);
 }
 
 ::-moz-selection {
   background: var(--color-primary-200);
-  color: var(--color-dark-600);
+  color: var(--color-gray-800);
 }
 
 .dark ::-moz-selection {
   background: var(--color-primary-600);
-  color: var(--color-dark-100);
+  color: var(--color-gray-100);
 }
 
 /* Mobile optimizations */
@@ -705,7 +755,7 @@
 
 .dark body {
   background-color: var(--color-dark-900);
-  color: var(--color-dark-100);
+  color: var(--color-gray-100);
 }
 
 /* Préparation pour PWA - styles d'installation */
@@ -714,11 +764,11 @@
   bottom: env(safe-area-inset-bottom, 1rem);
   left: 1rem;
   right: 1rem;
-  background: var(--color-primary-400);
+  background: linear-gradient(135deg, #C4D600, #8BC34A);
   color: white;
   padding: 1rem;
   border-radius: 1rem;
-  box-shadow: 0 10px 25px -5px rgba(179, 221, 98, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(196, 214, 0, 0.4);
   z-index: 60;
 }
 
