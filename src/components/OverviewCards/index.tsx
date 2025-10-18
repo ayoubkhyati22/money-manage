@@ -133,8 +133,8 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Credit Card and Stats Cards */}
-      <CreditCard totalBalance={totalBalance} banksCount={banks.length} />
+      {/* Total Balance and Bank Cards Swiper */}
+      <CreditCard totalBalance={totalBalance} banksCount={banks.length} banks={banks} />
 
       <StatsCards
         banksCount={banks.length}

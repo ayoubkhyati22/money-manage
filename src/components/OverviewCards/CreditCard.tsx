@@ -1,133 +1,185 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Pagination, Autoplay } from 'swiper/modules'
 import { Wallet, Eye, EyeOff, Building2 } from 'lucide-react'
-import { format } from 'date-fns'
+import { Bank } from '../../lib/supabase'
+
+import 'swiper/css'
+import 'swiper/css/pagination'
 
 interface CreditCardProps {
   totalBalance: number
   banksCount: number
+  banks: Bank[]
 }
 
-export function CreditCard({ totalBalance, banksCount }: CreditCardProps) {
-  const [showBalance, setShowBalance] = useState(false)
+const getCardGradient = (index: number) => {
+  const gradients = [
+    'from-indigo-900 via-indigo-700 to-purple-800',
+    'from-blue-900 via-sky-700 to-blue-800',
+    'from-fuchsia-900 via-pink-700 to-rose-800',
+    'from-emerald-900 via-green-700 to-teal-800',
+    'from-amber-900 via-orange-700 to-yellow-800',
+    'from-slate-900 via-gray-700 to-zinc-800',
+  ]
+  return gradients[index % gradients.length]
+}
+
+function CreditCard({ totalBalance, banksCount, banks }: CreditCardProps) {
+  const [showTotalBalance, setShowTotalBalance] = useState(false)
+  const [hiddenBalances, setHiddenBalances] = useState<Set<string>>(new Set())
+
+  // Hide all balances by default when banks change
+  useEffect(() => {
+    const initialHidden = new Set(banks.map(b => b.id))
+    setHiddenBalances(initialHidden)
+  }, [banks])
+
+  const toggleBankBalance = (bankId: string) => {
+    setHiddenBalances(prev => {
+      const newSet = new Set(prev)
+      newSet.has(bankId) ? newSet.delete(bankId) : newSet.add(bankId)
+      return newSet
+    })
+  }
 
   return (
-    <div className="w-full flex justify-center py-10">
-      <div className="relative w-full max-w-md group">
-        {/* Outer glowing ring */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-
-        {/* Card container */}
-        <div
-          className="
-            relative w-full h-52 
-            rounded-2xl shadow-2xl overflow-hidden
-            border border-white/10 backdrop-blur-xl
-            bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 
-            dark:from-[#0b0b0f] dark:via-[#12121a] dark:to-[#1a1a24]
-            transition-all duration-500
-          "
-        >
-          {/* Dynamic gradient lights */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-20 -left-20 w-64 h-64 bg-gradient-to-br from-blue-400/40 via-cyan-400/30 to-transparent rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute top-24 -right-24 w-72 h-72 bg-gradient-to-tl from-fuchsia-500/30 via-purple-400/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-0 left-1/2 w-72 h-72 -translate-x-1/2 bg-gradient-to-t from-emerald-400/10 to-transparent rounded-full blur-2xl opacity-40"></div>
-          </div>
-
-          {/* Animated light reflection */}
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.05)_50%,transparent_100%)] bg-[length:200%_100%] animate-[shine_4s_infinite] pointer-events-none" />
-
-          {/* Top section */}
-          <div className="absolute top-6 left-6 right-6 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary-500/30">
-                <Wallet className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <p className="text-white/95 text-sm font-medium">FinanceFlow</p>
-                <p className="text-white/60 text-xs">Total Balance</p>
-              </div>
+    <div className="w-full space-y-6">
+      {/* Total Balance Header */}
+      <div className="rounded-2xl p-4 sm:p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center">
+              <Wallet className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
-
-            <button
-              onClick={() => setShowBalance(!showBalance)}
-              className="p-2 hover:bg-white/10 dark:hover:bg-white/5 rounded-lg transition-colors z-10 relative"
-              title={showBalance ? 'Hide balance' : 'Show balance'}
-            >
-              {showBalance ? (
-                <EyeOff className="w-4 h-4 text-white/70 hover:text-white" />
-              ) : (
-                <Eye className="w-4 h-4 text-white/70 hover:text-white" />
-              )}
-            </button>
-          </div>
-
-          {/* Balance section */}
-          <div className="absolute top-1/2 left-6 right-6 -translate-y-1/2">
-            <div className="text-center">
-              <p className="text-white/60 text-xs uppercase tracking-wider mb-2">
-                Available Balance
-              </p>
-              <div className="relative">
+            <div>
+              <p className="text-xs sm:text-sm text-gray-300 font-medium">Total Balance</p>
+              <div className="flex items-center space-x-2">
                 <h2
-                  className={`text-3xl font-bold text-white mb-1 tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.15)] transition-all duration-500 ${
-                    showBalance
-                      ? 'blur-0 opacity-100'
-                      : 'blur-md opacity-60 select-none'
+                  className={`text-2xl sm:text-3xl font-bold text-white transition-all duration-300 ${
+                    showTotalBalance ? 'blur-0' : 'blur-sm select-none'
                   }`}
                 >
-                  {showBalance ? (
-                    <>
-                      {totalBalance.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}{' '}
-                      <span className="text-lg font-medium text-white/80">
-                        MAD
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      •••••••{' '}
-                      <span className="text-lg font-medium text-white/80">
-                        MAD
-                      </span>
-                    </>
-                  )}
+                  {showTotalBalance
+                    ? totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : '•••••••'}
                 </h2>
+                <span className="text-sm sm:text-base font-medium text-gray-300">MAD</span>
               </div>
-            </div>
-          </div>
-
-          {/* Footer info */}
-          <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between text-white/80">
-            <div>
-              <p className="text-white/60 text-xs">Last updated</p>
-              <p className="text-white/90 text-sm font-medium">
-                {format(new Date(), 'MMM dd, yyyy')}
+              <p className="text-xs text-gray-400 mt-1">
+                Across {banksCount} bank{banksCount !== 1 ? 's' : ''}
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
-                <Building2 className="w-3 h-3 text-white/70" />
-              </div>
-              <span className="text-white/70 text-xs">{banksCount} Banks</span>
-            </div>
           </div>
+          <button
+            onClick={() => setShowTotalBalance(!showTotalBalance)}
+            className="p-2 sm:p-3 hover:bg-white/10 rounded-xl transition-colors"
+            title={showTotalBalance ? 'Hide balance' : 'Show balance'}
+          >
+            {showTotalBalance ? (
+              <EyeOff className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
+            ) : (
+              <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Shine keyframes */}
-      <style jsx>{`
-        @keyframes shine {
-          0% {
-            background-position: 200% 0;
-          }
-          100% {
-            background-position: -200% 0;
-          }
-        }
-      `}</style>
+      {/* Bank Cards Swiper */}
+      {banks.length > 0 && (
+        <div className="relative">
+          <Swiper
+            modules={[Pagination, Autoplay]}
+            spaceBetween={20}
+            slidesPerView={1}
+            pagination={{ clickable: true }}
+            autoplay={{
+              delay: 5000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }}
+            breakpoints={{
+              640: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 },
+            }}
+            className="!pb-12"
+          >
+            {banks.map((bank, index) => {
+              const gradient = getCardGradient(index)
+              const isBalanceHidden = hiddenBalances.has(bank.id)
+
+              return (
+                <SwiperSlide key={bank.id}>
+                  <div className="relative">
+                    <div
+                      className={`relative w-full h-48 bg-gradient-to-br ${gradient} rounded-2xl border border-white/10 overflow-hidden`}
+                    >
+                      {/* Animated gradient light effect */}
+                      <div className="absolute inset-0 opacity-20">
+                        <div className="absolute w-[150%] h-[150%] -left-1/4 -top-1/4 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_70%)] animate-pulse"></div>
+                      </div>
+
+                      {/* Top Section */}
+                      <div className="absolute top-4 left-6 right-6 flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {bank.logo ? (
+                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center p-1">
+                              <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                              <Building2 className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-white/90 text-sm font-medium">{bank.name}</p>
+                            <p className="text-white/60 text-xs">FinanceFlow</p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => toggleBankBalance(bank.id)}
+                          className="p-1.5 hover:bg-white/10 rounded-lg transition-colors z-10"
+                          title={isBalanceHidden ? 'Show balance' : 'Hide balance'}
+                        >
+                          {isBalanceHidden ? (
+                            <EyeOff className="w-4 h-4 text-white/70 hover:text-white" />
+                          ) : (
+                            <Eye className="w-4 h-4 text-white/70 hover:text-white" />
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Balance Section */}
+                      <div className="absolute top-1/2 left-6 right-6 -translate-y-1/2">
+                        <p className="text-white/70 text-xs uppercase tracking-wider mb-1">Available Balance</p>
+                        {isBalanceHidden ? (
+                          <h3 className="text-2xl font-bold text-white">
+                            ••••••• <span className="text-sm font-medium text-white/80">MAD</span>
+                          </h3>
+                        ) : (
+                          <h3 className="text-2xl font-bold text-white">
+                            {Number(bank.balance).toLocaleString('en-US', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}{' '}
+                            <span className="text-sm font-medium text-white/80">MAD</span>
+                          </h3>
+                        )}
+                      </div>
+
+                      {/* Hover light sweep */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000 ease-in-out"></div>
+                    </div>
+                  </div>
+                </SwiperSlide>
+              )
+            })}
+          </Swiper>
+        </div>
+      )}
     </div>
   )
 }
+
+export { CreditCard }
