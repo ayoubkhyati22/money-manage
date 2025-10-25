@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useSweetAlert } from '../../hooks/useSweetAlert'
 import { stockService } from '../../services/stockService'
 import { StockFormData, StockTransactionWithDetails } from '../../types/stock'
-import { DollarSign, Hash, Calendar, FileText, TrendingDown } from 'lucide-react'
+import { Calendar, FileText } from 'lucide-react'
 
 interface StockSellFormProps {
   banks: Bank[]
