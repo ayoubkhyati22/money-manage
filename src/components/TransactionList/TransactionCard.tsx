@@ -9,6 +9,10 @@ interface TransactionCardProps {
 
 export function TransactionCard({ transaction, onReturn }: TransactionCardProps) {
   const isPositive = transaction.amount >= 0
+  
+  // Check if this is a stock transaction by looking at the description
+  const isStockTransaction = transaction.description?.includes('Stock Purchase:') || 
+                            transaction.description?.includes('Stock Sale:')
 
   return (
     <div className="flex items-center justify-between rounded-xl p-3 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 hover:shadow-md transition-all duration-200">
@@ -47,6 +51,13 @@ export function TransactionCard({ transaction, onReturn }: TransactionCardProps)
               "{transaction.description}"
             </p>
           )}
+          
+          {/* Show a small badge for stock transactions */}
+          {isStockTransaction && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 mt-1">
+              Stock
+            </span>
+          )}
         </div>
       </div>
 
@@ -68,7 +79,8 @@ export function TransactionCard({ transaction, onReturn }: TransactionCardProps)
           </p>
         </div>
 
-        {!isPositive && (
+        {/* Only show return button for non-positive, non-stock transactions */}
+        {!isPositive && !isStockTransaction && (
           <button
             onClick={() => onReturn(transaction)}
             className="p-1.5 rounded-lg text-cyan-500 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-all duration-200"

@@ -61,7 +61,7 @@ export const stockService = {
     return data || []
   },
 
-  // Create a stock transaction with automatic balance updates
+  // Create a stock transaction with automatic balance updates and transaction tracking
   async createTransaction(
     userId: string,
     formData: StockFormData
@@ -121,9 +121,80 @@ export const stockService = {
       // 5. Update investment goal if it exists
       await this.updateInvestmentGoal(userId, formData.bank_id, formData.transaction_type, totalAmount)
 
+      // 6. Create withdrawal/deposit transaction in objectives_transactions
+      await this.createObjectiveTransaction(userId, formData, totalAmount)
+
     } catch (error) {
       console.error('Error in stock transaction:', error)
       throw error
+    }
+  },
+
+  // Create a withdrawal/deposit in objectives_transactions for stock transactions
+  async createObjectiveTransaction(
+    userId: string,
+    formData: StockFormData,
+    totalAmount: number
+  ): Promise<void> {
+    try {
+      // Find investment goal
+      const { data: goals, error: goalsError } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('user_id', userId)
+        .or('name.ilike.%invest%,name.ilike.%stock%,category.eq.Investment')
+        .limit(1)
+
+      if (goalsError || !goals || goals.length === 0) {
+        console.log('No investment goal found for stock transaction tracking')
+        return
+      }
+
+      const investGoal = goals[0]
+
+      // For BUY: create negative amount (withdrawal)
+      // For SELL: create positive amount (deposit)
+      const transactionAmount = formData.transaction_type === 'BUY' ? -totalAmount : totalAmount
+      
+      const description = formData.transaction_type === 'BUY' 
+        ? `Stock Purchase: ${formData.quantity} ${formData.symbol} @ ${formData.price_per_share} MAD`
+        : `Stock Sale: ${formData.quantity} ${formData.symbol} @ ${formData.price_per_share} MAD`
+
+      // Insert the transaction with stock_transaction flag
+      const { error: insertError } = await supabase
+        .from('objectives_transactions')
+        .insert([{
+          objective_id: investGoal.id,
+          bank_id: formData.bank_id,
+          amount: transactionAmount,
+          description: description,
+          is_stock_transaction: true  // Flag to identify stock transactions
+        }])
+
+      if (insertError) {
+        console.error('Error creating objective transaction for stock:', insertError)
+        // Don't throw - this is non-critical
+      }
+
+      // Update allocation if exists
+      const { data: allocation, error: allocError } = await supabase
+        .from('allocations')
+        .select('amount')
+        .eq('goal_id', investGoal.id)
+        .eq('bank_id', formData.bank_id)
+        .maybeSingle()
+
+      if (!allocError && allocation) {
+        const newAllocationAmount = Number(allocation.amount) + transactionAmount
+        await supabase
+          .from('allocations')
+          .update({ amount: Math.max(0, newAllocationAmount) })
+          .eq('goal_id', investGoal.id)
+          .eq('bank_id', formData.bank_id)
+      }
+    } catch (error) {
+      console.error('Error creating objective transaction:', error)
+      // Don't throw - this is non-critical
     }
   },
 
@@ -255,6 +326,35 @@ export const stockService = {
       restoreType as 'BUY' | 'SELL',
       amount
     )
+
+    // Also delete the corresponding objective transaction if exists
+    await this.deleteStockObjectiveTransaction(transaction)
+  },
+
+  // Delete the corresponding objective transaction for a stock transaction
+  async deleteStockObjectiveTransaction(
+    stockTransaction: any
+  ): Promise<void> {
+    try {
+      const amount = (stockTransaction.quantity * stockTransaction.price_per_share) + (stockTransaction.fees || 0)
+      const transactionAmount = stockTransaction.transaction_type === 'BUY' ? -amount : amount
+      
+      // Find and delete the matching objective transaction
+      const { error } = await supabase
+        .from('objectives_transactions')
+        .delete()
+        .eq('bank_id', stockTransaction.bank_id)
+        .eq('amount', transactionAmount)
+        .eq('is_stock_transaction', true)
+        .gte('created_at', new Date(stockTransaction.created_at).toISOString())
+        .lte('created_at', new Date(new Date(stockTransaction.created_at).getTime() + 60000).toISOString()) // Within 1 minute
+
+      if (error) {
+        console.error('Error deleting objective transaction:', error)
+      }
+    } catch (error) {
+      console.error('Error in deleteStockObjectiveTransaction:', error)
+    }
   },
 
   // Calculate total gains/losses

@@ -9,7 +9,7 @@ interface StatsCardsProps {
 
 export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithdrawn, stockGains }: StatsCardsProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
       {/* Mobile Summary Card (Visible only on small screens) */}
       <div className="sm:hidden group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-2.5 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-center justify-between mb-1.5">

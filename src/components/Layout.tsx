@@ -59,7 +59,7 @@ export function Layout({ children }: LayoutProps) {
                   Welcome back!
                 </h1>
                 <p className="text-[10px] sm:text-xs text-dark-400 dark:text-dark-300 font-medium hidden sm:block">
-                  Welcome back!
+                {user?.email?.split("@")[0]}
                 </p>
               </div>
             </div>
@@ -81,7 +81,6 @@ export function Layout({ children }: LayoutProps) {
 
               <div className="text-right">
                 <p className="text-xs font-medium text-dark-500 dark:text-dark-200">{user?.email}</p>
-                <p className="text-[10px] text-dark-400 dark:text-dark-300">Welcome back!</p>
               </div>
 
               <button
