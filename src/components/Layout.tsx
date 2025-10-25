@@ -41,19 +41,21 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900">
       {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm shadow-md border-b border-mint-200/50 dark:border-dark-600/50 z-50">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 h-14 sm:h-16 flex items-center">
+      <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm shadow-md border-b border-mint-200/50 dark:border-dark-600/50 z-50">        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 h-14 sm:h-16 flex items-center">
           <div className="flex justify-between items-center w-full">
 
             {/* Logo */}
+            {/* User Avatar Icon */}
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg sm:rounded-xl shadow-md">
-                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full shadow-md">
+                <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xs sm:text-lg font-semibold text-dark-500 dark:text-white">FinanceFlow</h1>
+                <h1 className="text-xs sm:text-sm font-semibold text-dark-500 dark:text-white truncate max-w-[100px]">
+                  Welcome back!
+                </h1>
                 <p className="text-[10px] sm:text-xs text-dark-400 dark:text-dark-300 font-medium hidden sm:block">
-                  Manage your funds smartly
+                  Welcome back!
                 </p>
               </div>
             </div>
