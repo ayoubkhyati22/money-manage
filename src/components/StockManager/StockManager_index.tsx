@@ -6,7 +6,7 @@ import { useSweetAlert } from '../../hooks/useSweetAlert'
 import { stockService } from '../../services/stockService'
 import { StockTransactionWithDetails, StockProfitLoss } from '../../types/stock'
 import { StockForm } from './StockForm'
-import { StockSellForm } from './StockSellForm'
+import { StockSellForm1 } from './StockSellForm1'
 import { StockTransactionList } from './StockTransactionList'
 import { StockProfitSummary } from './StockProfitSummary'
 import { StockPortfolioView } from './StockPortfolioView'
@@ -153,7 +153,7 @@ export function StockManager({ banks }: StockManagerProps) {
       )}
 
       {showForm === 'sell' && (
-        <StockSellForm
+        <StockSellForm1
           banks={banks}
           onSubmit={async () => {
             await loadData()

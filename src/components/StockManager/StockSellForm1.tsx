@@ -12,7 +12,7 @@ interface StockSellFormProps {
   onCancel: () => void
 }
 
-export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps) {
+export function StockSellForm1({ banks, onSubmit, onCancel }: StockSellFormProps) {
   const { user } = useAuth()
   const { showSuccess, showError } = useSweetAlert()
   const [loading, setLoading] = useState(false)

@@ -18,6 +18,8 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { StockManager } from './StockManager/StockManager_index'
+import { motion } from "framer-motion";
+
 
 type ActiveTab = 'overview' | 'goals' | 'banks' | 'transactions' | 'history' | 'dca' | 'stocks'
 
@@ -197,28 +199,96 @@ export function Dashboard() {
       </div>
 
       {/* --- BOTTOM NAV MOBILE - ENHANCED DARK VERSION --- */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-dark-900/95 backdrop-blur-sm border-t border-gray-200/50 dark:border-dark-600/30 shadow-2xl z-50">
-        <div className="flex justify-around px-1 py-0.5 m-3">
-          {tabs.map((tab) => {
-            const Icon = tab.icon
-            const active = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center flex-1 py-1.5 px-1 text-[10px] transition-all duration-300 rounded-lg mx-1 ${
-                  active
-                    ? 'text-white bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 shadow-md scale-105'
-                    : 'text-gray-600 dark:text-dark-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100/50 dark:hover:bg-dark-800/50'
-                }`}
-              >
-                <Icon className={`w-4 h-4 mb-0.5 transition-transform ${active ? 'scale-110' : ''}`} />
-                <span className="font-medium">{tab.label}</span>
-              </button>
-            )
-          })}
+      <div className="sm:hidden fixed bottom-6 left-4 right-4 z-50">
+        {/* Floating Navigation Bar */}
+        <div className="relative">
+          {/* 3D Shadow Layer */}
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/20 to-emerald-900/40 rounded-3xl blur-xl translate-y-2" />
+          
+          {/* Main Navigation Container */}
+          <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl border border-emerald-500/20 shadow-2xl overflow-hidden">
+            {/* Top Highlight */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
+            
+            {/* Ambient Glow Background */}
+            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/50 via-transparent to-transparent" />
+            
+            {/* Navigation Buttons */}
+            <div className="relative flex justify-around items-center px-3 py-3 gap-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const active = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex items-center justify-center py-3 transition-all duration-500 ease-out group ${
+                      active ? 'flex-[2] px-4' : 'flex-1 px-2'
+                    }`}
+                  >
+                    {/* Active Glow Base */}
+                    {active && (
+                      <>
+                        {/* Outer Glow - Blur Layer */}
+                        {/* <div className="absolute -inset-2 bg-emerald-500/20 rounded-3xl blur-2xl animate-pulse" /> */}
+                        
+                        {/* Middle Glow */}
+                        <div className="absolute -inset-1 bg-gradient-to-br from-emerald-400/30 to-emerald-400/10 rounded-2xl blur-md" />
+                        
+                        {/* Solid Background Base */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 rounded-2xl shadow-[0_4px_20px_rgba(16,185,129,0.1)]" />
+                        
+                        {/* Top Shine/Reflection */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-2xl" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 35%, 0 50%)' }} />
+                        
+                        {/* Bottom Shadow/Depth */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent rounded-2xl" />
+                      </>
+                    )}
+                    
+                    {/* Content Container */}
+                    <div className={`relative z-10 flex items-center gap-2 transition-all duration-700 ${
+                      active ? 'opacity-100' : 'opacity-100'
+                    }`}>
+                      {/* Icon */}
+                      <Icon 
+                        className={`transition-all duration-700 ${
+                          active 
+                            ? 'w-5 h-5 text-white drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]' 
+                            : 'w-5 h-5 text-slate-400 group-hover:text-emerald-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_1px_rgba(16,185,129,0.2)]'
+                        }`}
+                        strokeWidth={active ? 2.5 : 2}
+                      />
+                      
+                      {/* Label */}
+                      <motion.span 
+                        className="whitespace-nowrap overflow-hidden text-xs"
+                        initial={false}
+                        animate={{
+                          maxWidth: active ? '100px' : '0px',
+                          opacity: active ? 1 : 0,
+                          x: active ? 0 : -8,
+                        }}
+                        transition={{
+                          duration: 0.5,
+                          ease: "easeOut"
+                        }}
+                      >
+                        <span className="text-white drop-shadow-[0_0_6px_rgba(16,185,129,0.2)]">
+                          {tab.label}
+                        </span>
+                      </motion.span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            
+            {/* Bottom Glow Line */}
+            {/* <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" /> */}
+          </div>
         </div>
-      </div>
+        </div>
     </div>
   )
 }
