@@ -11,6 +11,7 @@ import { StockTransactionList } from './StockTransactionList'
 import { StockProfitSummary } from './StockProfitSummary'
 import { StockPortfolioView } from './StockPortfolioView'
 
+
 interface StockManagerProps {
   banks: Bank[]
 }
