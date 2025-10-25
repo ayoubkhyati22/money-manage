@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { TrendingUp, TrendingDown, Plus, BarChart3, DollarSign } from 'lucide-react'
+import { TrendingUp, TrendingDown, Plus, BarChart3, DollarSign, ShoppingCart } from 'lucide-react'
 import { Bank } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useSweetAlert } from '../../hooks/useSweetAlert'
 import { stockService } from '../../services/stockService'
 import { StockTransactionWithDetails, StockProfitLoss } from '../../types/stock'
 import { StockForm } from './StockForm'
+import { StockSellForm } from './StockSellForm'
 import { StockTransactionList } from './StockTransactionList'
 import { StockProfitSummary } from './StockProfitSummary'
 import { StockPortfolioView } from './StockPortfolioView'
@@ -15,12 +16,13 @@ interface StockManagerProps {
 }
 
 type ActiveTab = 'portfolio' | 'transactions' | 'profit'
+type FormType = null | 'buy' | 'sell'
 
 export function StockManager({ banks }: StockManagerProps) {
   const { user } = useAuth()
   const { showSuccess, showError, showDeleteConfirm } = useSweetAlert()
   const [activeTab, setActiveTab] = useState<ActiveTab>('portfolio')
-  const [showForm, setShowForm] = useState(false)
+  const [showForm, setShowForm] = useState<FormType>(null)
   const [loading, setLoading] = useState(false)
   const [transactions, setTransactions] = useState<StockTransactionWithDetails[]>([])
   const [profitLoss, setProfitLoss] = useState<StockProfitLoss[]>([])
@@ -88,13 +90,22 @@ export function StockManager({ banks }: StockManagerProps) {
             <h2 className="text-2xl font-bold">Stock Investments</h2>
             <p className="text-blue-100 text-sm">Moroccan Market Portfolio</p>
           </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg transition-all duration-300"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">New Transaction</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowForm('buy')}
+              className="flex items-center space-x-2 bg-green-500/90 hover:bg-green-500 backdrop-blur-sm px-4 py-2 rounded-lg transition-all duration-300"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="hidden sm:inline">Buy</span>
+            </button>
+            <button
+              onClick={() => setShowForm('sell')}
+              className="flex items-center space-x-2 bg-red-500/90 hover:bg-red-500 backdrop-blur-sm px-4 py-2 rounded-lg transition-all duration-300"
+            >
+              <TrendingDown className="w-5 h-5" />
+              <span className="hidden sm:inline">Sell</span>
+            </button>
+          </div>
         </div>
 
         {/* Quick Stats */}
@@ -128,15 +139,26 @@ export function StockManager({ banks }: StockManagerProps) {
         </div>
       </div>
 
-      {/* Transaction Form */}
-      {showForm && (
+      {/* Transaction Forms */}
+      {showForm === 'buy' && (
         <StockForm
           banks={banks}
           onSubmit={async () => {
             await loadData()
-            setShowForm(false)
+            setShowForm(null)
           }}
-          onCancel={() => setShowForm(false)}
+          onCancel={() => setShowForm(null)}
+        />
+      )}
+
+      {showForm === 'sell' && (
+        <StockSellForm
+          banks={banks}
+          onSubmit={async () => {
+            await loadData()
+            setShowForm(null)
+          }}
+          onCancel={() => setShowForm(null)}
         />
       )}
 
