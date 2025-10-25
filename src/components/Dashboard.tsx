@@ -14,7 +14,9 @@ import {
   ArrowDownCircle,
   History,
   TrendingUp,
-  LineChart
+  LineChart,
+  BarChart,
+  DollarSign
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { StockManager } from './StockManager/StockManager_index'
@@ -37,7 +39,7 @@ export function Dashboard() {
     { id: 'banks' as const, label: 'Banks', icon: Building2 },
     { id: 'transactions' as const, label: 'Withdraw', icon: ArrowDownCircle },
     { id: 'history' as const, label: 'History', icon: History },
-    { id: 'stocks' as const, label: 'Stocks', icon: History },
+    { id: 'stocks' as const, label: 'Stocks', icon: DollarSign },
     // { id: 'dca' as const, label: 'DCA', icon: LineChart },
   ]
 

@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  darkMode: 'class', // Enable class-based dark mode
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -13,114 +13,126 @@ export default {
         'semibold': '600',
       },
       colors: {
-        // Primary Brand Colors - Lime Green
+        // Primary Brand Colors - Deep Emerald & Gold
         primary: {
-          50: '#f9ffe6',
-          100: '#f0ffc7',
-          200: '#e5ff99',
-          300: '#d4f766',
-          400: '#C4D600', // Primary Lime Green
-          500: '#a8b800',
-          600: '#8BC34A', // Secondary Lime Green
-          700: '#6d9c36',
-          800: '#527a2b',
-          900: '#3d5c20',
+          50: '#f0f9f4',
+          100: '#dcf2e3',
+          200: '#bce5ca',
+          300: '#8bd2a6',
+          400: '#4db87d',
+          500: '#2E8B57', // Premium Emerald
+          600: '#257a4a',
+          700: '#1d623b',
+          800: '#174e30',
+          900: '#0f3a24',
         },
-        // Accent Colors - Orange/Coral
+        // Accent Colors - Royal Purple & Sapphire
         accent: {
-          50: '#fff5f0',
-          100: '#ffe8db',
-          200: '#ffcdb3',
-          300: '#ffab80',
-          400: '#FF6B35', // Primary Orange
-          500: '#FF7043', // Coral
-          600: '#f4511e',
-          700: '#e64a19',
-          800: '#d84315',
-          900: '#bf360c',
+          50: '#f5f3ff',
+          100: '#ede9fe',
+          200: '#ddd6fe',
+          300: '#c4b5fd',
+          400: '#a78bfa',
+          500: '#8B5CF6', // Royal Purple
+          600: '#7c3aed',
+          700: '#6d28d9',
+          800: '#5b21b6',
+          900: '#4c1d95',
         },
-        // Cyan/Blue Highlights
-        cyan: {
-          50: '#e0f7fa',
-          100: '#b2ebf2',
-          200: '#80deea',
-          300: '#4DD0E1', // Light Cyan
-          400: '#00BCD4', // Primary Cyan
-          500: '#00acc1',
-          600: '#0097a7',
-          700: '#00838f',
-          800: '#006064',
-          900: '#004d40',
+        // Premium Blue - Sapphire
+        sapphire: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0EA5E9', // Bright Sapphire
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
         },
-        // Alert/Error Colors
-        alert: {
-          50: '#ffebee',
-          100: '#ffcdd2',
-          200: '#ef9a9a',
-          300: '#e57373',
-          400: '#FF5252', // Primary Red
-          500: '#F44336', // Error Red
-          600: '#e53935',
-          700: '#d32f2f',
-          800: '#c62828',
-          900: '#b71c1c',
+        // Luxury Gold & Bronze
+        luxury: {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#D4AF37', // Premium Gold
+          600: '#ca8a04',
+          700: '#a16207',
+          800: '#854d0e',
+          900: '#713f12',
         },
-        // Gold/Yellow
-        gold: {
-          50: '#fffde7',
-          100: '#fff9c4',
-          200: '#fff59d',
-          300: '#fff176',
-          400: '#FFD700', // Primary Gold
-          500: '#FFC107', // Amber
-          600: '#ffb300',
-          700: '#ffa000',
-          800: '#ff8f00',
-          900: '#ff6f00',
+        // Alert/Status Colors - Refined
+        status: {
+          success: '#10B981',
+          warning: '#F59E0B',
+          error: '#EF4444',
+          info: '#3B82F6',
         },
-        // Neutrals - Gray Scale
+        // Neutrals - Sophisticated Gray Scale
         gray: {
-          50: '#FAFAFA',
-          100: '#F5F5F5',
-          200: '#EEEEEE',
-          300: '#E0E0E0',
-          400: '#BDBDBD',
-          500: '#9E9E9E',
-          600: '#757575',
-          700: '#616161',
-          800: '#424242',
-          900: '#212121',
+          50: '#fafafa',
+          100: '#f4f4f5',
+          200: '#e4e4e7',
+          300: '#d4d4d8',
+          400: '#a1a1aa',
+          500: '#71717a',
+          600: '#52525b',
+          700: '#3f3f46',
+          800: '#27272a',
+          900: '#18181b',
         },
-        // Dark Theme Colors
+        // Dark Theme - Deep Charcoal & Navy
         dark: {
-          50: '#eceff1',
-          100: '#cfd8dc',
-          200: '#b0bec5',
-          300: '#90a4ae',
-          400: '#78909c',
-          500: '#607d8b',
-          600: '#546e7a',
-          700: '#455a64',
-          800: '#37474f',
-          900: '#263238',
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
         }
       },
-      // Add specific dark mode background colors
+      // Premium background colors
       backgroundColor: {
-        'dark-primary': '#0f1419',
-        'dark-secondary': '#1a2028',
-        'dark-tertiary': '#252d38',
+        'dark-primary': '#0a0f1a',
+        'dark-secondary': '#111827',
+        'dark-tertiary': '#1f2937',
+        'premium-card': 'rgba(255, 255, 255, 0.02)',
       },
       textColor: {
-        'dark-primary': '#e6e6e6',
-        'dark-secondary': '#b3b3b3',
-        'dark-muted': '#808080',
+        'dark-primary': '#f8fafc',
+        'dark-secondary': '#e2e8f0',
+        'dark-muted': '#94a3b8',
       },
-      // Financial app specific gradients
+      // Luxury gradients
       backgroundImage: {
-        'gradient-lime': 'linear-gradient(135deg, #C4D600 0%, #8BC34A 100%)',
-        'gradient-orange': 'linear-gradient(135deg, #FF6B35 0%, #FF7043 100%)',
-        'gradient-cyan': 'linear-gradient(135deg, #4DD0E1 0%, #00BCD4 100%)',
+        'gradient-emerald': 'linear-gradient(135deg, #2E8B57 0%, #10B981 100%)',
+        'gradient-sapphire': 'linear-gradient(135deg, #0EA5E9 0%, #3B82F6 100%)',
+        'gradient-royal': 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)',
+        'gradient-luxury': 'linear-gradient(135deg, #D4AF37 0%, #FBBF24 100%)',
+        'gradient-premium': 'linear-gradient(135deg, #2E8B57 0%, #0EA5E9 50%, #8B5CF6 100%)',
+      },
+      // Additional premium styling
+      boxShadow: {
+        'premium': '0 8px 32px rgba(0, 0, 0, 0.12)',
+        'premium-lg': '0 16px 48px rgba(0, 0, 0, 0.18)',
+        'premium-dark': '0 8px 32px rgba(0, 0, 0, 0.32)',
+      },
+      animation: {
+        'glow': 'glow 2s ease-in-out infinite alternate',
+      },
+      keyframes: {
+        glow: {
+          '0%': { 'box-shadow': '0 0 20px rgba(46, 139, 87, 0.3)' },
+          '100%': { 'box-shadow': '0 0 30px rgba(46, 139, 87, 0.6)' },
+        }
       }
     },
   },

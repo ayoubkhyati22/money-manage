@@ -19,7 +19,7 @@ export function TransactionCard({ transaction, onReturn }: TransactionCardProps)
           className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
             isPositive
               ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-              : 'bg-accent-100 dark:bg-accent-900/20 text-accent-600 dark:text-accent-400'
+              : 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
           }`}
         >
           {isPositive ? <TrendingUp className="w-5 h-5" /> : <ArrowDownCircle className="w-5 h-5" />}
@@ -57,7 +57,7 @@ export function TransactionCard({ transaction, onReturn }: TransactionCardProps)
             className={`text-base font-semibold whitespace-nowrap ${
               isPositive
                 ? 'text-primary-600 dark:text-primary-400'
-                : 'text-accent-600 dark:text-accent-400'
+                : 'text-red-600 dark:text-red-400'
             }`}
           >
             {isPositive ? '+' : ''}

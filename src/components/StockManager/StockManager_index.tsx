@@ -11,7 +11,6 @@ import { StockTransactionList } from './StockTransactionList'
 import { StockProfitSummary } from './StockProfitSummary'
 import { StockPortfolioView } from './StockPortfolioView'
 
-
 interface StockManagerProps {
   banks: Bank[]
 }
@@ -79,61 +78,61 @@ export function StockManager({ banks }: StockManagerProps) {
   const tabs = [
     { id: 'portfolio' as const, label: 'Portfolio', icon: BarChart3 },
     { id: 'transactions' as const, label: 'Transactions', icon: TrendingUp },
-    { id: 'profit' as const, label: 'Profit/Loss', icon: DollarSign }
+    { id: 'profit' as const, label: 'P&L', icon: DollarSign }
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Header with Stats */}
-      <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
-        <div className="flex items-center justify-between mb-4">
+    <div className="space-y-4">
+      {/* Premium Header with Compact Stats */}
+      <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 rounded-xl p-4 text-white shadow-premium border border-white/10">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-2xl font-bold">Stock Investments</h2>
-            <p className="text-blue-100 text-sm">Moroccan Market Portfolio</p>
+            <h2 className="text-lg font-semibold text-white/95">Stock Portfolio</h2>
+            <p className="text-white/60 text-xs">Moroccan Market</p>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowForm('buy')}
-              className="flex items-center space-x-2 bg-green-500/90 hover:bg-green-500 backdrop-blur-sm px-4 py-2 rounded-lg transition-all duration-300"
+              className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium border border-emerald-500/30"
             >
-              <Plus className="w-5 h-5" />
-              <span className="hidden sm:inline">Buy</span>
+              <Plus className="w-4 h-4" />
+              <span>Buy</span>
             </button>
             <button
               onClick={() => setShowForm('sell')}
-              className="flex items-center space-x-2 bg-red-500/90 hover:bg-red-500 backdrop-blur-sm px-4 py-2 rounded-lg transition-all duration-300"
+              className="flex items-center space-x-1 bg-rose-600 hover:bg-rose-500 px-3 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium border border-rose-500/30"
             >
-              <TrendingDown className="w-5 h-5" />
-              <span className="hidden sm:inline">Sell</span>
+              <TrendingDown className="w-4 h-4" />
+              <span>Sell</span>
             </button>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-            <p className="text-blue-100 text-xs mb-1">Total Invested</p>
-            <p className="text-2xl font-bold">{totalGains.totalInvested.toFixed(2)} MAD</p>
+        {/* Compact Stats Grid */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-white/10">
+            <p className="text-white/60 text-[10px] uppercase tracking-wider mb-1">Invested</p>
+            <p className="text-sm font-semibold text-white/95">{totalGains.totalInvested.toFixed(0)} MAD</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-            <p className="text-blue-100 text-xs mb-1">Total Revenue</p>
-            <p className="text-2xl font-bold">{totalGains.totalRevenue.toFixed(2)} MAD</p>
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-white/10">
+            <p className="text-white/60 text-[10px] uppercase tracking-wider mb-1">Revenue</p>
+            <p className="text-sm font-semibold text-white/95">{totalGains.totalRevenue.toFixed(0)} MAD</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-xs mb-1">Net Gains</p>
-                <p className={`text-2xl font-bold ${totalGains.totalGains >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                  {totalGains.totalGains >= 0 ? '+' : ''}{totalGains.totalGains.toFixed(2)} MAD
+                <p className="text-white/60 text-[10px] uppercase tracking-wider mb-1">Net P&L</p>
+                <p className={`text-sm font-semibold ${totalGains.totalGains >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                  {totalGains.totalGains >= 0 ? '+' : ''}{totalGains.totalGains.toFixed(0)} MAD
                 </p>
-                <p className={`text-sm ${totalGains.totalGains >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                  {totalGains.totalGainsPercent >= 0 ? '+' : ''}{totalGains.totalGainsPercent.toFixed(2)}%
+                <p className={`text-xs ${totalGains.totalGains >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                  {totalGains.totalGainsPercent >= 0 ? '+' : ''}{totalGains.totalGainsPercent.toFixed(1)}%
                 </p>
               </div>
               {totalGains.totalGains >= 0 ? (
-                <TrendingUp className="w-8 h-8 text-green-300" />
+                <TrendingUp className="w-4 h-4 text-emerald-300" />
               ) : (
-                <TrendingDown className="w-8 h-8 text-red-300" />
+                <TrendingDown className="w-4 h-4 text-rose-300" />
               )}
             </div>
           </div>
@@ -163,23 +162,23 @@ export function StockManager({ banks }: StockManagerProps) {
         />
       )}
 
-      {/* Tabs */}
-      <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-600">
-        <div className="border-b border-gray-200 dark:border-dark-600">
-          <div className="flex space-x-2 p-2">
+      {/* Premium Compact Tabs */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-premium border border-gray-200 dark:border-slate-700">
+        <div className="border-b border-gray-200 dark:border-slate-700">
+          <div className="flex space-x-1 p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${
                     activeTab === tab.id
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-                      : 'text-gray-600 dark:text-dark-300 hover:bg-gray-100 dark:hover:bg-dark-700'
+                      ? 'bg-gradient-to-r from-slate-800 to-slate-700 text-white shadow-sm border border-slate-600'
+                      : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3 h-3" />
                   <span>{tab.label}</span>
                 </button>
               )
@@ -187,11 +186,11 @@ export function StockManager({ banks }: StockManagerProps) {
           </div>
         </div>
 
-        {/* Tab Content */}
-        <div className="p-6">
+        {/* Compact Tab Content */}
+        <div className="p-3">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600"></div>
             </div>
           ) : (
             <>

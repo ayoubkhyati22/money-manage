@@ -15,12 +15,10 @@ interface CreditCardProps {
 
 const getCardGradient = (index: number) => {
   const gradients = [
-    'from-indigo-900 via-indigo-700 to-purple-800',
-    'from-blue-900 via-sky-700 to-blue-800',
-    'from-fuchsia-900 via-pink-700 to-rose-800',
-    'from-emerald-900 via-green-700 to-teal-800',
-    'from-amber-900 via-orange-700 to-yellow-800',
-    'from-slate-900 via-gray-700 to-zinc-800',
+    'bg-gradient-to-br from-slate-900 to-blue-900', // Deep Navy
+    'bg-gradient-to-br from-burgundy-900 to-burgundy-700', // Burgundy
+    'bg-gradient-to-br from-emerald-900 to-emerald-700', // Forest Green
+    'bg-gradient-to-br from-gray-900 to-gray-700' // Charcoal
   ]
   return gradients[index % gradients.length]
 }

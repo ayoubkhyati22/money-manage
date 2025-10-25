@@ -6,65 +6,89 @@
 
 /* Theme CSS Variables */
 :root {
-  /* Primary Colors - Lime Green */
-  --color-primary-50: #f9ffe6;
-  --color-primary-100: #f0ffc7;
-  --color-primary-200: #e5ff99;
-  --color-primary-300: #d4f766;
-  --color-primary-400: #C4D600;
-  --color-primary-500: #a8b800;
-  --color-primary-600: #8BC34A;
-  --color-primary-700: #6d9c36;
-  --color-primary-800: #527a2b;
-  --color-primary-900: #3d5c20;
+  /* Primary Colors - Red */
+  --color-primary-50: #fdf2f2;
+  --color-primary-100: #fde8e8;
+  --color-primary-200: #fbd5d5;
+  --color-primary-300: #f8b4b4;
+  --color-primary-400: #f98080;
+  --color-primary-500: #E63C2E;
+  --color-primary-600: #e02416;
+  --color-primary-700: #c81a0e;
+  --color-primary-800: #9f1a12;
+  --color-primary-900: #811c16;
   
-  /* Accent Colors - Orange/Coral */
-  --color-accent-50: #fff5f0;
-  --color-accent-100: #ffe8db;
-  --color-accent-200: #ffcdb3;
-  --color-accent-300: #ffab80;
-  --color-accent-400: #FF6B35;
-  --color-accent-500: #FF7043;
-  --color-accent-600: #f4511e;
-  --color-accent-700: #e64a19;
-  --color-accent-800: #d84315;
-  --color-accent-900: #bf360c;
+  /* Accent Colors - Green */
+  --color-accent-50: #f3f9ef;
+  --color-accent-100: #e4f2d9;
+  --color-accent-200: #cae6b5;
+  --color-accent-300: #a7d487;
+  --color-accent-400: #70B829;
+  --color-accent-500: #65a624;
+  --color-accent-600: #4d861c;
+  --color-accent-700: #3e6b1a;
+  --color-accent-800: #34551a;
+  --color-accent-900: #2d4719;
   
-  /* Cyan/Blue Highlights */
-  --color-cyan-50: #e0f7fa;
-  --color-cyan-100: #b2ebf2;
-  --color-cyan-200: #80deea;
-  --color-cyan-300: #4DD0E1;
-  --color-cyan-400: #00BCD4;
-  --color-cyan-500: #00acc1;
-  --color-cyan-600: #0097a7;
-  --color-cyan-700: #00838f;
-  --color-cyan-800: #006064;
-  --color-cyan-900: #004d40;
+  /* Yellow Highlights */
+  --color-yellow-50: #fefce8;
+  --color-yellow-100: #fef9c3;
+  --color-yellow-200: #fef08a;
+  --color-yellow-300: #fde047;
+  --color-yellow-400: #E1DF54;
+  --color-yellow-500: #eab308;
+  --color-yellow-600: #ca8a04;
+  --color-yellow-700: #a16207;
+  --color-yellow-800: #854d0e;
+  --color-yellow-900: #713f12;
+  
+  /* Lime Colors */
+  --color-lime-50: #f7fee7;
+  --color-lime-100: #ecfccb;
+  --color-lime-200: #d9f99d;
+  --color-lime-300: #bef264;
+  --color-lime-400: #BDCF00;
+  --color-lime-500: #84cc16;
+  --color-lime-600: #65a30d;
+  --color-lime-700: #4d7c0f;
+  --color-lime-800: #3f6212;
+  --color-lime-900: #365314;
+  
+  /* Blue Colors */
+  --color-blue-50: #f0f9ff;
+  --color-blue-100: #e0f2fe;
+  --color-blue-200: #bae6fd;
+  --color-blue-300: #7dd3fc;
+  --color-blue-400: #38bdf8;
+  --color-blue-500: #1C5A7D;
+  --color-blue-600: #0ea5e9;
+  --color-blue-700: #0284c7;
+  --color-blue-800: #0369a1;
+  --color-blue-900: #075985;
   
   /* Alert Colors */
-  --color-alert-50: #ffebee;
-  --color-alert-100: #ffcdd2;
-  --color-alert-200: #ef9a9a;
-  --color-alert-300: #e57373;
-  --color-alert-400: #FF5252;
-  --color-alert-500: #F44336;
-  --color-alert-600: #e53935;
-  --color-alert-700: #d32f2f;
-  --color-alert-800: #c62828;
-  --color-alert-900: #b71c1c;
+  --color-alert-50: #fef2f2;
+  --color-alert-100: #fee2e2;
+  --color-alert-200: #fecaca;
+  --color-alert-300: #fca5a5;
+  --color-alert-400: #f87171;
+  --color-alert-500: #ef4444;
+  --color-alert-600: #dc2626;
+  --color-alert-700: #b91c1c;
+  --color-alert-800: #991b1b;
+  --color-alert-900: #7f1d1d;
   
   /* Gold/Yellow */
-  --color-gold-50: #fffde7;
-  --color-gold-100: #fff9c4;
-  --color-gold-200: #fff59d;
-  --color-gold-300: #fff176;
-  --color-gold-400: #FFD700;
-  --color-gold-500: #FFC107;
-  --color-gold-600: #ffb300;
-  --color-gold-700: #ffa000;
-  --color-gold-800: #ff8f00;
-  --color-gold-900: #ff6f00;
+  --color-gold-50: #fefce8;
+  --color-gold-100: #fef9c3;
+  --color-gold-200: #fef08a;
+  --color-gold-300: #fde047;
+  --color-gold-400: #facc15;
+  --color-gold-500: #eab308;
+  --color-gold-600: #ca8a04;
+  --color-gold-700: #a16207;
+  --color-gold-800: #854d0e;
+  --color-gold-900: #713f12;
   
   /* Neutrals - Gray Scale */
   --color-gray-50: #FAFAFA;
@@ -103,16 +127,64 @@
 /* Dark Mode Variables */
 .dark {
   /* In dark mode, we adjust the color palette */
-  --color-primary-50: #3d5c20;
-  --color-primary-100: #527a2b;
-  --color-primary-200: #6d9c36;
-  --color-primary-300: #8BC34A;
-  --color-primary-400: #a8b800;
-  --color-primary-500: #C4D600;
-  --color-primary-600: #d4f766;
-  --color-primary-700: #e5ff99;
-  --color-primary-800: #f0ffc7;
-  --color-primary-900: #f9ffe6;
+  --color-primary-50: #811c16;
+  --color-primary-100: #9f1a12;
+  --color-primary-200: #c81a0e;
+  --color-primary-300: #e02416;
+  --color-primary-400: #E63C2E;
+  --color-primary-500: #f98080;
+  --color-primary-600: #f8b4b4;
+  --color-primary-700: #fbd5d5;
+  --color-primary-800: #fde8e8;
+  --color-primary-900: #fdf2f2;
+
+  /* Accent colors dark mode */
+  --color-accent-50: #2d4719;
+  --color-accent-100: #34551a;
+  --color-accent-200: #3e6b1a;
+  --color-accent-300: #4d861c;
+  --color-accent-400: #65a624;
+  --color-accent-500: #70B829;
+  --color-accent-600: #a7d487;
+  --color-accent-700: #cae6b5;
+  --color-accent-800: #e4f2d9;
+  --color-accent-900: #f3f9ef;
+
+  /* Yellow dark mode */
+  --color-yellow-50: #713f12;
+  --color-yellow-100: #854d0e;
+  --color-yellow-200: #a16207;
+  --color-yellow-300: #ca8a04;
+  --color-yellow-400: #eab308;
+  --color-yellow-500: #E1DF54;
+  --color-yellow-600: #fde047;
+  --color-yellow-700: #fef08a;
+  --color-yellow-800: #fef9c3;
+  --color-yellow-900: #fefce8;
+
+  /* Lime dark mode */
+  --color-lime-50: #365314;
+  --color-lime-100: #3f6212;
+  --color-lime-200: #4d7c0f;
+  --color-lime-300: #65a30d;
+  --color-lime-400: #84cc16;
+  --color-lime-500: #BDCF00;
+  --color-lime-600: #bef264;
+  --color-lime-700: #d9f99d;
+  --color-lime-800: #ecfccb;
+  --color-lime-900: #f7fee7;
+
+  /* Blue dark mode */
+  --color-blue-50: #075985;
+  --color-blue-100: #0369a1;
+  --color-blue-200: #0284c7;
+  --color-blue-300: #0ea5e9;
+  --color-blue-400: #38bdf8;
+  --color-blue-500: #1C5A7D;
+  --color-blue-600: #7dd3fc;
+  --color-blue-700: #bae6fd;
+  --color-blue-800: #e0f2fe;
+  --color-blue-900: #f0f9ff;
 
   /* Dark theme specific colors */
   --color-dark-50: #263238;
@@ -177,22 +249,22 @@
 @layer components {
   /* Button styles */
   .btn-primary {
-    background: linear-gradient(135deg, #C4D600, #8BC34A);
+    background: linear-gradient(135deg, #E63C2E, #70B829);
     color: white;
     border: none;
     border-radius: 0.75rem;
     padding: 0.75rem 1.5rem;
     font-weight: var(--font-weight-medium);
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px -1px rgba(196, 214, 0, 0.3);
+    box-shadow: 0 4px 6px -1px rgba(230, 60, 46, 0.3);
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
   
   .btn-primary:hover {
-    background: linear-gradient(135deg, #a8b800, #6d9c36);
+    background: linear-gradient(135deg, #e02416, #65a624);
     transform: translateY(-1px);
-    box-shadow: 0 6px 10px -1px rgba(196, 214, 0, 0.4);
+    box-shadow: 0 6px 10px -1px rgba(230, 60, 46, 0.4);
   }
   
   .btn-primary:active {
@@ -200,22 +272,22 @@
   }
   
   .btn-secondary {
-    background: linear-gradient(135deg, #FF6B35, #FF7043);
+    background: linear-gradient(135deg, #70B829, #BDCF00);
     color: white;
     border: none;
     border-radius: 0.75rem;
     padding: 0.75rem 1.5rem;
     font-weight: var(--font-weight-medium);
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px -1px rgba(255, 107, 53, 0.3);
+    box-shadow: 0 4px 6px -1px rgba(112, 184, 41, 0.3);
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
   
   .btn-secondary:hover {
-    background: linear-gradient(135deg, #f4511e, #e64a19);
+    background: linear-gradient(135deg, #65a624, #84cc16);
     transform: translateY(-1px);
-    box-shadow: 0 6px 10px -1px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 6px 10px -1px rgba(112, 184, 41, 0.4);
   }
   
   .btn-secondary:active {
@@ -225,7 +297,7 @@
   .btn-outline {
     background: transparent;
     color: var(--color-gray-800);
-    border: 2px solid var(--color-cyan-300);
+    border: 2px solid var(--color-blue-300);
     border-radius: 0.75rem;
     padding: 0.75rem 1.5rem;
     font-weight: var(--font-weight-medium);
@@ -236,19 +308,19 @@
   
   .dark .btn-outline {
     color: var(--color-gray-200);
-    border-color: var(--color-cyan-600);
+    border-color: var(--color-blue-600);
   }
   
   .btn-outline:hover {
-    background: var(--color-cyan-50);
-    border-color: var(--color-cyan-400);
-    color: var(--color-cyan-700);
+    background: var(--color-blue-50);
+    border-color: var(--color-blue-400);
+    color: var(--color-blue-700);
     transform: translateY(-1px);
   }
   
   .dark .btn-outline:hover {
     background: var(--color-dark-800);
-    color: var(--color-cyan-300);
+    color: var(--color-blue-300);
   }
   
   .btn-outline:active {
@@ -259,7 +331,7 @@
   .card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(77, 208, 225, 0.2);
+    border: 1px solid rgba(28, 90, 125, 0.2);
     border-radius: 1rem;
     padding: 1.5rem;
     transition: all 0.3s ease;
@@ -275,12 +347,12 @@
   .card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
-    border-color: rgba(196, 214, 0, 0.4);
+    border-color: rgba(230, 60, 46, 0.4);
   }
   
   .dark .card:hover {
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-    border-color: rgba(139, 195, 74, 0.6);
+    border-color: rgba(112, 184, 41, 0.6);
   }
   
   .card-elevated {
@@ -288,7 +360,7 @@
     border-radius: 1.5rem;
     padding: 2rem;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(77, 208, 225, 0.15);
+    border: 1px solid rgba(28, 90, 125, 0.15);
   }
 
   .dark .card-elevated {
@@ -299,11 +371,11 @@
 
   /* Balance Card - Financial App Style */
   .balance-card {
-    background: linear-gradient(135deg, #C4D600 0%, #8BC34A 100%);
+    background: linear-gradient(135deg, #E63C2E 0%, #70B829 100%);
     color: white;
     border-radius: 1.5rem;
     padding: 2rem;
-    box-shadow: 0 10px 30px -5px rgba(196, 214, 0, 0.4);
+    box-shadow: 0 10px 30px -5px rgba(230, 60, 46, 0.4);
     border: none;
   }
 
@@ -334,15 +406,15 @@
   
   .input-field:focus {
     outline: none;
-    border-color: var(--color-cyan-400);
+    border-color: var(--color-blue-400);
     ring: 4px;
-    ring-color: rgba(77, 208, 225, 0.2);
+    ring-color: rgba(28, 90, 125, 0.2);
     background: white;
   }
   
   .dark .input-field:focus {
     background: var(--color-dark-800);
-    ring-color: rgba(77, 208, 225, 0.3);
+    ring-color: rgba(28, 90, 125, 0.3);
   }
   
   .input-field::placeholder {
@@ -355,20 +427,6 @@
 
   /* Status badges */
   .badge-success {
-    background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-200));
-    color: var(--color-primary-800);
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: var(--font-weight-medium);
-  }
-
-  .dark .badge-success {
-    background: linear-gradient(135deg, var(--color-primary-900), var(--color-primary-800));
-    color: var(--color-primary-200);
-  }
-  
-  .badge-warning {
     background: linear-gradient(135deg, var(--color-accent-100), var(--color-accent-200));
     color: var(--color-accent-800);
     padding: 0.25rem 0.75rem;
@@ -377,14 +435,28 @@
     font-weight: var(--font-weight-medium);
   }
 
-  .dark .badge-warning {
+  .dark .badge-success {
     background: linear-gradient(135deg, var(--color-accent-900), var(--color-accent-800));
     color: var(--color-accent-200);
   }
   
+  .badge-warning {
+    background: linear-gradient(135deg, var(--color-yellow-100), var(--color-yellow-200));
+    color: var(--color-yellow-800);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-medium);
+  }
+
+  .dark .badge-warning {
+    background: linear-gradient(135deg, var(--color-yellow-900), var(--color-yellow-800));
+    color: var(--color-yellow-200);
+  }
+  
   .badge-info {
-    background: linear-gradient(135deg, var(--color-cyan-100), var(--color-cyan-200));
-    color: var(--color-cyan-800);
+    background: linear-gradient(135deg, var(--color-blue-100), var(--color-blue-200));
+    color: var(--color-blue-800);
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
@@ -392,8 +464,8 @@
   }
 
   .dark .badge-info {
-    background: linear-gradient(135deg, var(--color-cyan-900), var(--color-cyan-800));
-    color: var(--color-cyan-200);
+    background: linear-gradient(135deg, var(--color-blue-900), var(--color-blue-800));
+    color: var(--color-blue-200);
   }
 
   /* Progress bar */
@@ -411,7 +483,7 @@
   
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #C4D600, #8BC34A);
+    background: linear-gradient(90deg, #E63C2E, #70B829);
     transition: width 0.5s ease;
     border-radius: 9999px;
   }
@@ -448,23 +520,23 @@
   }
   
   .notification.success {
-    border-color: var(--color-primary-300);
-    background: linear-gradient(135deg, var(--color-primary-50), rgba(255, 255, 255, 0.95));
+    border-color: var(--color-accent-300);
+    background: linear-gradient(135deg, var(--color-accent-50), rgba(255, 255, 255, 0.95));
   }
 
   .dark .notification.success {
-    border-color: var(--color-primary-600);
-    background: linear-gradient(135deg, var(--color-primary-900), rgba(55, 71, 79, 0.95));
+    border-color: var(--color-accent-600);
+    background: linear-gradient(135deg, var(--color-accent-900), rgba(55, 71, 79, 0.95));
   }
   
   .notification.error {
-    border-color: var(--color-alert-400);
-    background: linear-gradient(135deg, var(--color-alert-50), rgba(255, 255, 255, 0.95));
+    border-color: var(--color-primary-400);
+    background: linear-gradient(135deg, var(--color-primary-50), rgba(255, 255, 255, 0.95));
   }
 
   .dark .notification.error {
-    border-color: var(--color-alert-600);
-    background: linear-gradient(135deg, var(--color-alert-900), rgba(55, 71, 79, 0.95));
+    border-color: var(--color-primary-600);
+    background: linear-gradient(135deg, var(--color-primary-900), rgba(55, 71, 79, 0.95));
   }
 }
 
@@ -524,7 +596,7 @@
   
   /* Gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, #C4D600, #FF6B35);
+    background: linear-gradient(135deg, #E63C2E, #70B829);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -532,7 +604,7 @@
   
   /* Custom shadows */
   .shadow-brand {
-    box-shadow: 0 10px 25px -5px rgba(196, 214, 0, 0.3), 0 4px 6px -2px rgba(196, 214, 0, 0.15);
+    box-shadow: 0 10px 25px -5px rgba(230, 60, 46, 0.3), 0 4px 6px -2px rgba(230, 60, 46, 0.15);
   }
 
   .dark .shadow-brand {
@@ -540,7 +612,7 @@
   }
   
   .shadow-accent {
-    box-shadow: 0 10px 25px -5px rgba(255, 107, 53, 0.3), 0 4px 6px -2px rgba(255, 107, 53, 0.15);
+    box-shadow: 0 10px 25px -5px rgba(112, 184, 41, 0.3), 0 4px 6px -2px rgba(112, 184, 41, 0.15);
   }
 
   .dark .shadow-accent {
@@ -763,11 +835,11 @@
   bottom: env(safe-area-inset-bottom, 1rem);
   left: 1rem;
   right: 1rem;
-  background: linear-gradient(135deg, #C4D600, #8BC34A);
+  background: linear-gradient(135deg, #E63C2E, #70B829);
   color: white;
   padding: 1rem;
   border-radius: 1rem;
-  box-shadow: 0 10px 25px -5px rgba(196, 214, 0, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(230, 60, 46, 0.4);
   z-index: 60;
 }
 

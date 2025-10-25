@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { Trash2, TrendingUp, TrendingDown, Calendar, Building2 } from 'lucide-react'
+import { Trash2, TrendingUp, TrendingDown } from 'lucide-react'
 import { StockTransactionWithDetails } from '../../types/stock'
 
 interface StockTransactionListProps {
@@ -10,115 +10,71 @@ interface StockTransactionListProps {
 export function StockTransactionList({ transactions, onDelete }: StockTransactionListProps) {
   if (transactions.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-dark-700 rounded-full mx-auto mb-4">
-          <TrendingUp className="w-8 h-8 text-gray-400 dark:text-dark-400" />
+      <div className="text-center py-8">
+        <div className="flex items-center justify-center w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full mx-auto mb-3">
+          <TrendingUp className="w-6 h-6 text-slate-400" />
         </div>
-        <p className="text-gray-500 dark:text-dark-300 mb-2">No transactions yet</p>
-        <p className="text-sm text-gray-400 dark:text-dark-400">
-          Start by adding your first stock transaction
-        </p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">Aucune transaction</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {transactions.map((transaction) => (
         <div
           key={transaction.id}
-          className="bg-gradient-to-r from-gray-50 to-white dark:from-dark-700 dark:to-dark-800 border border-gray-200 dark:border-dark-600 rounded-xl p-4 hover:shadow-md transition-all duration-300"
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
         >
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-4 flex-1">
-              {/* Icon */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3 flex-1">
+              {/* Icône simple */}
               <div
-                className={`flex items-center justify-center w-12 h-12 rounded-xl ${
+                className={`p-2 rounded-lg ${
                   transaction.transaction_type === 'BUY'
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                    : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
                 }`}
               >
                 {transaction.transaction_type === 'BUY' ? (
-                  <TrendingUp className="w-6 h-6" />
+                  <TrendingUp className="w-4 h-4" />
                 ) : (
-                  <TrendingDown className="w-6 h-6" />
+                  <TrendingDown className="w-4 h-4" />
                 )}
               </div>
 
-              {/* Details */}
+              {/* Contenu principal */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <h4 className="font-semibold text-gray-900 dark:text-dark-100">
+                  <h4 className="font-semibold text-slate-900 dark:text-white text-sm">
                     {transaction.company_name}
                   </h4>
-                  <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium rounded">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {transaction.symbol}
                   </span>
-                  <span
-                    className={`px-2 py-0.5 text-xs font-medium rounded ${
-                      transaction.transaction_type === 'BUY'
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                    }`}
-                  >
-                    {transaction.transaction_type}
+                </div>
+
+                <div className="flex items-center space-x-4 text-sm text-slate-600 dark:text-slate-400">
+                  <span>{transaction.quantity} actions</span>
+                  <span>à {transaction.price_per_share.toFixed(2)} MAD</span>
+                  <span className="font-medium text-slate-900 dark:text-white">
+                    {transaction.total_amount.toFixed(2)} MAD
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm text-gray-600 dark:text-dark-300 mb-2">
-                  <div>
-                    <span className="text-xs text-gray-500 dark:text-dark-400">Quantity:</span>
-                    <p className="font-medium text-gray-900 dark:text-dark-100">
-                      {transaction.quantity}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-xs text-gray-500 dark:text-dark-400">Price:</span>
-                    <p className="font-medium text-gray-900 dark:text-dark-100">
-                      {transaction.price_per_share.toFixed(2)} MAD
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-xs text-gray-500 dark:text-dark-400">Total:</span>
-                    <p className="font-medium text-gray-900 dark:text-dark-100">
-                      {transaction.total_amount.toFixed(2)} MAD
-                    </p>
-                  </div>
-                  {transaction.fees > 0 && (
-                    <div>
-                      <span className="text-xs text-gray-500 dark:text-dark-400">Fees:</span>
-                      <p className="font-medium text-gray-900 dark:text-dark-100">
-                        {transaction.fees.toFixed(2)} MAD
-                      </p>
-                    </div>
-                  )}
+                <div className="flex items-center space-x-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <span>{transaction.bank_name}</span>
+                  <span>•</span>
+                  <span>{format(new Date(transaction.transaction_date), 'dd/MM/yyyy')}</span>
                 </div>
-
-                <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-dark-400">
-                  <div className="flex items-center space-x-1">
-                    <Building2 className="w-3 h-3" />
-                    <span>{transaction.bank_name}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>{format(new Date(transaction.transaction_date), 'MMM dd, yyyy')}</span>
-                  </div>
-                </div>
-
-                {transaction.notes && (
-                  <p className="text-xs text-gray-500 dark:text-dark-400 italic mt-2">
-                    "{transaction.notes}"
-                  </p>
-                )}
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Action supprimer */}
             <button
               onClick={() => onDelete(transaction.id)}
-              className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-              title="Delete Transaction"
+              className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+              title="Supprimer"
             >
               <Trash2 className="w-4 h-4" />
             </button>
