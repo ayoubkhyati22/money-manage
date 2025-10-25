@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useSweetAlert } from '../../hooks/useSweetAlert'
 import { stockService } from '../../services/stockService'
 import { StockFormData, StockTransactionWithDetails } from '../../types/stock'
-import { Calendar, FileText } from 'lucide-react'
+import { Calendar, FileText, TrendingUp } from 'lucide-react'
 
 interface StockSellFormProps {
   banks: Bank[]
@@ -18,6 +18,7 @@ export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps)
   const [loading, setLoading] = useState(false)
   const [loadingTransactions, setLoadingTransactions] = useState(true)
   const [transactions, setTransactions] = useState<StockTransactionWithDetails[]>([])
+  const [selectedBank, setSelectedBank] = useState<Bank | null>(null)
   const [filteredCompanies, setFilteredCompanies] = useState<Array<{
     company_name: string
     symbol: string
@@ -42,6 +43,16 @@ export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps)
       formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [])
+
+  // Update selected bank when bank_id changes
+  useEffect(() => {
+    if (formData.bank_id) {
+      const bank = banks.find(b => b.id === formData.bank_id)
+      setSelectedBank(bank || null)
+    } else {
+      setSelectedBank(null)
+    }
+  }, [formData.bank_id, banks])
 
   // Charger les transactions de l'utilisateur
   useEffect(() => {
@@ -140,7 +151,7 @@ export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps)
       await stockService.createTransaction(user.id, formData)
       await showSuccess(
         'Sale Recorded!',
-        `SELL transaction for ${formData.company_name} has been recorded.`
+        `SELL transaction for ${formData.company_name} has been recorded. Bank balance and investment goal have been updated.`
       )
       onSubmit()
     } catch (error: any) {
@@ -152,6 +163,27 @@ export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps)
 
   const totalAmount = (parseFloat(formData.quantity) || 0) * (parseFloat(formData.price_per_share) || 0)
   const totalWithFees = totalAmount - (parseFloat(formData.fees) || 0)
+  const profit = formData.symbol ? calculateProfit() : 0
+
+  function calculateProfit() {
+    if (!formData.symbol || !formData.quantity || !formData.price_per_share) return 0
+    
+    const quantity = parseFloat(formData.quantity)
+    const sellPrice = parseFloat(formData.price_per_share)
+    
+    // Calculate average buy price for this stock
+    const buyTransactions = transactions.filter(
+      t => t.symbol === formData.symbol && t.transaction_type === 'BUY'
+    )
+    
+    if (buyTransactions.length === 0) return 0
+    
+    const totalBought = buyTransactions.reduce((sum, t) => sum + t.quantity, 0)
+    const totalCost = buyTransactions.reduce((sum, t) => sum + (t.quantity * t.price_per_share), 0)
+    const avgBuyPrice = totalCost / totalBought
+    
+    return quantity * (sellPrice - avgBuyPrice)
+  }
 
   return (
     <div ref={formRef} className="bg-white dark:bg-dark-800 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-600 overflow-hidden">
@@ -160,7 +192,7 @@ export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps)
           Sell Stock
         </h3>
         <p className="text-sm text-gray-600 dark:text-dark-300 mt-1">
-          Sell shares from your existing holdings
+          Sell shares from your existing holdings (automatically updates bank balance and investment goal)
         </p>
       </div>
 
@@ -168,7 +200,7 @@ export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps)
         {/* Bank */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
-            Bank Account *
+            Bank Account to Receive Funds *
           </label>
           <select
             value={formData.bank_id}
@@ -179,10 +211,15 @@ export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps)
             <option value="">Select a bank...</option>
             {banks.map((bank) => (
               <option key={bank.id} value={bank.id}>
-                {bank.name}
+                {bank.name} - Current Balance: {bank.balance.toFixed(2)} MAD
               </option>
             ))}
           </select>
+          {selectedBank && (
+            <p className="text-xs text-gray-500 dark:text-dark-400 mt-1">
+              Current balance: {selectedBank.balance.toFixed(2)} MAD
+            </p>
+          )}
         </div>
 
         {/* Company Selection */}
@@ -324,7 +361,7 @@ export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps)
             </h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-dark-300">Subtotal:</span>
+                <span className="text-gray-600 dark:text-dark-300">Sale Amount:</span>
                 <span className="font-semibold text-gray-900 dark:text-dark-100">
                   {totalAmount.toFixed(2)} MAD
                 </span>
@@ -341,6 +378,27 @@ export function StockSellForm({ banks, onSubmit, onCancel }: StockSellFormProps)
                   {totalWithFees.toFixed(2)} MAD
                 </span>
               </div>
+              {profit !== 0 && (
+                <div className="flex justify-between pt-2 border-t border-red-200 dark:border-red-700">
+                  <span className="text-gray-600 dark:text-dark-300">
+                    <TrendingUp className="w-4 h-4 inline mr-1" />
+                    Estimated Profit/Loss:
+                  </span>
+                  <span className={`font-semibold ${
+                    profit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {profit >= 0 ? '+' : ''}{profit.toFixed(2)} MAD
+                  </span>
+                </div>
+              )}
+              {selectedBank && (
+                <div className="flex justify-between pt-2 border-t border-red-200 dark:border-red-700">
+                  <span className="text-gray-600 dark:text-dark-300">New Bank Balance:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">
+                    {(selectedBank.balance + totalWithFees).toFixed(2)} MAD
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

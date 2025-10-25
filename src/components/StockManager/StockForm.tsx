@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useSweetAlert } from '../../hooks/useSweetAlert'
 import { stockService } from '../../services/stockService'
 import { StockFormData } from '../../types/stock'
-import { ShoppingCart, DollarSign, Hash, Calendar, FileText } from 'lucide-react'
+import { ShoppingCart, DollarSign, Hash, Calendar, FileText, AlertTriangle } from 'lucide-react'
 
 interface StockFormProps {
   banks: Bank[]
@@ -16,6 +16,7 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
   const { user } = useAuth()
   const { showSuccess, showError } = useSweetAlert()
   const [loading, setLoading] = useState(false)
+  const [selectedBank, setSelectedBank] = useState<Bank | null>(null)
   const formRef = useRef<HTMLDivElement>(null)
   const [formData, setFormData] = useState<StockFormData>({
     bank_id: '',
@@ -36,6 +37,16 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
     }
   }, [])
 
+  // Update selected bank when bank_id changes
+  useEffect(() => {
+    if (formData.bank_id) {
+      const bank = banks.find(b => b.id === formData.bank_id)
+      setSelectedBank(bank || null)
+    } else {
+      setSelectedBank(null)
+    }
+  }, [formData.bank_id, banks])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
@@ -47,9 +58,20 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
 
     const quantity = parseFloat(formData.quantity)
     const price = parseFloat(formData.price_per_share)
+    const fees = parseFloat(formData.fees) || 0
+    const totalAmount = (quantity * price) + fees
 
     if (quantity <= 0 || price <= 0) {
       await showError('Invalid Values', 'Quantity and price must be greater than 0')
+      return
+    }
+
+    // Check if bank has sufficient funds
+    if (selectedBank && totalAmount > selectedBank.balance) {
+      await showError(
+        'Insufficient Funds',
+        `You need ${totalAmount.toFixed(2)} MAD but only have ${selectedBank.balance.toFixed(2)} MAD in ${selectedBank.name}.`
+      )
       return
     }
 
@@ -58,7 +80,7 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
       await stockService.createTransaction(user.id, formData)
       await showSuccess(
         'Transaction Added!',
-        `${formData.transaction_type} transaction for ${formData.company_name} has been recorded.`
+        `${formData.transaction_type} transaction for ${formData.company_name} has been recorded. Bank balance and investment goal have been updated.`
       )
       onSubmit()
     } catch (error: any) {
@@ -70,6 +92,7 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
 
   const totalAmount = (parseFloat(formData.quantity) || 0) * (parseFloat(formData.price_per_share) || 0)
   const totalWithFees = totalAmount + (parseFloat(formData.fees) || 0)
+  const insufficientFunds = selectedBank && totalWithFees > selectedBank.balance
 
   return (
     <div ref={formRef} className="bg-white dark:bg-dark-800 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-600 overflow-hidden">
@@ -78,7 +101,7 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
           New Stock Transaction
         </h3>
         <p className="text-sm text-gray-600 dark:text-dark-300 mt-1">
-          Record your stock purchase or sale
+          Record your stock purchase (automatically updates bank balance and investment goal)
         </p>
       </div>
 
@@ -130,10 +153,15 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
             <option value="">Select a bank...</option>
             {banks.map((bank) => (
               <option key={bank.id} value={bank.id}>
-                {bank.name}
+                {bank.name} - Balance: {bank.balance.toFixed(2)} MAD
               </option>
             ))}
           </select>
+          {selectedBank && (
+            <p className="text-xs text-gray-500 dark:text-dark-400 mt-1">
+              Available balance: {selectedBank.balance.toFixed(2)} MAD
+            </p>
+          )}
         </div>
 
         {/* Company Name and Symbol (Manual Entry) */}
@@ -255,9 +283,26 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
           </div>
         </div>
 
+        {/* Balance Warning */}
+        {insufficientFunds && (
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-200 dark:border-red-700">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-semibold text-red-900 dark:text-red-300">
+                  Insufficient Funds
+                </h4>
+                <p className="text-sm text-red-700 dark:text-red-400 mt-1">
+                  You need {totalWithFees.toFixed(2)} MAD but only have {selectedBank?.balance.toFixed(2)} MAD in {selectedBank?.name}.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Summary */}
         {formData.quantity && formData.price_per_share && (
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
+          <div className={`${insufficientFunds ? 'opacity-60' : ''} bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700`}>
             <h4 className="text-sm font-semibold text-gray-900 dark:text-dark-100 mb-3">
               Transaction Summary
             </h4>
@@ -280,6 +325,16 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
                   {totalWithFees.toFixed(2)} MAD
                 </span>
               </div>
+              {selectedBank && (
+                <div className="flex justify-between pt-2 border-t border-blue-200 dark:border-blue-700">
+                  <span className="text-gray-600 dark:text-dark-300">New Balance:</span>
+                  <span className={`font-semibold ${
+                    insufficientFunds ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-dark-100'
+                  }`}>
+                    {(selectedBank.balance - totalWithFees).toFixed(2)} MAD
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -288,7 +343,7 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
         <div className="flex items-center space-x-3 pt-4">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || insufficientFunds}
             className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl"
           >
             {loading ? 'Processing...' : 'Add Transaction'}
