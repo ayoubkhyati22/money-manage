@@ -17,8 +17,9 @@ import {
   LineChart
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { StockManager } from './StockManager/StockManager_index'
 
-type ActiveTab = 'overview' | 'goals' | 'banks' | 'transactions' | 'history' | 'dca'
+type ActiveTab = 'overview' | 'goals' | 'banks' | 'transactions' | 'history' | 'dca' | 'stocks'
 
 export function Dashboard() {
   const { user } = useAuth()
@@ -34,8 +35,10 @@ export function Dashboard() {
     { id: 'banks' as const, label: 'Banks', icon: Building2 },
     { id: 'transactions' as const, label: 'Withdraw', icon: ArrowDownCircle },
     { id: 'history' as const, label: 'History', icon: History },
+    { id: 'stocks' as const, label: 'Stocks', icon: History },
     // { id: 'dca' as const, label: 'DCA', icon: LineChart },
   ]
+
 
   useEffect(() => {
     if (user) loadAllData()
@@ -152,6 +155,8 @@ export function Dashboard() {
             <DCAPerformanceChart />
           </div>
         )
+        case 'stocks':
+        return <StockManager banks={banks} />
       default:
         return null
     }

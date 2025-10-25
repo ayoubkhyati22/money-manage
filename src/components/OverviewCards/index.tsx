@@ -8,6 +8,7 @@ import { FinancialGraphs } from './FinancialGraphs'
 import { BanksSection } from './BanksSection'
 import { ObjectivesSection } from './ObjectivesSection'
 import { BarChart3, Building2, Target } from 'lucide-react'
+import { stockService } from '../../services/stockService'
 
 interface OverviewCardsProps {
   banks: Bank[]
@@ -112,6 +113,26 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
     { id: 'banks' as const, label: 'Banks', icon: Building2 },
   ]
 
+  const [stockGains, setStockGains] = useState({
+    totalInvested: 0,
+    totalRevenue: 0,
+    totalGains: 0,
+    totalGainsPercent: 0
+  })
+  
+  // Ajouter dans loadData()
+  const loadData = async () => {
+    if (!user) return
+    setLoading(true)
+    try {
+      const gains = await stockService.calculateTotalGains(user.id)
+      setStockGains(gains)
+      // ... rest of loading logic
+    } catch (error) {
+      // ...
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -141,6 +162,7 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
         goalsCount={goals.length}
         totalObjectives={totalObjectives}
         totalWithdrawn={totalWithdrawn}
+        stockGains={stockGains}
       />
 
       {/* Tabs Navigation */}
