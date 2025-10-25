@@ -1,7 +1,7 @@
 import { CreditCard } from 'lucide-react'
 import { Bank } from '../../types/bank'
 import { BankCard } from './BankCard'
-import { BankCardSwiper } from './BankCardSwiper' // Import the new swiper component
+import { BankCardSwiper } from './BankCardSwiper'
 
 interface BankGridProps {
   banks: Bank[]
@@ -19,33 +19,34 @@ export function BankGrid({
   onToggleVisibility
 }: BankGridProps) {
   return (
-    <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 p-6 border-b border-blue-200 dark:border-dark-600">
+    <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl shadow-md border border-mint-200/50 dark:border-dark-600/50 overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 p-4 border-b border-blue-200 dark:border-dark-600">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-100">Your Bank Cards</h3>
-            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-              {banks.length} {banks.length === 1 ? 'card' : 'cards'} • Total: {banks.reduce((sum, bank) => sum + Number(bank.balance), 0).toFixed(2)} MAD
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">Your Bank Cards</h3>
+            <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+              {banks.length} {banks.length === 1 ? 'card' : 'cards'} • Total:{" "}
+              {banks.reduce((sum, bank) => sum + Number(bank.balance), 0).toFixed(2)} MAD
             </p>
           </div>
-          <div className="flex items-center space-x-2">
-            <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
+          <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-4">
         {banks.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-full mx-auto mb-6">
-              <CreditCard className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+          <div className="text-center py-8">
+            <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-full mx-auto mb-4">
+              <CreditCard className="w-7 h-7 text-blue-600 dark:text-blue-400" />
             </div>
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-dark-100 mb-2">No bank cards yet</h4>
-            <p className="text-gray-500 dark:text-dark-300">Add your first bank to get started with beautiful card management</p>
+            <h4 className="text-base font-semibold text-gray-900 dark:text-dark-100 mb-1">No bank cards yet</h4>
+            <p className="text-sm text-gray-500 dark:text-dark-300">
+              Add your first bank to get started
+            </p>
           </div>
         ) : (
           <>
-            {/* Swiper for mobile (hidden on medium screens and up) */}
+            {/* Swiper for mobile */}
             <BankCardSwiper
               banks={banks}
               hiddenBalances={hiddenBalances}
@@ -54,8 +55,8 @@ export function BankGrid({
               onToggleVisibility={onToggleVisibility}
             />
 
-            {/* Grid for desktop (hidden on mobile) */}
-            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Grid for desktop */}
+            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {banks.map((bank, index) => (
                 <BankCard
                   key={bank.id}
