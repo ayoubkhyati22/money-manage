@@ -82,7 +82,7 @@ export function StockManager({ banks }: StockManagerProps) {
   ]
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mt-7">
       {/* Premium Header with Compact Stats */}
       <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 rounded-xl p-4 text-white shadow-premium border border-white/10">
         <div className="flex items-center justify-between mb-3">

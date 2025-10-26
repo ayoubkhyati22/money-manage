@@ -75,8 +75,9 @@ export function Layout({ children }: LayoutProps) {
             <div className="hidden lg:flex items-center space-x-3">
               {/* DCA Button for Desktop */}
               <button
+                disabled
                 onClick={handleNavigateToDCA}
-                className="flex items-center space-x-1.5 px-3 py-2 text-xs font-medium text-dark-500 dark:text-dark-200 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-dark-700 rounded-lg transition-all duration-300 border border-mint-200 dark:border-dark-600"
+                className="flex items-center space-x-1.5 px-3 py-2 text-xs font-medium text-gray-400 dark:text-dark-500 bg-gray-50 dark:bg-dark-800 rounded-lg border border-gray-200 dark:border-dark-700 cursor-not-allowed opacity-60 select-none"
                 title="DCA Investments"
               >
                 <LineChart className="w-3.5 h-3.5" />
@@ -132,8 +133,9 @@ export function Layout({ children }: LayoutProps) {
                     <p className="text-[10px] font-medium text-dark-400 dark:text-dark-300 mb-1">Quick Access</p>
                   </div>
                   <button
+                    disabled
                     onClick={handleNavigateToDCA}
-                    className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-medium text-dark-500 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-dark-700 transition-colors duration-300"
+                    className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-medium text-gray-400 dark:text-dark-500 bg-gray-50 dark:bg-dark-800 cursor-not-allowed opacity-60 select-none"
                   >
                     <div className="flex items-center space-x-1.5">
                       <LineChart className="w-3.5 h-3.5" />
