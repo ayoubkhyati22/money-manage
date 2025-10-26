@@ -54,7 +54,7 @@ function CreditCard({ totalBalance, banksCount, banks }: CreditCardProps) {
               <p className="text-xs sm:text-sm text-gray-300 font-medium">Total Balance</p>
               <div className="flex items-center space-x-2">
                 <h2
-                  className={`text-2xl sm:text-3xl font-bold transition-all duration-300 ${showTotalBalance ? 'blur-0' : 'blur-sm select-none'
+                  className={`text-3xl sm:text-3xl font-bold transition-all duration-300 ${showTotalBalance ? 'blur-0' : 'blur-sm select-none'
                     } ${showTotalBalance ? 'text-gray-900 dark:text-white' : 'text-gray-900/60 dark:text-white/60'}`}
                 >
                   {showTotalBalance
