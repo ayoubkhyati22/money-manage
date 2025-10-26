@@ -170,7 +170,6 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content with padding to account for fixed header and safe area */}
-      <br />
       <main className="relative pt-14 sm:pt-16 safe-area-top-padding">
         {children}
       </main>

@@ -16,7 +16,7 @@ interface CreditCardProps {
 const getCardGradient = (index: number) => {
   const gradients = [
     'bg-gradient-to-br from-slate-900 to-blue-900', // Deep Navy
-    'bg-gradient-to-br from-burgundy-900 to-burgundy-700', // Burgundy
+    'bg-gradient-to-br from-red-900 to-dark-700', // Burgundy
     'bg-gradient-to-br from-emerald-900 to-emerald-700', // Forest Green
     'bg-gradient-to-br from-gray-900 to-gray-700' // Charcoal
   ]
@@ -51,10 +51,10 @@ function CreditCard({ totalBalance, banksCount, banks }: CreditCardProps) {
               <Wallet className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm text-gray-300 font-medium">Total Balance</p>
+              <p className="text-xs sm:text-sm text-gray-400 font-medium">Total Balance</p>
               <div className="flex items-center space-x-2">
                 <h2
-                  className={`text-3xl sm:text-3xl font-bold transition-all duration-300 ${showTotalBalance ? 'blur-0' : 'blur-sm select-none'
+                  className={`text-4xl sm:text-3xl font-bold transition-all duration-300 ${showTotalBalance ? 'blur-0' : 'blur-sm select-none'
                     } ${showTotalBalance ? 'text-gray-900 dark:text-white' : 'text-gray-900/60 dark:text-white/60'}`}
                 >
                   {showTotalBalance
