@@ -391,6 +391,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <br />
       <div className="flex items-center justify-between">
         <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-dark-100">Financial Objectives</h2>
         <button
