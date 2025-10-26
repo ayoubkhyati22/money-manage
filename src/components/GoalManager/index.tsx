@@ -476,6 +476,11 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                   onAddMoney={() => {
                     setSelectedObjective(goal)
                     setShowAddMoneyForm(true)
+                    // Scroll to top
+                    window.scrollTo({
+                      top: 0,
+                      behavior: 'smooth'
+                    })
                   }}
                   onManageAllocations={() => openAllocationsModal(goal)}
                 />

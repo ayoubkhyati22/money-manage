@@ -38,13 +38,20 @@ export function Layout({ children }: LayoutProps) {
     window.dispatchEvent(new CustomEvent('navigateToDCA'))
   }
 
+  const handleNavigateToSTOCKS = () => {
+    setIsMenuOpen(false)
+    // Dispatch custom event to change active tab
+    window.dispatchEvent(new CustomEvent('navigateToSTOCKS'))
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900">
       {/* Safe area spacer for mobile status bar */}
       <div className="h-0 sm:h-0 safe-area-top" />
-      
+
       {/* Fixed Header */}
       <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm shadow-md border-b border-mint-200/50 dark:border-dark-600/50 z-50">
+        <br />
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 h-14 sm:h-16 flex items-center">
           <div className="flex justify-between items-center w-full">
 
@@ -59,7 +66,7 @@ export function Layout({ children }: LayoutProps) {
                   Welcome back!
                 </h1>
                 <p className="text-[10px] sm:text-xs text-dark-400 dark:text-dark-300 font-medium hidden sm:block">
-                {user?.email?.split("@")[0]}
+                  {user?.email?.split("@")[0]}
                 </p>
               </div>
             </div>
@@ -74,6 +81,15 @@ export function Layout({ children }: LayoutProps) {
               >
                 <LineChart className="w-3.5 h-3.5" />
                 <span>DCA</span>
+              </button>
+
+              <button
+                onClick={handleNavigateToSTOCKS}
+                className="flex items-center space-x-1.5 px-3 py-2 text-xs font-medium text-dark-500 dark:text-dark-200 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-dark-700 rounded-lg transition-all duration-300 border border-mint-200 dark:border-dark-600"
+                title="Investments"
+              >
+                <LineChart className="w-3.5 h-3.5" />
+                <span>STOCKS</span>
               </button>
 
               {/* Theme Selector */}
@@ -125,6 +141,16 @@ export function Layout({ children }: LayoutProps) {
                     </div>
                   </button>
 
+                  <button
+                    onClick={handleNavigateToSTOCKS}
+                    className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-medium text-dark-500 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-dark-700 transition-colors duration-300"
+                  >
+                    <div className="flex items-center space-x-1.5">
+                      <LineChart className="w-3.5 h-3.5" />
+                      <span>STOCKS Investments</span>
+                    </div>
+                  </button>
+
                   {/* Theme Selector in Mobile Dropdown */}
                   <ThemeSelector inDropdown={true} />
 
@@ -144,10 +170,12 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content with padding to account for fixed header and safe area */}
+      <br />
       <main className="relative pt-14 sm:pt-16 safe-area-top-padding">
         {children}
       </main>
-
+      <br />
+      <br />
       {/* Footer */}
       <footer className="hidden md:block bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm border-t border-mint-200/50 dark:border-dark-600/50 mt-8">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
@@ -197,7 +225,7 @@ export function Layout({ children }: LayoutProps) {
       </footer>
 
       {/* Add CSS for safe areas */}
-     
+
     </div>
   )
 }

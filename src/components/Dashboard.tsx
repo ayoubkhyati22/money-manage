@@ -39,7 +39,7 @@ export function Dashboard() {
     { id: 'banks' as const, label: 'Banks', icon: Building2 },
     { id: 'transactions' as const, label: 'Withdraw', icon: ArrowDownCircle },
     { id: 'history' as const, label: 'History', icon: History },
-    { id: 'stocks' as const, label: 'Stocks', icon: DollarSign },
+    // { id: 'stocks' as const, label: 'Stocks', icon: DollarSign },
     // { id: 'dca' as const, label: 'DCA', icon: LineChart },
   ]
 
@@ -56,6 +56,15 @@ export function Dashboard() {
 
     window.addEventListener('navigateToDCA', handleNavigateToDCA)
     return () => window.removeEventListener('navigateToDCA', handleNavigateToDCA)
+  }, [])
+
+  useEffect(() => {
+    const handleNavigateToSTOCKS = () => {
+      setActiveTab('stocks')
+    }
+
+    window.addEventListener('navigateToSTOCKS', handleNavigateToSTOCKS)
+    return () => window.removeEventListener('navigateToSTOCKS', handleNavigateToSTOCKS)
   }, [])
 
   const loadAllData = async () => {

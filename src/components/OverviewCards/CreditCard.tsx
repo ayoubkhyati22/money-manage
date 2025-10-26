@@ -131,7 +131,6 @@ function CreditCard({ totalBalance, banksCount, banks }: CreditCardProps) {
                           )}
                           <div>
                             <p className="text-white/90 text-sm font-medium">{bank.name}</p>
-                            <p className="text-white/60 text-xs">FinanceFlow</p>
                           </div>
                         </div>
 

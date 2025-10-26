@@ -89,7 +89,7 @@ export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithd
           </div>
         </div>
       </div>
-      <div className="group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+      {/* <div className="group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
   <div className="flex items-center justify-between">
     <div>
       <p className="text-xs font-medium text-dark-400 dark:text-dark-300">Stock Gains</p>
@@ -101,7 +101,7 @@ export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithd
       <BarChart3 className="w-5 h-5 text-white" />
     </div>
   </div>
-</div>
+</div> */}
     </div>
   )
 }
