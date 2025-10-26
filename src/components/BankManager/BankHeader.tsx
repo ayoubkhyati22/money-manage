@@ -6,7 +6,7 @@ interface BankHeaderProps {
 
 export function BankHeader({ onAddClick }: BankHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between mt-7">
       <div className="flex items-center space-x-2">
         <div className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg shadow-md">
           <CreditCard className="w-4 h-4 text-white" />

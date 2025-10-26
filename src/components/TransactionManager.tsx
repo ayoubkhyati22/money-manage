@@ -165,7 +165,7 @@ export function TransactionManager({
   const selectedAllocation = availableAllocations.find(a => a.objective_id === formData.objective_id)
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 mt-7">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2 sm:space-x-3">
           <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl shadow-lg">

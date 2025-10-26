@@ -12,11 +12,11 @@ export function TransactionHeader({
   onRefresh
 }: TransactionHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-7">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-dark-100">
         Transaction History
       </h2>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3"> 
         <button
           onClick={onToggleFilter}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
