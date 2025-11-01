@@ -4,7 +4,11 @@ import { useAuth } from '../../hooks/useAuth'
 import { useSweetAlert } from '../../hooks/useSweetAlert'
 import { stockService } from '../../services/stockService'
 import { StockFormData } from '../../types/stock'
-import { ShoppingCart, DollarSign, Hash, Calendar, FileText, AlertTriangle } from 'lucide-react'
+import { ShoppingCart, DollarSign, Hash, Calendar, FileText, AlertTriangle, TrendingUp } from 'lucide-react'
+
+import { CompanySelect } from './CompanySelect'
+import { stockPriceService } from '../../services/stockPriceService'
+import { MoroccanCompany } from '../../types/stock'
 
 interface StockFormProps {
   banks: Bank[]
@@ -29,6 +33,9 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
     notes: '',
     transaction_date: new Date().toISOString().split('T')[0]
   })
+  const [fetchingPrice, setFetchingPrice] = useState(false)
+  const [priceSource, setPriceSource] = useState<'manual' | 'api' | 'cache'>('manual')
+
 
   // Scroll automatique vers le formulaire à l'ouverture
   useEffect(() => {
@@ -94,6 +101,38 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
   const totalWithFees = totalAmount + (parseFloat(formData.fees) || 0)
   const insufficientFunds = selectedBank && totalWithFees > selectedBank.balance
 
+  const handleFetchCurrentPrice = async () => {
+    if (!formData.casablanca_api_id) return
+
+    setFetchingPrice(true)
+    try {
+      const price = await stockPriceService.getPriceWithCache(
+        formData.casablanca_api_id.toString()
+      )
+
+      if (price) {
+        setFormData(prev => ({
+          ...prev,
+          price_per_share: price.currentPrice.toFixed(2)
+        }))
+        setPriceSource('api')
+        await showSuccess(
+          'Prix récupéré!',
+          `Prix actuel: ${price.currentPrice.toFixed(2)} MAD`
+        )
+      } else {
+        await showError(
+          'Erreur',
+          'Impossible de récupérer le prix actuel. Veuillez entrer le prix manuellement.'
+        )
+      }
+    } catch (error: any) {
+      await showError('Erreur', error.message)
+    } finally {
+      setFetchingPrice(false)
+    }
+  }
+
   return (
     <div ref={formRef} className="bg-white dark:bg-dark-800 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-600 overflow-hidden">
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-6 border-b border-gray-200 dark:border-dark-600">
@@ -115,11 +154,10 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, transaction_type: 'BUY' })}
-              className={`p-4 rounded-lg border-2 transition-all duration-300 ${
-                formData.transaction_type === 'BUY'
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                  : 'border-gray-300 dark:border-dark-600 hover:border-green-300'
-              }`}
+              className={`p-4 rounded-lg border-2 transition-all duration-300 ${formData.transaction_type === 'BUY'
+                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                : 'border-gray-300 dark:border-dark-600 hover:border-green-300'
+                }`}
             >
               <ShoppingCart className="w-6 h-6 mx-auto mb-2" />
               <span className="font-semibold">BUY</span>
@@ -127,11 +165,10 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, transaction_type: 'SELL' })}
-              className={`p-4 rounded-lg border-2 transition-all duration-300 ${
-                formData.transaction_type === 'SELL'
-                  ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
-                  : 'border-gray-300 dark:border-dark-600 hover:border-red-300'
-              }`}
+              className={`p-4 rounded-lg border-2 transition-all duration-300 ${formData.transaction_type === 'SELL'
+                ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                : 'border-gray-300 dark:border-dark-600 hover:border-red-300'
+                }`}
             >
               <DollarSign className="w-6 h-6 mx-auto mb-2" />
               <span className="font-semibold">SELL</span>
@@ -165,37 +202,84 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
         </div>
 
         {/* Company Name and Symbol (Manual Entry) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
-              Company Name *
-            </label>
+        {/* Company Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
+            Entreprise *
+          </label>
+          <CompanySelect
+            value={formData.casablanca_api_id?.toString() || ''}
+            onChange={(company: MoroccanCompany) => {
+              setFormData({
+                ...formData,
+                company_name: company.name,
+                symbol: company.symbol,
+                casablanca_api_id: company.casablanca_api_id
+              })
+              // Pré-remplir avec le prix en cache si disponible
+              if (company.last_price) {
+                setFormData(prev => ({
+                  ...prev,
+                  price_per_share: company.last_price!.toString()
+                }))
+                setPriceSource('cache')
+              }
+            }}
+            disabled={loading}
+          />
+          {formData.company_name && (
+            <p className="text-xs text-gray-500 dark:text-dark-400 mt-1">
+              {formData.company_name} ({formData.symbol})
+            </p>
+          )}
+        </div>
+
+        {/* Price per Share avec bouton Fetch */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
+            Prix par Action (MAD) *
+          </label>
+          <div className="flex space-x-2">
             <input
-              type="text"
-              value={formData.company_name}
-              onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
-              placeholder="e.g., Attijariwafa Bank"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={formData.price_per_share}
+              onChange={(e) => {
+                setFormData({ ...formData, price_per_share: e.target.value })
+                setPriceSource('manual')
+              }}
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
+              placeholder="450.00"
               required
             />
+            <button
+              type="button"
+              onClick={handleFetchCurrentPrice}
+              disabled={!formData.casablanca_api_id || fetchingPrice}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              title="Récupérer le prix actuel"
+            >
+              {fetchingPrice ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <TrendingUp className="w-4 h-4" />
+                  <span className="text-xs">Prix Actuel</span>
+                </>
+              )}
+            </button>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
-              Symbol *
-            </label>
-            <div className="relative">
-              <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                value={formData.symbol}
-                onChange={(e) => setFormData({ ...formData, symbol: e.target.value.toUpperCase() })}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 uppercase"
-                placeholder="ATW"
-                required
-              />
+          {priceSource !== 'manual' && (
+            <div className="flex items-center space-x-1 mt-1">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${priceSource === 'api'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                }`}>
+                {priceSource === 'api' ? '🟢 Prix en direct' : '⚠️ Prix en cache'}
+              </span>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Quantity and Price */}
@@ -328,9 +412,8 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
               {selectedBank && (
                 <div className="flex justify-between pt-2 border-t border-blue-200 dark:border-blue-700">
                   <span className="text-gray-600 dark:text-dark-300">New Balance:</span>
-                  <span className={`font-semibold ${
-                    insufficientFunds ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-dark-100'
-                  }`}>
+                  <span className={`font-semibold ${insufficientFunds ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-dark-100'
+                    }`}>
                     {(selectedBank.balance - totalWithFees).toFixed(2)} MAD
                   </span>
                 </div>

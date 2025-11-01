@@ -1,9 +1,13 @@
+// src/types/stock.ts
 export interface MoroccanCompany {
   id: string
   name: string
   symbol: string
+  casablanca_api_id: number
   sector?: string
   description?: string
+  last_price?: number
+  last_price_updated_at?: string
   created_at: string
   updated_at: string
 }
@@ -21,6 +25,7 @@ export interface StockTransaction {
   fees?: number
   notes?: string
   transaction_date: string
+  casablanca_api_id?: number  // NOUVEAU
   created_at: string
   updated_at: string
 }
@@ -39,6 +44,7 @@ export interface StockPortfolio {
   total_sold: number
   avg_buy_price: number
   last_sell_price?: number
+  casablanca_api_id?: number  // NOUVEAU
 }
 
 export interface StockProfitLoss {
@@ -62,4 +68,5 @@ export interface StockFormData {
   fees: string
   notes: string
   transaction_date: string
+  casablanca_api_id?: number  // NOUVEAU
 }

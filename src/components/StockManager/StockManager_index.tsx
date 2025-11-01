@@ -10,12 +10,13 @@ import { StockSellForm1 } from './StockSellForm1'
 import { StockTransactionList } from './StockTransactionList'
 import { StockProfitSummary } from './StockProfitSummary'
 import { StockPortfolioView } from './StockPortfolioView'
+import { RealTimeStockPrices } from './RealTimeStockPrices'
 
 interface StockManagerProps {
   banks: Bank[]
 }
 
-type ActiveTab = 'portfolio' | 'transactions' | 'profit'
+type ActiveTab = 'portfolio' | 'live' | 'transactions' | 'profit'
 type FormType = null | 'buy' | 'sell'
 
 export function StockManager({ banks }: StockManagerProps) {
@@ -77,6 +78,7 @@ export function StockManager({ banks }: StockManagerProps) {
 
   const tabs = [
     { id: 'portfolio' as const, label: 'Portfolio', icon: BarChart3 },
+    { id: 'live' as const, label: 'Live Prices', icon: TrendingUp },  // NOUVEAU
     { id: 'transactions' as const, label: 'Transactions', icon: TrendingUp },
     { id: 'profit' as const, label: 'P&L', icon: DollarSign }
   ]
@@ -172,11 +174,10 @@ export function StockManager({ banks }: StockManagerProps) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${
-                    activeTab === tab.id
+                  className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${activeTab === tab.id
                       ? 'bg-gradient-to-r from-slate-800 to-slate-700 text-white shadow-sm border border-slate-600'
                       : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-3 h-3" />
                   <span>{tab.label}</span>
@@ -205,6 +206,9 @@ export function StockManager({ banks }: StockManagerProps) {
               )}
               {activeTab === 'profit' && (
                 <StockProfitSummary profitLoss={profitLoss} />
+              )}
+              {activeTab === 'live' && (
+                <RealTimeStockPrices />
               )}
             </>
           )}
