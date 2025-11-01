@@ -8,7 +8,7 @@ import 'swiper/css'
 import 'swiper/css/pagination'
 
 interface CreditCardProps {
-  totalBalance: number
+  totalBalance: number  // Ce sera totalBalanceWithStocks
   banksCount: number
   banks: Bank[]
 }

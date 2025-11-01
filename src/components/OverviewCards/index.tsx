@@ -9,6 +9,8 @@ import { BanksSection } from './BanksSection'
 import { ObjectivesSection } from './ObjectivesSection'
 import { BarChart3, Building2, Target } from 'lucide-react'
 import { stockService } from '../../services/stockService'
+import { StockOverview } from './StockOverview'
+import { useAuth } from '../../hooks/useAuth'
 
 interface OverviewCardsProps {
   banks: Bank[]
@@ -22,11 +24,13 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
   const [objectivesWithAmounts, setObjectivesWithAmounts] = useState<ObjectiveWithAmount[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<OverviewTab>('objectives')
-
+  const { user } = useAuth()
+  const [stockGains, setStockGains] = useState(0)
   const [banksCurrentPage, setBanksCurrentPage] = useState(1)
   const [objectivesCurrentPage, setObjectivesCurrentPage] = useState(1)
   const banksPerPage = 4
   const objectivesPerPage = 4
+
 
   useEffect(() => {
     loadObjectiveAmounts()
@@ -85,8 +89,13 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
     }
   }
 
+
+
+  // const totalBalance = banks.reduce((sum, bank) => sum + Number(bank.balance), 0)
+  // const totalObjectives = objectivesWithAmounts.reduce((sum, obj) => sum + obj.total_amount, 0)
+
   const totalBalance = banks.reduce((sum, bank) => sum + Number(bank.balance), 0)
-  const totalObjectives = objectivesWithAmounts.reduce((sum, obj) => sum + obj.total_amount, 0)
+  const totalBalanceWithStocks = totalBalance + stockGains
 
   const totalWithdrawn = objectivesWithAmounts.reduce((sum, obj) => {
     const withdrawnAmount = obj.transactions
@@ -113,13 +122,13 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
     { id: 'banks' as const, label: 'Banks', icon: Building2 },
   ]
 
-  const [stockGains, setStockGains] = useState({
-    totalInvested: 0,
-    totalRevenue: 0,
-    totalGains: 0,
-    totalGainsPercent: 0
-  })
-  
+  // const [stockGains, setStockGains] = useState({
+  //   totalInvested: 0,
+  //   totalRevenue: 0,
+  //   totalGains: 0,
+  //   totalGainsPercent: 0
+  // })
+
   // Ajouter dans loadData()
   const loadData = async () => {
     if (!user) return
@@ -155,15 +164,24 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Total Balance and Bank Cards Swiper */}
-      <CreditCard totalBalance={totalBalance} banksCount={banks.length} banks={banks} />
+      {/* Total Balance avec gains boursiers */}
 
+      <CreditCard
+        totalBalance={totalBalanceWithStocks}
+        banksCount={banks.length}
+        banks={banks}
+      />
       <StatsCards
         banksCount={banks.length}
         goalsCount={goals.length}
-        totalObjectives={totalObjectives}
+        totalObjectives={totalBalanceWithStocks}
         totalWithdrawn={totalWithdrawn}
         stockGains={stockGains}
+        totalBalance={totalBalance}
       />
+      {/* Stock Overview Section */}
+      <StockOverview onTotalGainsChange={setStockGains} />
+
 
       {/* Tabs Navigation */}
       <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 overflow-hidden">
