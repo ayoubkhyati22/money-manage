@@ -14,7 +14,7 @@ export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithd
   const isStockProfit = stockGains >= 0
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
       {/* Mobile Summary Card (Visible only on small screens) */}
       <div className="sm:hidden group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-2.5 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-center justify-between mb-1.5">
@@ -69,7 +69,7 @@ export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithd
       </div>
 
       {/* Total Objectives Card */}
-      <div className="group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-2.5 sm:p-4 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+      {/* <div className="group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-2.5 sm:p-4 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-dark-400 dark:text-dark-300 truncate">Total Objectives</p>
@@ -80,7 +80,7 @@ export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithd
             <TrendingUp className="w-4 h-4 sm:w-5 h-5 text-white" />
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Total Withdrawn Card */}
       <div className="hidden sm:block group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-4 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">

@@ -39,15 +39,37 @@ export const stockService = {
     })) || []
   },
 
-  // Fetch portfolio holdings
+  // 🔥 CORRIGÉ : Fetch portfolio holdings WITH casablanca_api_id
   async fetchPortfolio(userId: string): Promise<StockPortfolio[]> {
+    console.log(`📂 [stockService] Fetching portfolio for user ${userId}`)
+    
     const { data, error } = await supabase
       .from('stock_portfolio')
-      .select('*')
+      .select(`
+        *,
+        moroccan_companies!inner(casablanca_api_id)
+      `)
       .eq('user_id', userId)
 
-    if (error) throw error
-    return data || []
+    if (error) {
+      console.error('❌ [stockService] Error fetching portfolio:', error)
+      throw error
+    }
+
+    // Mapper les données pour inclure casablanca_api_id au niveau racine
+    const portfolioWithApiIds = (data || []).map(item => {
+      const apiId = (item.moroccan_companies as any)?.casablanca_api_id
+      console.log(`📊 [stockService] ${item.symbol} → API ID: ${apiId || 'MISSING'}`)
+      
+      return {
+        ...item,
+        casablanca_api_id: apiId || null
+      }
+    })
+
+    console.log(`✅ [stockService] Fetched ${portfolioWithApiIds.length} holdings with API IDs`)
+    
+    return portfolioWithApiIds
   },
 
   // Fetch profit/loss summary
@@ -101,7 +123,8 @@ export const stockService = {
           price_per_share: pricePerShare,
           fees: fees,
           notes: formData.notes,
-          transaction_date: formData.transaction_date
+          transaction_date: formData.transaction_date,
+          casablanca_api_id: formData.casablanca_api_id // 🔥 IMPORTANT: Inclure l'API ID
         }])
 
       if (insertError) throw insertError
@@ -173,7 +196,6 @@ export const stockService = {
 
       if (insertError) {
         console.error('Error creating objective transaction for stock:', insertError)
-        // Don't throw - this is non-critical
       }
 
       // Update allocation if exists
@@ -194,7 +216,6 @@ export const stockService = {
       }
     } catch (error) {
       console.error('Error creating objective transaction:', error)
-      // Don't throw - this is non-critical
     }
   },
 
@@ -215,7 +236,7 @@ export const stockService = {
 
       if (goalsError || !goals || goals.length === 0) {
         console.log('No investment goals found')
-        return // Don't fail the transaction if no investment goal
+        return
       }
 
       // Update the first matching investment goal
@@ -223,8 +244,8 @@ export const stockService = {
       
       // Calculate new target amount
       const newTarget = transactionType === 'BUY'
-        ? Math.max(0, investGoal.target_amount - amount)  // Decrease when buying
-        : investGoal.target_amount + amount  // Increase when selling
+        ? Math.max(0, investGoal.target_amount - amount)
+        : investGoal.target_amount + amount
 
       // Update the goal's target amount
       const { error: updateError } = await supabase
@@ -234,11 +255,9 @@ export const stockService = {
 
       if (updateError) {
         console.error('Error updating investment goal:', updateError)
-        // Don't throw - let the transaction complete even if goal update fails
       }
     } catch (error) {
       console.error('Error in updateInvestmentGoal:', error)
-      // Don't throw - this is a non-critical update
     }
   },
 
@@ -258,6 +277,7 @@ export const stockService = {
     if (formData.fees !== undefined) updateData.fees = parseFloat(formData.fees) || 0
     if (formData.notes !== undefined) updateData.notes = formData.notes
     if (formData.transaction_date) updateData.transaction_date = formData.transaction_date
+    if (formData.casablanca_api_id !== undefined) updateData.casablanca_api_id = formData.casablanca_api_id
 
     const { error } = await supabase
       .from('stock_transactions')
@@ -303,10 +323,8 @@ export const stockService = {
     // Restore the balance (opposite of the original transaction)
     let newBalance: number
     if (transaction.transaction_type === 'BUY') {
-      // Original was BUY, so restore the money (add it back)
       newBalance = bank.balance + amount
     } else {
-      // Original was SELL, so remove the money (subtract it)
       newBalance = bank.balance - amount
     }
 
@@ -347,7 +365,7 @@ export const stockService = {
         .eq('amount', transactionAmount)
         .eq('is_stock_transaction', true)
         .gte('created_at', new Date(stockTransaction.created_at).toISOString())
-        .lte('created_at', new Date(new Date(stockTransaction.created_at).getTime() + 60000).toISOString()) // Within 1 minute
+        .lte('created_at', new Date(new Date(stockTransaction.created_at).getTime() + 60000).toISOString())
 
       if (error) {
         console.error('Error deleting objective transaction:', error)

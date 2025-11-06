@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { TrendingUp, TrendingDown, Plus, BarChart3, DollarSign, ShoppingCart } from 'lucide-react'
+import { TrendingUp, TrendingDown, Plus, BarChart3, DollarSign, ShoppingCart, Scale } from 'lucide-react'
 import { Bank } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useSweetAlert } from '../../hooks/useSweetAlert'
@@ -11,12 +11,13 @@ import { StockTransactionList } from './StockTransactionList'
 import { StockProfitSummary } from './StockProfitSummary'
 import { StockPortfolioView } from './StockPortfolioView'
 import { RealTimeStockPrices } from './RealTimeStockPrices'
+import { StockComparisonView } from './StockComparisonView' // 🔥 NOUVEAU
 
 interface StockManagerProps {
   banks: Bank[]
 }
 
-type ActiveTab = 'portfolio' | 'live' | 'transactions' | 'profit'
+type ActiveTab = 'portfolio' | 'live' | 'comparison' | 'transactions' | 'profit' // 🔥 Ajout de 'comparison'
 type FormType = null | 'buy' | 'sell'
 
 export function StockManager({ banks }: StockManagerProps) {
@@ -78,8 +79,9 @@ export function StockManager({ banks }: StockManagerProps) {
 
   const tabs = [
     { id: 'portfolio' as const, label: 'Portfolio', icon: BarChart3 },
-    { id: 'live' as const, label: 'Live Prices', icon: TrendingUp },  // NOUVEAU
-    { id: 'transactions' as const, label: 'Transactions', icon: TrendingUp },
+    { id: 'live' as const, label: 'Live Prices', icon: TrendingUp },
+    { id: 'comparison' as const, label: 'Comparaison', icon: Scale }, // 🔥 NOUVEAU
+    { id: 'transactions' as const, label: 'Transactions', icon: ShoppingCart },
     { id: 'profit' as const, label: 'P&L', icon: DollarSign }
   ]
 
@@ -167,14 +169,14 @@ export function StockManager({ banks }: StockManagerProps) {
       {/* Premium Compact Tabs */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-premium border border-gray-200 dark:border-slate-700">
         <div className="border-b border-gray-200 dark:border-slate-700">
-          <div className="flex space-x-1 p-1">
+          <div className="flex space-x-1 p-1 overflow-x-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${activeTab === tab.id
+                  className={`flex-shrink-0 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${activeTab === tab.id
                       ? 'bg-gradient-to-r from-slate-800 to-slate-700 text-white shadow-sm border border-slate-600'
                       : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                     }`}
@@ -198,6 +200,12 @@ export function StockManager({ banks }: StockManagerProps) {
               {activeTab === 'portfolio' && (
                 <StockPortfolioView userId={user?.id || ''} />
               )}
+              {activeTab === 'live' && (
+                <RealTimeStockPrices />
+              )}
+              {activeTab === 'comparison' && (
+                <StockComparisonView />
+              )}
               {activeTab === 'transactions' && (
                 <StockTransactionList
                   transactions={transactions}
@@ -206,9 +214,6 @@ export function StockManager({ banks }: StockManagerProps) {
               )}
               {activeTab === 'profit' && (
                 <StockProfitSummary profitLoss={profitLoss} />
-              )}
-              {activeTab === 'live' && (
-                <RealTimeStockPrices />
               )}
             </>
           )}

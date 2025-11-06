@@ -5,10 +5,10 @@ import { useSweetAlert } from '../../hooks/useSweetAlert'
 import { stockService } from '../../services/stockService'
 import { StockFormData } from '../../types/stock'
 import { ShoppingCart, DollarSign, Hash, Calendar, FileText, AlertTriangle, TrendingUp } from 'lucide-react'
-
 import { CompanySelect } from './CompanySelect'
 import { stockPriceService } from '../../services/stockPriceService'
 import { MoroccanCompany } from '../../types/stock'
+import { stockPriceEventBus } from '../../utils/stockPriceEventBus' // 🔥 NOUVEAU
 
 interface StockFormProps {
   banks: Bank[]
@@ -35,7 +35,6 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
   })
   const [fetchingPrice, setFetchingPrice] = useState(false)
   const [priceSource, setPriceSource] = useState<'manual' | 'api' | 'cache'>('manual')
-
 
   // Scroll automatique vers le formulaire à l'ouverture
   useEffect(() => {
@@ -85,6 +84,15 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
     setLoading(true)
     try {
       await stockService.createTransaction(user.id, formData)
+      
+      // 🔥 ÉMETTRE DES ÉVÉNEMENTS après la transaction
+      console.log('📡 [Form] Emitting transaction events')
+      stockPriceEventBus.emit('transaction:created', {
+        symbol: formData.symbol,
+        transactionType: formData.transaction_type
+      })
+      stockPriceEventBus.emit('portfolio:updated')
+      
       await showSuccess(
         'Transaction Added!',
         `${formData.transaction_type} transaction for ${formData.company_name} has been recorded. Bank balance and investment goal have been updated.`
@@ -106,6 +114,8 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
 
     setFetchingPrice(true)
     try {
+      console.log('🔍 [Form] Fetching current price for ID:', formData.casablanca_api_id)
+      
       const price = await stockPriceService.getPriceWithCache(
         formData.casablanca_api_id.toString()
       )
@@ -116,6 +126,11 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
           price_per_share: price.currentPrice.toFixed(2)
         }))
         setPriceSource('api')
+        
+        // 🔥 ÉMETTRE UN ÉVÉNEMENT pour forcer le refresh de l'affichage temps réel
+        console.log('📡 [Form] Emitting price:refresh event')
+        stockPriceEventBus.emit('price:refresh')
+        
         await showSuccess(
           'Prix récupéré!',
           `Prix actuel: ${price.currentPrice.toFixed(2)} MAD`
@@ -201,7 +216,6 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
           )}
         </div>
 
-        {/* Company Name and Symbol (Manual Entry) */}
         {/* Company Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
@@ -282,8 +296,8 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
           )}
         </div>
 
-        {/* Quantity and Price */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Quantity */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
               Quantity *
@@ -302,22 +316,6 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
-              Price per Share (MAD) *
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={formData.price_per_share}
-              onChange={(e) => setFormData({ ...formData, price_per_share: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
-              placeholder="450.00"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-2">
               Fees (MAD)
             </label>
             <input
@@ -326,7 +324,7 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
               min="0"
               value={formData.fees}
               onChange={(e) => setFormData({ ...formData, fees: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
               placeholder="0.00"
             />
           </div>

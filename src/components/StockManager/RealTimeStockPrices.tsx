@@ -1,10 +1,11 @@
 // src/components/StockManager/RealTimeStockPrices.tsx
 import { useState, useEffect } from 'react'
-import { TrendingUp, TrendingDown, RefreshCw, Activity, AlertCircle } from 'lucide-react'
+import { TrendingUp, TrendingDown, RefreshCw, Activity, AlertCircle, Clock, Wifi, WifiOff, Zap } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useStockPrices } from '../../hooks/useStockPrices'
 import { stockService } from '../../services/stockService'
 import { StockPortfolio } from '../../types/stock'
+import { stockPriceEventBus } from '../../utils/stockPriceEventBus' // 🔥 NOUVEAU
 
 interface PortfolioWithPrice extends StockPortfolio {
   currentPrice?: number
@@ -14,6 +15,7 @@ interface PortfolioWithPrice extends StockPortfolio {
   totalGain?: number
   totalGainPercent?: number
   lastUpdate?: string
+  priceSource: 'live' | 'api_closed' | 'fallback'
 }
 
 export function RealTimeStockPrices() {
@@ -22,14 +24,67 @@ export function RealTimeStockPrices() {
   const [portfolioWithPrices, setPortfolioWithPrices] = useState<PortfolioWithPrice[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [lastEventSync, setLastEventSync] = useState<Date | null>(null)
 
   // Extraire les casablanca_api_ids du portfolio
   const apiIds = portfolio
     .filter(p => p.casablanca_api_id)
     .map(p => p.casablanca_api_id!.toString())
 
+  console.log(`🎯 [Component] Monitoring ${apiIds.length} stocks:`, apiIds)
+
   // Hook pour récupérer les prix en temps réel (refresh toutes les 30s)
-  const { prices, loading: pricesLoading, error: pricesError, lastRefresh, refresh } = useStockPrices(apiIds, 30000)
+  const { prices, loading: pricesLoading, error: pricesError, lastRefresh, refresh, fetchCount } = useStockPrices(apiIds, 30000)
+
+  // 🔥 ÉCOUTER LES ÉVÉNEMENTS DE L'EVENT BUS
+  useEffect(() => {
+    console.log('📡 [Component] Setting up event listeners')
+
+    // Écouter quand le formulaire récupère un prix
+    const unsubscribePriceFetched = stockPriceEventBus.on('price:fetched', (data) => {
+      console.log('📡 [Component] Received price:fetched event', data)
+      setLastEventSync(new Date())
+      // Optionnel: refresh immédiat si c'est un prix qu'on affiche
+      if (apiIds.includes(data.casablancaApiId)) {
+        console.log('🔄 [Component] Price for displayed stock updated, refreshing...')
+        refresh()
+      }
+    })
+
+    // Écouter quand le formulaire demande un refresh
+    const unsubscribePriceRefresh = stockPriceEventBus.on('price:refresh', () => {
+      console.log('📡 [Component] Received price:refresh event, refreshing prices...')
+      setLastEventSync(new Date())
+      refresh()
+    })
+
+    // Écouter quand une transaction est créée
+    const unsubscribeTransactionCreated = stockPriceEventBus.on('transaction:created', (data) => {
+      console.log('📡 [Component] Received transaction:created event', data)
+      setLastEventSync(new Date())
+      // Recharger le portfolio après 1 seconde (pour laisser le temps à la DB de se mettre à jour)
+      setTimeout(() => {
+        console.log('🔄 [Component] Reloading portfolio after transaction...')
+        loadPortfolio()
+      }, 1000)
+    })
+
+    // Écouter quand le portfolio est mis à jour
+    const unsubscribePortfolioUpdated = stockPriceEventBus.on('portfolio:updated', () => {
+      console.log('📡 [Component] Received portfolio:updated event')
+      setLastEventSync(new Date())
+      loadPortfolio()
+    })
+
+    // Cleanup: se désabonner lors du démontage du composant
+    return () => {
+      console.log('📡 [Component] Cleaning up event listeners')
+      unsubscribePriceFetched()
+      unsubscribePriceRefresh()
+      unsubscribeTransactionCreated()
+      unsubscribePortfolioUpdated()
+    }
+  }, [apiIds]) // Re-setup si les apiIds changent
 
   useEffect(() => {
     if (user) {
@@ -45,23 +100,61 @@ export function RealTimeStockPrices() {
 
   const loadPortfolio = async () => {
     if (!user) return
+    console.log(`📂 [Component] Loading portfolio for user ${user.id}`)
     setLoading(true)
     try {
       const data = await stockService.fetchPortfolio(user.id)
+      console.log(`✅ [Component] Loaded ${data.length} holdings`)
       setPortfolio(data)
       setError(null)
     } catch (err: any) {
-      setError(err.message || 'Failed to load portfolio')
-      console.error('Error loading portfolio:', err)
+      const errorMsg = err.message || 'Failed to load portfolio'
+      console.error(`❌ [Component] Error loading portfolio:`, errorMsg, err)
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
   }
 
+  const isMarketOpen = () => {
+    const now = new Date()
+    const casablancaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Africa/Casablanca' }))
+    
+    const day = casablancaTime.getDay()
+    const hour = casablancaTime.getHours()
+    const minute = casablancaTime.getMinutes()
+    const currentTime = hour * 60 + minute
+    
+    const marketOpen = 9 * 60 + 30
+    const marketClose = 15 * 60 + 30
+    
+    const isWeekday = day >= 1 && day <= 5
+    const isDuringHours = currentTime >= marketOpen && currentTime <= marketClose
+    
+    return isWeekday && isDuringHours
+  }
+
   const updatePortfolioWithPrices = () => {
+    console.log(`🔄 [Component] Updating portfolio with ${prices.size} prices`)
+    const marketOpen = isMarketOpen()
+    console.log(`📊 [Market Status] ${marketOpen ? '🟢 OPEN' : '🔴 CLOSED'}`)
+    
     const updated = portfolio.map(holding => {
       const apiId = holding.casablanca_api_id?.toString()
-      const priceData = apiId ? prices.get(apiId) : null
+      
+      if (!apiId) {
+        const fallbackValue = holding.total_quantity * holding.avg_buy_price
+        return {
+          ...holding,
+          currentPrice: holding.avg_buy_price,
+          currentValue: fallbackValue,
+          totalGain: 0,
+          totalGainPercent: 0,
+          priceSource: 'fallback' as const
+        }
+      }
+      
+      const priceData = prices.get(apiId)
 
       if (priceData) {
         const currentPrice = priceData.currentPrice
@@ -71,6 +164,10 @@ export function RealTimeStockPrices() {
           ? (totalGain / holding.total_invested) * 100 
           : 0
 
+        const priceSource = marketOpen ? 'live' : 'api_closed'
+        
+        console.log(`💰 [${priceSource.toUpperCase()}] ${holding.symbol}: ${currentPrice} MAD x ${holding.total_quantity} = ${currentValue.toFixed(2)} MAD`)
+
         return {
           ...holding,
           currentPrice,
@@ -79,18 +176,21 @@ export function RealTimeStockPrices() {
           currentValue,
           totalGain,
           totalGainPercent,
-          lastUpdate: priceData.lastUpdate
+          lastUpdate: priceData.lastUpdate,
+          priceSource
         }
       }
 
-      // Fallback: utiliser le prix d'achat moyen
+      console.error(`❌ [API FAILED] ${holding.symbol} (API ID: ${apiId})`)
       const fallbackValue = holding.total_quantity * holding.avg_buy_price
+      
       return {
         ...holding,
         currentPrice: holding.avg_buy_price,
         currentValue: fallbackValue,
         totalGain: 0,
-        totalGainPercent: 0
+        totalGainPercent: 0,
+        priceSource: 'fallback' as const
       }
     })
 
@@ -114,10 +214,31 @@ export function RealTimeStockPrices() {
     })
   }
 
+  const getTimeSinceRefresh = () => {
+    const seconds = Math.floor((Date.now() - lastRefresh.getTime()) / 1000)
+    if (seconds < 60) return `il y a ${seconds}s`
+    const minutes = Math.floor(seconds / 60)
+    return `il y a ${minutes}m`
+  }
+
+  const getPriceSourceLabel = (source: 'live' | 'api_closed' | 'fallback') => {
+    switch (source) {
+      case 'live':
+        return { label: 'EN DIRECT', color: 'bg-green-500', icon: Wifi }
+      case 'api_closed':
+        return { label: 'CLÔTURE', color: 'bg-blue-500', icon: Clock }
+      case 'fallback':
+        return { label: 'HORS LIGNE', color: 'bg-gray-500', icon: WifiOff }
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Chargement du portefeuille...</p>
+        </div>
       </div>
     )
   }
@@ -132,6 +253,12 @@ export function RealTimeStockPrices() {
               Erreur de chargement
             </h3>
             <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
+            <button
+              onClick={loadPortfolio}
+              className="mt-2 text-xs text-red-600 dark:text-red-400 underline hover:no-underline"
+            >
+              Réessayer
+            </button>
           </div>
         </div>
       </div>
@@ -158,6 +285,13 @@ export function RealTimeStockPrices() {
   const totalInvested = portfolioWithPrices.reduce((sum, p) => sum + p.total_invested, 0)
   const totalGain = totalPortfolioValue - totalInvested
   const totalGainPercent = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0
+  
+  const livePricesCount = portfolioWithPrices.filter(p => p.priceSource === 'live').length
+  const closedPricesCount = portfolioWithPrices.filter(p => p.priceSource === 'api_closed').length
+  const fallbackCount = portfolioWithPrices.filter(p => p.priceSource === 'fallback').length
+  const apiPricesCount = livePricesCount + closedPricesCount
+
+  const marketStatus = isMarketOpen()
 
   return (
     <div className="space-y-6">
@@ -167,29 +301,79 @@ export function RealTimeStockPrices() {
           <div className="flex items-center space-x-3">
             <div className="relative">
               <Activity className="w-8 h-8" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+              {apiPricesCount > 0 && (
+                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+                  marketStatus ? 'bg-green-400 animate-pulse' : 'bg-blue-400'
+                }`}></div>
+              )}
             </div>
             <div>
               <h2 className="text-xl font-bold">Prix en Temps Réel</h2>
-              <p className="text-sm text-white/60">
-                Mise à jour: {formatDateTime(lastRefresh.toISOString())}
-              </p>
+              <div className="flex items-center space-x-2 text-sm text-white/60">
+                <Clock className="w-3 h-3" />
+                <span>{getTimeSinceRefresh()}</span>
+                <span>•</span>
+                <span>Refresh #{fetchCount}</span>
+                {lastEventSync && (
+                  <>
+                    <span>•</span>
+                    <Zap className="w-3 h-3 text-yellow-300" />
+                    <span className="text-yellow-300">Synchronisé</span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
           <button
             onClick={refresh}
             disabled={pricesLoading}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 relative group"
             title="Actualiser les prix"
           >
             <RefreshCw className={`w-5 h-5 ${pricesLoading ? 'animate-spin' : ''}`} />
+            {pricesLoading && (
+              <span className="absolute -bottom-8 right-0 text-xs bg-white/10 px-2 py-1 rounded whitespace-nowrap">
+                Mise à jour...
+              </span>
+            )}
           </button>
+        </div>
+
+        {/* Indicateur de connexion */}
+        <div className="mb-4 flex items-center space-x-2">
+          {apiPricesCount > 0 ? (
+            <>
+              <Wifi className="w-4 h-4 text-green-400" />
+              <span className="text-xs text-green-300">
+                {apiPricesCount}/{portfolio.length} prix depuis l'API
+                {livePricesCount > 0 && ` (${livePricesCount} en direct)`}
+              </span>
+            </>
+          ) : (
+            <>
+              <WifiOff className="w-4 h-4 text-red-400" />
+              <span className="text-xs text-red-300">
+                Aucun prix disponible depuis l'API
+              </span>
+            </>
+          )}
+          {fallbackCount > 0 && (
+            <>
+              <span className="text-white/40">•</span>
+              <AlertCircle className="w-4 h-4 text-yellow-400" />
+              <span className="text-xs text-yellow-300">
+                {fallbackCount} prix d'achat utilisés
+              </span>
+            </>
+          )}
         </div>
 
         {/* Stats globales */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-            <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Valeur Totale</p>
+            <p className="text-xs text-white/60 uppercase tracking-wider mb-1">
+              Valeur Totale
+            </p>
             <p className="text-2xl font-bold">{formatCurrency(totalPortfolioValue)} MAD</p>
           </div>
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-3 border border-white/10">
@@ -221,20 +405,24 @@ export function RealTimeStockPrices() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {portfolioWithPrices.map((holding) => {
           const isProfit = (holding.totalGain || 0) >= 0
-          const hasLivePrice = holding.currentPrice !== holding.avg_buy_price
+          const sourceInfo = getPriceSourceLabel(holding.priceSource)
+          const SourceIcon = sourceInfo.icon
 
           return (
             <div
               key={`${holding.symbol}-${holding.bank_id}`}
               className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-md hover:shadow-xl transition-all duration-300"
             >
-              {/* Badge LIVE */}
-              {hasLivePrice && (
-                <div className="absolute top-3 right-3 flex items-center space-x-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+              {/* Badge source du prix */}
+              <div className={`absolute top-3 right-3 flex items-center space-x-1 ${sourceInfo.color} text-white px-2 py-1 rounded-full text-xs font-semibold`}>
+                {holding.priceSource === 'live' && (
                   <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  <span>LIVE</span>
-                </div>
-              )}
+                )}
+                {holding.priceSource !== 'live' && (
+                  <SourceIcon className="w-3 h-3" />
+                )}
+                <span>{sourceInfo.label}</span>
+              </div>
 
               {/* Header */}
               <div className="mb-4">
@@ -259,7 +447,7 @@ export function RealTimeStockPrices() {
                   </span>
                   <span className="text-sm text-gray-500 dark:text-gray-400">MAD</span>
                 </div>
-                {holding.priceChange !== undefined && (
+                {holding.priceChange !== undefined && holding.priceSource !== 'fallback' && (
                   <div className="flex items-center space-x-2 mt-1">
                     {holding.priceChange >= 0 ? (
                       <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -274,6 +462,12 @@ export function RealTimeStockPrices() {
                       {holding.priceChange >= 0 ? '+' : ''}{formatCurrency(holding.priceChange)} 
                       ({holding.priceChange >= 0 ? '+' : ''}{holding.priceChangePercent?.toFixed(2)}%)
                     </span>
+                  </div>
+                )}
+                {holding.priceSource === 'fallback' && (
+                  <div className="flex items-center space-x-1 mt-1 text-xs text-yellow-600 dark:text-yellow-400">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>Prix d'achat utilisé</span>
                   </div>
                 )}
               </div>
@@ -330,9 +524,9 @@ export function RealTimeStockPrices() {
               </div>
 
               {/* Dernière mise à jour */}
-              {holding.lastUpdate && (
+              {holding.lastUpdate && holding.priceSource !== 'fallback' && (
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 text-center">
-                  Mis à jour: {formatDateTime(holding.lastUpdate)}
+                  Actualisé: {formatDateTime(holding.lastUpdate)}
                 </p>
               )}
             </div>
@@ -345,13 +539,19 @@ export function RealTimeStockPrices() {
         <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
           <div className="flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
                 Certains prix n'ont pas pu être récupérés
               </p>
               <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                Les prix d'achat moyens sont utilisés comme fallback.
+                {pricesError}
               </p>
+              <button
+                onClick={refresh}
+                className="mt-2 text-xs text-yellow-600 dark:text-yellow-400 underline hover:no-underline"
+              >
+                Réessayer maintenant
+              </button>
             </div>
           </div>
         </div>
