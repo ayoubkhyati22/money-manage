@@ -8,7 +8,7 @@ import { ShoppingCart, DollarSign, Hash, Calendar, FileText, AlertTriangle, Tren
 import { CompanySelect } from './CompanySelect'
 import { stockPriceService } from '../../services/stockPriceService'
 import { MoroccanCompany } from '../../types/stock'
-import { stockPriceEventBus } from '../../utils/stockPriceEventBus' // 🔥 NOUVEAU
+import { stockPriceEventBus } from '../../utils/stockPriceEventBus'
 
 interface StockFormProps {
   banks: Bank[]
@@ -85,13 +85,12 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
     try {
       await stockService.createTransaction(user.id, formData)
       
-      // 🔥 ÉMETTRE DES ÉVÉNEMENTS après la transaction
-      console.log('📡 [Form] Emitting transaction events')
+      // 🔥 ÉMETTRE UN SEUL ÉVÉNEMENT après la transaction
+      console.log('📡 [Form] Emitting transaction:created event')
       stockPriceEventBus.emit('transaction:created', {
         symbol: formData.symbol,
         transactionType: formData.transaction_type
       })
-      stockPriceEventBus.emit('portfolio:updated')
       
       await showSuccess(
         'Transaction Added!',
@@ -127,9 +126,7 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
         }))
         setPriceSource('api')
         
-        // 🔥 ÉMETTRE UN ÉVÉNEMENT pour forcer le refresh de l'affichage temps réel
-        console.log('📡 [Form] Emitting price:refresh event')
-        stockPriceEventBus.emit('price:refresh')
+        // 🔥 NE PLUS ÉMETTRE D'ÉVÉNEMENT ICI - le service le fait déjà
         
         await showSuccess(
           'Prix récupéré!',

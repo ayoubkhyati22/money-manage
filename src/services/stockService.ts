@@ -43,22 +43,48 @@ export const stockService = {
   async fetchPortfolio(userId: string): Promise<StockPortfolio[]> {
     console.log(`📂 [stockService] Fetching portfolio for user ${userId}`)
     
-    const { data, error } = await supabase
+    // Étape 1: Récupérer le portfolio
+    const { data: portfolioData, error: portfolioError } = await supabase
       .from('stock_portfolio')
-      .select(`
-        *,
-        moroccan_companies!inner(casablanca_api_id)
-      `)
+      .select('*')
       .eq('user_id', userId)
 
-    if (error) {
-      console.error('❌ [stockService] Error fetching portfolio:', error)
-      throw error
+    if (portfolioError) {
+      console.error('❌ [stockService] Error fetching portfolio:', portfolioError)
+      throw portfolioError
     }
 
-    // Mapper les données pour inclure casablanca_api_id au niveau racine
-    const portfolioWithApiIds = (data || []).map(item => {
-      const apiId = (item.moroccan_companies as any)?.casablanca_api_id
+    if (!portfolioData || portfolioData.length === 0) {
+      console.log(`ℹ️ [stockService] No portfolio holdings found`)
+      return []
+    }
+
+    // Étape 2: Récupérer les casablanca_api_id pour chaque symbole
+    const symbols = [...new Set(portfolioData.map(item => item.symbol))]
+    
+    const { data: companiesData, error: companiesError } = await supabase
+      .from('moroccan_companies')
+      .select('symbol, casablanca_api_id')
+      .in('symbol', symbols)
+
+    if (companiesError) {
+      console.error('❌ [stockService] Error fetching companies:', companiesError)
+      // Continuer sans les API IDs plutôt que de fail complètement
+      return portfolioData.map(item => ({
+        ...item,
+        casablanca_api_id: null
+      }))
+    }
+
+    // Étape 3: Créer un map symbole -> casablanca_api_id
+    const symbolToApiId = new Map<string, number>()
+    companiesData?.forEach(company => {
+      symbolToApiId.set(company.symbol, company.casablanca_api_id)
+    })
+
+    // Étape 4: Combiner les données
+    const portfolioWithApiIds = portfolioData.map(item => {
+      const apiId = symbolToApiId.get(item.symbol)
       console.log(`📊 [stockService] ${item.symbol} → API ID: ${apiId || 'MISSING'}`)
       
       return {

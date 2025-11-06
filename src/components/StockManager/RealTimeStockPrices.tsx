@@ -1,11 +1,11 @@
 // src/components/StockManager/RealTimeStockPrices.tsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { TrendingUp, TrendingDown, RefreshCw, Activity, AlertCircle, Clock, Wifi, WifiOff, Zap } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useStockPrices } from '../../hooks/useStockPrices'
 import { stockService } from '../../services/stockService'
 import { StockPortfolio } from '../../types/stock'
-import { stockPriceEventBus } from '../../utils/stockPriceEventBus' // 🔥 NOUVEAU
+import { stockPriceEventBus } from '../../utils/stockPriceEventBus'
 
 interface PortfolioWithPrice extends StockPortfolio {
   currentPrice?: number
@@ -26,37 +26,22 @@ export function RealTimeStockPrices() {
   const [error, setError] = useState<string | null>(null)
   const [lastEventSync, setLastEventSync] = useState<Date | null>(null)
 
-  // Extraire les casablanca_api_ids du portfolio
-  const apiIds = portfolio
-    .filter(p => p.casablanca_api_id)
-    .map(p => p.casablanca_api_id!.toString())
+  // Extraire les casablanca_api_ids du portfolio - Memoize pour éviter recréation
+  const apiIds = useMemo(() => 
+    portfolio
+      .filter(p => p.casablanca_api_id)
+      .map(p => p.casablanca_api_id!.toString()),
+    [portfolio]
+  )
 
   console.log(`🎯 [Component] Monitoring ${apiIds.length} stocks:`, apiIds)
 
   // Hook pour récupérer les prix en temps réel (refresh toutes les 30s)
   const { prices, loading: pricesLoading, error: pricesError, lastRefresh, refresh, fetchCount } = useStockPrices(apiIds, 30000)
 
-  // 🔥 ÉCOUTER LES ÉVÉNEMENTS DE L'EVENT BUS
+  // 🔥 ÉCOUTER LES ÉVÉNEMENTS DE L'EVENT BUS - OPTIMISÉ
   useEffect(() => {
     console.log('📡 [Component] Setting up event listeners')
-
-    // Écouter quand le formulaire récupère un prix
-    const unsubscribePriceFetched = stockPriceEventBus.on('price:fetched', (data) => {
-      console.log('📡 [Component] Received price:fetched event', data)
-      setLastEventSync(new Date())
-      // Optionnel: refresh immédiat si c'est un prix qu'on affiche
-      if (apiIds.includes(data.casablancaApiId)) {
-        console.log('🔄 [Component] Price for displayed stock updated, refreshing...')
-        refresh()
-      }
-    })
-
-    // Écouter quand le formulaire demande un refresh
-    const unsubscribePriceRefresh = stockPriceEventBus.on('price:refresh', () => {
-      console.log('📡 [Component] Received price:refresh event, refreshing prices...')
-      setLastEventSync(new Date())
-      refresh()
-    })
 
     // Écouter quand une transaction est créée
     const unsubscribeTransactionCreated = stockPriceEventBus.on('transaction:created', (data) => {
@@ -79,26 +64,26 @@ export function RealTimeStockPrices() {
     // Cleanup: se désabonner lors du démontage du composant
     return () => {
       console.log('📡 [Component] Cleaning up event listeners')
-      unsubscribePriceFetched()
-      unsubscribePriceRefresh()
       unsubscribeTransactionCreated()
       unsubscribePortfolioUpdated()
     }
-  }, [apiIds]) // Re-setup si les apiIds changent
+  }, []) // Ne dépend de rien - setup une seule fois
 
+  // Charger le portfolio au montage et quand user change
   useEffect(() => {
     if (user) {
       loadPortfolio()
     }
   }, [user])
 
+  // Mettre à jour les prix quand portfolio ou prices changent
   useEffect(() => {
     if (portfolio.length > 0) {
       updatePortfolioWithPrices()
     }
   }, [portfolio, prices])
 
-  const loadPortfolio = async () => {
+  const loadPortfolio = useCallback(async () => {
     if (!user) return
     console.log(`📂 [Component] Loading portfolio for user ${user.id}`)
     setLoading(true)
@@ -114,7 +99,7 @@ export function RealTimeStockPrices() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   const isMarketOpen = () => {
     const now = new Date()
@@ -134,7 +119,7 @@ export function RealTimeStockPrices() {
     return isWeekday && isDuringHours
   }
 
-  const updatePortfolioWithPrices = () => {
+  const updatePortfolioWithPrices = useCallback(() => {
     console.log(`🔄 [Component] Updating portfolio with ${prices.size} prices`)
     const marketOpen = isMarketOpen()
     console.log(`📊 [Market Status] ${marketOpen ? '🟢 OPEN' : '🔴 CLOSED'}`)
@@ -195,7 +180,7 @@ export function RealTimeStockPrices() {
     })
 
     setPortfolioWithPrices(updated)
-  }
+  }, [portfolio, prices])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-MA', {

@@ -113,7 +113,7 @@ export function StockManager({ banks }: StockManagerProps) {
         </div>
 
         {/* Compact Stats Grid */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* <div className="grid grid-cols-3 gap-2">
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-white/10">
             <p className="text-white/60 text-[10px] uppercase tracking-wider mb-1">Invested</p>
             <p className="text-sm font-semibold text-white/95">{totalGains.totalInvested.toFixed(0)} MAD</p>
@@ -140,7 +140,7 @@ export function StockManager({ banks }: StockManagerProps) {
               )}
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Transaction Forms */}
