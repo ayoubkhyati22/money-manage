@@ -11,6 +11,7 @@ export function StockComparisonView() {
   const { user } = useAuth()
   const [portfolio, setPortfolio] = useState<StockPortfolio[]>([])
   const [totalBalance, setTotalBalance] = useState(0)
+  const [totalPortfolioValue, setTotalPortfolioValue] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -27,20 +28,40 @@ export function StockComparisonView() {
     setError(null)
 
     try {
-      // Charger le portfolio
+      // Charger le portfolio utilisateur
       const portfolioData = await stockService.fetchPortfolio(user.id)
       setPortfolio(portfolioData)
 
-      // Calculer le solde total de tous les comptes bancaires
+      // Charger le solde total des banques
       const { data: banks, error: banksError } = await supabase
         .from('banks')
         .select('balance')
         .eq('user_id', user.id)
 
       if (banksError) throw banksError
-
       const total = banks?.reduce((sum, bank) => sum + bank.balance, 0) || 0
       setTotalBalance(total)
+
+      // Calculer la valeur actuelle du portefeuille
+      const prices = await Promise.all(
+        portfolioData.map(async (holding) => {
+          try {
+            if (!holding.casablanca_api_id) return holding.total_invested
+            const priceData = await stockService.fetchSinglePrice(
+              holding.casablanca_api_id.toString()
+            )
+            if (priceData?.currentPrice) {
+              return priceData.currentPrice * holding.total_quantity
+            }
+            return holding.total_invested
+          } catch {
+            return holding.total_invested
+          }
+        })
+      )
+
+      const totalPortfolioVal = prices.reduce((sum, val) => sum + val, 0)
+      setTotalPortfolioValue(totalPortfolioVal)
     } catch (err: any) {
       setError(err.message || 'Erreur lors du chargement des données')
       console.error('Error loading comparison data:', err)
@@ -98,6 +119,8 @@ export function StockComparisonView() {
     )
   }
 
+  const totalIfSold = totalBalance + totalPortfolioValue
+
   return (
     <div className="space-y-6">
       {/* En-tête */}
@@ -117,7 +140,7 @@ export function StockComparisonView() {
         </div>
 
         {/* Stats globales */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
             <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1">
               Solde total disponible
@@ -136,6 +159,18 @@ export function StockComparisonView() {
             </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {portfolio.length}
+            </p>
+          </div>
+
+          <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
+            <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1">
+              Solde si je vends tout
+            </p>
+            <p className="text-2xl font-bold text-green-700 dark:text-green-400">
+              {totalIfSold.toLocaleString('fr-MA', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })} MAD
             </p>
           </div>
         </div>

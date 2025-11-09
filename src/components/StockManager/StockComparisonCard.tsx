@@ -1,12 +1,12 @@
 // src/components/StockManager/StockComparisonCard.tsx
 import { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, DollarSign, RefreshCw, ShoppingCart, Wallet, AlertCircle } from 'lucide-react'
-import { stockPriceService } from '../../services/stockPriceService'
+import { stockPriceManager } from '../../services/stockPriceManager'
 import { StockPortfolio } from '../../types/stock'
 
 interface StockComparisonCardProps {
   holding: StockPortfolio
-  userTotalBalance: number // Balance totale de l'utilisateur (tous comptes)
+  userTotalBalance: number
 }
 
 export function StockComparisonCard({ holding, userTotalBalance }: StockComparisonCardProps) {
@@ -29,8 +29,10 @@ export function StockComparisonCard({ holding, userTotalBalance }: StockComparis
     setError(null)
 
     try {
-      const priceData = await stockPriceService.getPriceWithCache(
-        holding.casablanca_api_id.toString()
+      // Utiliser le manager centralisé
+      const priceData = await stockPriceManager.fetchSinglePrice(
+        holding.casablanca_api_id.toString(),
+        false // Ne pas forcer le refresh
       )
 
       if (priceData) {
@@ -38,6 +40,29 @@ export function StockComparisonCard({ holding, userTotalBalance }: StockComparis
         setLastUpdate(priceData.lastUpdate)
       } else {
         setError('Prix non disponible')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erreur lors de la récupération du prix')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleManualRefresh = async () => {
+    if (!holding.casablanca_api_id || loading) return
+    
+    setLoading(true)
+    try {
+      // Forcer le refresh
+      const priceData = await stockPriceManager.fetchSinglePrice(
+        holding.casablanca_api_id.toString(),
+        true // Forcer le refresh
+      )
+
+      if (priceData) {
+        setCurrentPrice(priceData.currentPrice)
+        setLastUpdate(priceData.lastUpdate)
+        setError(null)
       }
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la récupération du prix')
@@ -94,7 +119,7 @@ export function StockComparisonCard({ holding, userTotalBalance }: StockComparis
             </div>
           </div>
           <button
-            onClick={fetchCurrentPrice}
+            onClick={handleManualRefresh}
             disabled={loading || !holding.casablanca_api_id}
             className="p-2 hover:bg-white/50 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
             title="Actualiser le prix"

@@ -6,7 +6,6 @@ import { stockService } from '../../services/stockService'
 import { StockFormData } from '../../types/stock'
 import { ShoppingCart, DollarSign, Hash, Calendar, FileText, AlertTriangle, TrendingUp } from 'lucide-react'
 import { CompanySelect } from './CompanySelect'
-import { stockPriceService } from '../../services/stockPriceService'
 import { MoroccanCompany } from '../../types/stock'
 import { stockPriceEventBus } from '../../utils/stockPriceEventBus'
 
@@ -115,8 +114,12 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
     try {
       console.log('🔍 [Form] Fetching current price for ID:', formData.casablanca_api_id)
       
-      const price = await stockPriceService.getPriceWithCache(
-        formData.casablanca_api_id.toString()
+      // Importer le manager
+      const { stockPriceManager } = await import('../../services/stockPriceManager')
+      
+      const price = await stockPriceManager.fetchSinglePrice(
+        formData.casablanca_api_id.toString(),
+        true // Forcer le refresh pour avoir le prix le plus récent
       )
 
       if (price) {
@@ -125,8 +128,6 @@ export function StockForm({ banks, onSubmit, onCancel }: StockFormProps) {
           price_per_share: price.currentPrice.toFixed(2)
         }))
         setPriceSource('api')
-        
-        // 🔥 NE PLUS ÉMETTRE D'ÉVÉNEMENT ICI - le service le fait déjà
         
         await showSuccess(
           'Prix récupéré!',

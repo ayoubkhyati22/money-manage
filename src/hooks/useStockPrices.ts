@@ -1,6 +1,6 @@
 // src/hooks/useStockPrices.ts
 import { useState, useEffect, useCallback } from 'react'
-import { stockPriceService } from '../services/stockPriceService'
+import { stockPriceManager } from '../services/stockPriceManager'
 
 interface StockPrice {
   symbol: string
@@ -12,7 +12,7 @@ interface StockPrice {
 
 export function useStockPrices(
   casablancaApiIds: string[],
-  refreshInterval: number = 30000 // 30 secondes par défaut
+  autoRefresh: boolean = false // Désactivé par défaut
 ) {
   const [prices, setPrices] = useState<Map<string, StockPrice>>(new Map())
   const [loading, setLoading] = useState(true)
@@ -20,8 +20,8 @@ export function useStockPrices(
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
   const [fetchCount, setFetchCount] = useState(0)
 
-  const fetchPrices = useCallback(async () => {
-    console.log(`🔄 [Hook] Fetching prices for ${casablancaApiIds.length} stocks`)
+  const fetchPrices = useCallback(async (forceRefresh = false) => {
+    console.log(`🔄 [Hook] Fetching prices for ${casablancaApiIds.length} stocks (force: ${forceRefresh})`)
     
     if (casablancaApiIds.length === 0) {
       console.log(`⚠️ [Hook] No API IDs provided, skipping fetch`)
@@ -31,9 +31,10 @@ export function useStockPrices(
 
     try {
       setError(null)
+      setLoading(true)
       
-      // Utiliser la version avec cache pour de meilleures performances
-      const pricesMap = await stockPriceService.fetchMultiplePricesWithCache(casablancaApiIds)
+      // Utiliser le manager centralisé
+      const pricesMap = await stockPriceManager.fetchPrices(casablancaApiIds, forceRefresh)
       
       console.log(`✅ [Hook] Fetched ${pricesMap.size}/${casablancaApiIds.length} prices`)
       
@@ -56,49 +57,20 @@ export function useStockPrices(
     }
   }, [casablancaApiIds])
 
-  // Fetch initial
+  // Fetch initial UNIQUEMENT
   useEffect(() => {
     console.log(`🚀 [Hook] Initial fetch for ${casablancaApiIds.length} stocks`)
-    fetchPrices()
-  }, [fetchPrices])
+    fetchPrices(false)
+  }, []) // Dépendances vides pour ne déclencher qu'une fois
 
-  // Auto-refresh
-  useEffect(() => {
-    if (refreshInterval <= 0) {
-      console.log(`⏸️ [Hook] Auto-refresh disabled (interval: ${refreshInterval}ms)`)
-      return
-    }
-
-    console.log(`⏰ [Hook] Setting up auto-refresh every ${refreshInterval / 1000}s`)
-    
-    const interval = setInterval(() => {
-      console.log(`🔄 [Hook] Auto-refresh triggered (fetch #${fetchCount + 1})`)
-      fetchPrices()
-    }, refreshInterval)
-
-    return () => {
-      console.log(`🛑 [Hook] Cleaning up auto-refresh interval`)
-      clearInterval(interval)
-    }
-  }, [refreshInterval, fetchPrices, fetchCount])
-
-  // Log des changements de prix
-  useEffect(() => {
-    if (prices.size > 0) {
-      console.log(`📊 [Hook] Current prices:`, Array.from(prices.entries()).map(([id, price]) => ({
-        id,
-        price: price.currentPrice,
-        change: price.changePercent?.toFixed(2) + '%'
-      })))
-    }
-  }, [prices])
+  // PAS de auto-refresh automatique - uniquement manuel via le bouton
 
   return {
     prices,
     loading,
     error,
     lastRefresh,
-    refresh: fetchPrices,
-    fetchCount // Nouveau: nombre de fois que les prix ont été récupérés
+    refresh: () => fetchPrices(true), // Force refresh quand appelé manuellement
+    fetchCount
   }
 }

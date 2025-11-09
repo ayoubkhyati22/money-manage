@@ -14,7 +14,7 @@ export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithd
   const isStockProfit = stockGains >= 0
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 sm:gap-4">
       {/* Mobile Summary Card (Visible only on small screens) */}
       <div className="sm:hidden group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-2.5 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-center justify-between mb-1.5">
@@ -96,7 +96,7 @@ export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithd
       </div>
 
       {/* Stock Gains Card - NOUVELLE */}
-      <div className="group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-2.5 sm:p-4 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+      {/* <div className="group bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl p-2.5 sm:p-4 shadow-md border border-mint-200/50 dark:border-dark-600/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-dark-400 dark:text-dark-300 truncate">Stock Gains</p>
@@ -115,11 +115,10 @@ export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithd
             <BarChart3 className="w-4 h-4 sm:w-5 h-5 text-white" />
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Total Balance avec Stocks Card - NOUVELLE - Premium Design */}
-      <div className="group bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl p-2.5 sm:p-4 shadow-md border-2 border-purple-300/50 dark:border-purple-600/50 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden">
-        {/* Effet brillant animé */}
+      {/* <div className="group bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl p-2.5 sm:p-4 shadow-md border-2 border-purple-300/50 dark:border-purple-600/50 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
         <div className="absolute -bottom-2 -left-2 w-12 h-12 bg-gradient-to-tr from-purple-400/20 to-transparent rounded-full blur-lg"></div>
 
@@ -138,7 +137,7 @@ export function StatsCards({ banksCount, goalsCount, totalObjectives, totalWithd
             <TrendingUp className="w-4 h-4 sm:w-5 h-5 text-white" />
           </div>
         </div>
-      </div>
+      </div> */}
     </div >
   )
 }

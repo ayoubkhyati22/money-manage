@@ -23,7 +23,7 @@ type FormType = null | 'buy' | 'sell'
 export function StockManager({ banks }: StockManagerProps) {
   const { user } = useAuth()
   const { showSuccess, showError, showDeleteConfirm } = useSweetAlert()
-  const [activeTab, setActiveTab] = useState<ActiveTab>('portfolio')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('comparison')
   const [showForm, setShowForm] = useState<FormType>(null)
   const [loading, setLoading] = useState(false)
   const [transactions, setTransactions] = useState<StockTransactionWithDetails[]>([])
@@ -78,8 +78,8 @@ export function StockManager({ banks }: StockManagerProps) {
   }
 
   const tabs = [
-    { id: 'portfolio' as const, label: 'Portfolio', icon: BarChart3 },
-    { id: 'live' as const, label: 'Live Prices', icon: TrendingUp },
+    // { id: 'portfolio' as const, label: 'Portfolio', icon: BarChart3 },
+    // { id: 'live' as const, label: 'Live Prices', icon: TrendingUp },
     { id: 'comparison' as const, label: 'Comparaison', icon: Scale }, // 🔥 NOUVEAU
     { id: 'transactions' as const, label: 'Transactions', icon: ShoppingCart },
     { id: 'profit' as const, label: 'P&L', icon: DollarSign }

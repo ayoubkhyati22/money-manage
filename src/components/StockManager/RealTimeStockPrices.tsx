@@ -25,6 +25,7 @@ export function RealTimeStockPrices() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastEventSync, setLastEventSync] = useState<Date | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Extraire les casablanca_api_ids du portfolio - Memoize pour éviter recréation
   const apiIds = useMemo(() => 
@@ -36,8 +37,8 @@ export function RealTimeStockPrices() {
 
   console.log(`🎯 [Component] Monitoring ${apiIds.length} stocks:`, apiIds)
 
-  // Hook pour récupérer les prix en temps réel (refresh toutes les 30s)
-  const { prices, loading: pricesLoading, error: pricesError, lastRefresh, refresh, fetchCount } = useStockPrices(apiIds, 30000)
+  // Hook pour récupérer les prix (SANS auto-refresh)
+  const { prices, loading: pricesLoading, error: pricesError, lastRefresh, refresh, fetchCount } = useStockPrices(apiIds, false)
 
   // 🔥 ÉCOUTER LES ÉVÉNEMENTS DE L'EVENT BUS - OPTIMISÉ
   useEffect(() => {
@@ -69,7 +70,7 @@ export function RealTimeStockPrices() {
     }
   }, []) // Ne dépend de rien - setup une seule fois
 
-  // Charger le portfolio au montage et quand user change
+  // Charger le portfolio au montage UNIQUEMENT
   useEffect(() => {
     if (user) {
       loadPortfolio()
@@ -182,6 +183,23 @@ export function RealTimeStockPrices() {
     setPortfolioWithPrices(updated)
   }, [portfolio, prices])
 
+  // 🆕 Fonction de refresh manuel
+  const handleManualRefresh = async () => {
+    if (isRefreshing || pricesLoading) return
+    
+    setIsRefreshing(true)
+    console.log('🔄 [Manual Refresh] User triggered refresh')
+    
+    try {
+      await refresh() // Appelle le refresh du hook avec force=true
+      console.log('✅ [Manual Refresh] Completed')
+    } catch (error) {
+      console.error('❌ [Manual Refresh] Error:', error)
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 1000) // Délai visuel
+    }
+  }
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-MA', {
       minimumFractionDigits: 2,
@@ -279,7 +297,26 @@ export function RealTimeStockPrices() {
   const marketStatus = isMarketOpen()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* 🆕 FLOATING REFRESH BUTTON */}
+      <button
+        onClick={handleManualRefresh}
+        disabled={isRefreshing || pricesLoading}
+        className={`fixed bottom-8 right-8 z-50 p-4 rounded-full shadow-2xl transition-all duration-300 ${
+          isRefreshing || pricesLoading
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:scale-110'
+        } text-white`}
+        title="Actualiser les prix"
+      >
+        <RefreshCw className={`w-6 h-6 ${isRefreshing || pricesLoading ? 'animate-spin' : ''}`} />
+        {(isRefreshing || pricesLoading) && (
+          <span className="absolute -top-10 right-0 bg-white dark:bg-slate-800 text-gray-900 dark:text-white px-3 py-1 rounded-lg text-xs font-medium shadow-lg whitespace-nowrap">
+            Actualisation...
+          </span>
+        )}
+      </button>
+
       {/* Header avec stats globales */}
       <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 rounded-xl p-6 text-white shadow-lg border border-white/10">
         <div className="flex items-center justify-between mb-4">
@@ -309,19 +346,6 @@ export function RealTimeStockPrices() {
               </div>
             </div>
           </div>
-          <button
-            onClick={refresh}
-            disabled={pricesLoading}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 relative group"
-            title="Actualiser les prix"
-          >
-            <RefreshCw className={`w-5 h-5 ${pricesLoading ? 'animate-spin' : ''}`} />
-            {pricesLoading && (
-              <span className="absolute -bottom-8 right-0 text-xs bg-white/10 px-2 py-1 rounded whitespace-nowrap">
-                Mise à jour...
-              </span>
-            )}
-          </button>
         </div>
 
         {/* Indicateur de connexion */}
@@ -532,7 +556,7 @@ export function RealTimeStockPrices() {
                 {pricesError}
               </p>
               <button
-                onClick={refresh}
+                onClick={handleManualRefresh}
                 className="mt-2 text-xs text-yellow-600 dark:text-yellow-400 underline hover:no-underline"
               >
                 Réessayer maintenant

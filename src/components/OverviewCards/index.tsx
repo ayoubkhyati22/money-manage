@@ -167,7 +167,7 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
       {/* Total Balance avec gains boursiers */}
 
       <CreditCard
-        totalBalance={totalBalanceWithStocks}
+        totalBalance={totalBalance}
         banksCount={banks.length}
         banks={banks}
       />
@@ -180,7 +180,7 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
         totalBalance={totalBalance}
       />
       {/* Stock Overview Section */}
-      <StockOverview onTotalGainsChange={setStockGains} />
+      {/* <StockOverview onTotalGainsChange={setStockGains} /> */}
 
 
       {/* Tabs Navigation */}
