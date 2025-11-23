@@ -4,18 +4,64 @@ import { ObjectiveTransaction } from '../../types/transaction'
 
 interface TransactionCardProps {
   transaction: ObjectiveTransaction
+  isSelectionMode: boolean
+  isSelected: boolean
   onReturn: (transaction: ObjectiveTransaction) => void
+  onToggleSelection: (transactionId: string) => void
 }
 
-export function TransactionCard({ transaction, onReturn }: TransactionCardProps) {
+export function TransactionCard({ 
+  transaction, 
+  isSelectionMode, 
+  isSelected,
+  onReturn, 
+  onToggleSelection 
+}: TransactionCardProps) {
   const isPositive = transaction.amount >= 0
   
   // Check if this is a stock transaction by looking at the description
   const isStockTransaction = transaction.description?.includes('Stock Purchase:') || 
                             transaction.description?.includes('Stock Sale:')
+  
+  // Can only select negative (withdrawal) transactions that are not stock transactions
+  const isSelectable = transaction.amount < 0 && !isStockTransaction
+
+  const handleCardClick = () => {
+    if (isSelectionMode && isSelectable) {
+      onToggleSelection(transaction.id)
+    }
+  }
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+  }
 
   return (
-    <div className="flex items-center justify-between rounded-xl p-3 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 hover:shadow-md transition-all duration-200">
+    <div 
+      onClick={handleCardClick}
+      className={`flex items-center justify-between rounded-xl p-3 border transition-all duration-200 ${
+        isSelected 
+          ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-400 dark:border-blue-600 shadow-md' 
+          : 'bg-white dark:bg-dark-800 border-gray-200 dark:border-dark-700 hover:shadow-md'
+      } ${isSelectionMode && isSelectable ? 'cursor-pointer' : ''}`}
+    >
+      {/* Checkbox in selection mode */}
+      {isSelectionMode && (
+        <div className="flex-shrink-0 mr-3" onClick={handleCheckboxClick}>
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => {}}
+            disabled={!isSelectable}
+            className={`w-5 h-5 rounded border-gray-300 dark:border-dark-600 ${
+              isSelectable 
+                ? 'text-blue-600 focus:ring-blue-500 cursor-pointer' 
+                : 'opacity-30 cursor-not-allowed'
+            }`}
+          />
+        </div>
+      )}
+
       {/* Left: Icon + Main Info */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {/* Icon */}
@@ -79,10 +125,13 @@ export function TransactionCard({ transaction, onReturn }: TransactionCardProps)
           </p>
         </div>
 
-        {/* Only show return button for non-positive, non-stock transactions */}
-        {!isPositive && !isStockTransaction && (
+        {/* Only show return button for non-positive, non-stock transactions when not in selection mode */}
+        {!isSelectionMode && !isPositive && !isStockTransaction && (
           <button
-            onClick={() => onReturn(transaction)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onReturn(transaction)
+            }}
             className="p-1.5 rounded-lg text-cyan-500 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-all duration-200"
             title="Return Money"
           >

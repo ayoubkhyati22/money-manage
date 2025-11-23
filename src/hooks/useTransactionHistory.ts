@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchTransactions, returnMoney, PAGE_SIZE } from '../services/transactionService'
+import { fetchTransactions, returnMoney, returnMultipleTransactions, PAGE_SIZE } from '../services/transactionService'
 import { ObjectiveTransaction } from '../types/transaction'
 import { useAuth } from './useAuth'
 import { useSweetAlert } from './useSweetAlert'
@@ -14,6 +14,8 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
   const [totalCount, setTotalCount] = useState(0)
   const [hasMore, setHasMore] = useState(true)
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
 
   useEffect(() => {
     const handleResize = () => {
@@ -27,6 +29,9 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
   useEffect(() => {
     setPage(1)
     loadTransactions(1, true)
+    // Reset selection when filter changes
+    setSelectedIds(new Set())
+    setIsSelectionMode(false)
   }, [user, showWithdrawnOnly, isDesktop])
 
   const loadTransactions = async (pageNumber = 1, reset = false) => {
@@ -74,6 +79,71 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
     }
   }
 
+  const handleReturnSelected = async () => {
+    const selectedTransactions = transactions.filter(t => selectedIds.has(t.id))
+    
+    if (selectedTransactions.length === 0) {
+      await showError('No Selection', 'Please select at least one transaction to return')
+      return
+    }
+
+    const totalAmount = selectedTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0)
+    
+    const result = await showConfirm(
+      'Return Selected Transactions?',
+      `Are you sure you want to return ${selectedTransactions.length} transaction(s) totaling ${totalAmount.toFixed(2)} MAD?`
+    )
+    
+    if (!result.isConfirmed) return
+
+    try {
+      await returnMultipleTransactions(selectedTransactions)
+      await showSuccess(
+        'Transactions Returned!',
+        `${selectedTransactions.length} transaction(s) totaling ${totalAmount.toFixed(2)} MAD have been returned`
+      )
+      setSelectedIds(new Set())
+      setIsSelectionMode(false)
+      loadTransactions(page, true)
+      if (onUpdate) onUpdate()
+    } catch (err: any) {
+      await showError('Return Failed', err.message)
+    }
+  }
+
+  const toggleSelection = (transactionId: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(transactionId)) {
+        newSet.delete(transactionId)
+      } else {
+        newSet.add(transactionId)
+      }
+      return newSet
+    })
+  }
+
+  const toggleSelectAll = () => {
+    const selectableTransactions = transactions.filter(t => t.amount < 0 && !isStockTransaction(t))
+    
+    if (selectedIds.size === selectableTransactions.length && selectableTransactions.length > 0) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(selectableTransactions.map(t => t.id)))
+    }
+  }
+
+  const isStockTransaction = (transaction: ObjectiveTransaction) => {
+    return transaction.description?.includes('Stock Purchase:') || 
+           transaction.description?.includes('Stock Sale:')
+  }
+
+  const getSelectedTotal = () => {
+    return transactions
+      .filter(t => selectedIds.has(t.id))
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+  }
+
   const toggleFilter = () => {
     setShowWithdrawnOnly((prev) => !prev)
   }
@@ -92,6 +162,13 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
     }
   }
 
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(prev => !prev)
+    if (isSelectionMode) {
+      setSelectedIds(new Set())
+    }
+  }
+
   return {
     transactions,
     loading,
@@ -100,10 +177,17 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
     totalCount,
     hasMore,
     isDesktop,
+    selectedIds,
+    isSelectionMode,
     handleReturnMoney,
+    handleReturnSelected,
+    toggleSelection,
+    toggleSelectAll,
     toggleFilter,
     loadMore,
     goToPage,
+    toggleSelectionMode,
+    getSelectedTotal,
     refresh: () => loadTransactions(1, true)
   }
 }

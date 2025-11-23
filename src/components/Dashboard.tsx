@@ -161,7 +161,7 @@ export function Dashboard() {
         )
       case 'history':
         return <TransactionHistory onUpdate={refreshAllData} />
-      case 'dca':
+      case 'dca':totalCount
         return (
           <div className="space-y-6">
             <DCAManager />

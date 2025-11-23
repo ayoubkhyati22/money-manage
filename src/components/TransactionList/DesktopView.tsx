@@ -9,7 +9,10 @@ interface DesktopViewProps {
   showWithdrawnOnly: boolean
   page: number
   totalCount: number
+  isSelectionMode: boolean
+  selectedIds: Set<string>
   onReturn: (transaction: ObjectiveTransaction) => void
+  onToggleSelection: (transactionId: string) => void
   onPageChange: (page: number) => void
 }
 
@@ -19,7 +22,10 @@ export function DesktopView({
   showWithdrawnOnly,
   page,
   totalCount,
+  isSelectionMode,
+  selectedIds,
   onReturn,
+  onToggleSelection,
   onPageChange
 }: DesktopViewProps) {
   return (
@@ -27,6 +33,11 @@ export function DesktopView({
       <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-600 rounded-lg">
         <thead className="bg-gray-50 dark:bg-dark-700">
           <tr>
+            {isSelectionMode && (
+              <th scope="col" className="px-3 py-3">
+                <span className="sr-only">Select</span>
+              </th>
+            )}
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">
               Date
             </th>
@@ -42,15 +53,17 @@ export function DesktopView({
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-dark-300 uppercase tracking-wider">
               Amount
             </th>
-            <th scope="col" className="relative px-6 py-3">
-              <span className="sr-only">Actions</span>
-            </th>
+            {!isSelectionMode && (
+              <th scope="col" className="relative px-6 py-3">
+                <span className="sr-only">Actions</span>
+              </th>
+            )}
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-dark-800 divide-y divide-gray-200 dark:divide-dark-600">
           {transactions.length === 0 && !loading ? (
             <tr>
-              <td colSpan={6}>
+              <td colSpan={isSelectionMode ? 6 : 7}>
                 <EmptyState showWithdrawnOnly={showWithdrawnOnly} />
               </td>
             </tr>
@@ -59,7 +72,10 @@ export function DesktopView({
               <TransactionTableRow
                 key={transaction.id}
                 transaction={transaction}
+                isSelectionMode={isSelectionMode}
+                isSelected={selectedIds.has(transaction.id)}
                 onReturn={onReturn}
+                onToggleSelection={onToggleSelection}
               />
             ))
           )}

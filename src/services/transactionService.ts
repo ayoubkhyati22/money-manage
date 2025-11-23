@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { ObjectiveTransaction } from '../types/transaction'
 
-export const PAGE_SIZE = 10
+export const PAGE_SIZE = 15
 
 export const fetchTransactions = async (
   pageNumber: number,
@@ -82,4 +82,76 @@ export const returnMoney = async (
     .eq('goal_id', transaction.objective_id)
     .eq('bank_id', transaction.bank_id)
   if (allocationUpdateError) throw allocationUpdateError
+}
+
+export const returnMultipleTransactions = async (
+  transactions: ObjectiveTransaction[]
+): Promise<void> => {
+  // Group transactions by bank and objective
+  const updates: {
+    [key: string]: {
+      bankId: string
+      objectiveId: string
+      totalAmount: number
+      transactionIds: string[]
+    }
+  } = {}
+
+  for (const transaction of transactions) {
+    if (transaction.amount >= 0) continue // Skip non-withdrawal transactions
+
+    const key = `${transaction.bank_id}_${transaction.objective_id}`
+    if (!updates[key]) {
+      updates[key] = {
+        bankId: transaction.bank_id,
+        objectiveId: transaction.objective_id,
+        totalAmount: 0,
+        transactionIds: []
+      }
+    }
+    updates[key].totalAmount += Math.abs(transaction.amount)
+    updates[key].transactionIds.push(transaction.id)
+  }
+
+  // Process each group
+  for (const update of Object.values(updates)) {
+    // Delete all transactions in this group
+    const { error: deleteError } = await supabase
+      .from('objectives_transactions')
+      .delete()
+      .in('id', update.transactionIds)
+    if (deleteError) throw deleteError
+
+    // Update bank balance
+    const { data: bankData, error: bankFetchError } = await supabase
+      .from('banks')
+      .select('balance')
+      .eq('id', update.bankId)
+      .single()
+    if (bankFetchError) throw bankFetchError
+
+    const newBankBalance = Number(bankData.balance) + update.totalAmount
+    const { error: bankUpdateError } = await supabase
+      .from('banks')
+      .update({ balance: newBankBalance })
+      .eq('id', update.bankId)
+    if (bankUpdateError) throw bankUpdateError
+
+    // Update allocation
+    const { data: allocationData, error: allocationFetchError } = await supabase
+      .from('allocations')
+      .select('amount')
+      .eq('goal_id', update.objectiveId)
+      .eq('bank_id', update.bankId)
+      .single()
+    if (allocationFetchError) throw allocationFetchError
+
+    const newAllocationAmount = Number(allocationData.amount) + update.totalAmount
+    const { error: allocationUpdateError } = await supabase
+      .from('allocations')
+      .update({ amount: newAllocationAmount })
+      .eq('goal_id', update.objectiveId)
+      .eq('bank_id', update.bankId)
+    if (allocationUpdateError) throw allocationUpdateError
+  }
 }

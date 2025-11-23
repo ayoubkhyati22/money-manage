@@ -8,7 +8,10 @@ interface MobileViewProps {
   showWithdrawnOnly: boolean
   hasMore: boolean
   isDesktop: boolean
+  isSelectionMode: boolean
+  selectedIds: Set<string>
   onReturn: (transaction: ObjectiveTransaction) => void
+  onToggleSelection: (transactionId: string) => void
   onLoadMore: () => void
 }
 
@@ -18,7 +21,10 @@ export function MobileView({
   showWithdrawnOnly,
   hasMore,
   isDesktop,
+  isSelectionMode,
+  selectedIds,
   onReturn,
+  onToggleSelection,
   onLoadMore
 }: MobileViewProps) {
   return (
@@ -30,7 +36,10 @@ export function MobileView({
           <TransactionCard
             key={transaction.id}
             transaction={transaction}
+            isSelectionMode={isSelectionMode}
+            isSelected={selectedIds.has(transaction.id)}
             onReturn={onReturn}
+            onToggleSelection={onToggleSelection}
           />
         ))
       )}

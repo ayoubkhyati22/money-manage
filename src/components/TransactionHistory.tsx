@@ -3,6 +3,7 @@ import { useTransactionHistory } from '../hooks/useTransactionHistory'
 import { TransactionHeader } from './TransactionList/TransactionHeader'
 import { MobileView } from './TransactionList/MobileView'
 import { DesktopView } from './TransactionList/DesktopView'
+import { SelectionBar } from './TransactionList/SelectionBar'
 
 export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
   const {
@@ -13,10 +14,17 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
     totalCount,
     hasMore,
     isDesktop,
+    selectedIds,
+    isSelectionMode,
     handleReturnMoney,
+    handleReturnSelected,
+    toggleSelection,
+    toggleSelectAll,
     toggleFilter,
     loadMore,
     goToPage,
+    toggleSelectionMode,
+    getSelectedTotal,
     refresh
   } = useTransactionHistory(onUpdate)
 
@@ -24,9 +32,24 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
     <div className="space-y-3 sm:space-y-4">
       <TransactionHeader
         showWithdrawnOnly={showWithdrawnOnly}
+        isSelectionMode={isSelectionMode}
         onToggleFilter={toggleFilter}
+        onToggleSelectionMode={toggleSelectionMode}
         onRefresh={refresh}
       />
+
+      {isSelectionMode && (
+        <SelectionBar
+          selectedCount={selectedIds.size}
+          selectedTotal={getSelectedTotal()}
+          onReturnSelected={handleReturnSelected}
+          onSelectAll={toggleSelectAll}
+          selectableCount={transactions.filter(t => 
+            t.amount < 0 && 
+            !(t.description?.includes('Stock Purchase:') || t.description?.includes('Stock Sale:'))
+          ).length}
+        />
+      )}
 
       <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600">
         <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-dark-600">
@@ -46,7 +69,10 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
               showWithdrawnOnly={showWithdrawnOnly}
               page={page}
               totalCount={totalCount}
+              isSelectionMode={isSelectionMode}
+              selectedIds={selectedIds}
               onReturn={handleReturnMoney}
+              onToggleSelection={toggleSelection}
               onPageChange={goToPage}
             />
           ) : (
@@ -56,7 +82,10 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
               showWithdrawnOnly={showWithdrawnOnly}
               hasMore={hasMore}
               isDesktop={isDesktop}
+              isSelectionMode={isSelectionMode}
+              selectedIds={selectedIds}
               onReturn={handleReturnMoney}
+              onToggleSelection={toggleSelection}
               onLoadMore={loadMore}
             />
           )}
