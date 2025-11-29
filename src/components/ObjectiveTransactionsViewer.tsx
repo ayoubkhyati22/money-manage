@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useSweetAlert } from '../hooks/useSweetAlert'
 import { History, Calendar, Building2, ArrowUpCircle, ArrowDownCircle, RotateCcw } from 'lucide-react'
 import { format } from 'date-fns'
+import Swal from 'sweetalert2'
 
 interface ObjectiveTransaction {
   id: string
@@ -28,7 +29,7 @@ export function ObjectiveTransactionsViewer({
   onUpdate
 }: ObjectiveTransactionsViewerProps) {
   const { user } = useAuth()
-  const { showConfirm, showSuccess, showError } = useSweetAlert()
+  const { showError } = useSweetAlert()
   const [transactions, setTransactions] = useState<ObjectiveTransaction[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -36,9 +37,9 @@ export function ObjectiveTransactionsViewer({
     if (objectiveId) {
       loadTransactions()
 
-      // Set up real-time subscription
-      const subscription = supabase
-        .channel('objective_transactions_changes')
+      // Set up real-time subscription - Fixed to not use updated_at
+      const channel = supabase
+        .channel(`objective_transactions_${objectiveId}`)
         .on(
           'postgres_changes',
           {
@@ -47,14 +48,15 @@ export function ObjectiveTransactionsViewer({
             table: 'objectives_transactions',
             filter: `objective_id=eq.${objectiveId}`
           },
-          () => {
+          (payload) => {
+            console.log('Transaction change detected:', payload)
             loadTransactions()
           }
         )
         .subscribe()
 
       return () => {
-        subscription.unsubscribe()
+        supabase.removeChannel(channel)
       }
     }
   }, [objectiveId, user])
@@ -102,23 +104,172 @@ export function ObjectiveTransactionsViewer({
       return
     }
 
-    const returnAmount = Math.abs(transaction.amount)
+    const maxReturnAmount = Math.abs(transaction.amount)
+    
+    // Step 1: Ask user to choose between full or partial return
+    const result = await Swal.fire({
+      title: 'Return Money',
+      html: `
+        <div style="text-align: left; padding: 10px;">
+          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">Transaction Amount</p>
+            <p style="margin: 5px 0 0 0; color: #111827; font-size: 24px; font-weight: bold;">
+              ${maxReturnAmount.toFixed(2)} MAD
+            </p>
+          </div>
+          <p style="color: #374151; font-size: 15px; margin-bottom: 10px;">
+            How much would you like to return?
+          </p>
+        </div>
+      `,
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: '💰 Full Amount',
+      denyButtonText: '✏️ Partial Amount',
+      cancelButtonText: '❌ Cancel',
+      confirmButtonColor: '#10b981',
+      denyButtonColor: '#3b82f6',
+      cancelButtonColor: '#6b7280',
+      width: '450px',
+      customClass: {
+        popup: 'rounded-xl',
+        confirmButton: 'px-6 py-2.5 rounded-lg font-semibold',
+        denyButton: 'px-6 py-2.5 rounded-lg font-semibold',
+        cancelButton: 'px-6 py-2.5 rounded-lg font-semibold'
+      }
+    })
 
-    const result = await showConfirm(
-      'Return Money?',
-      `Are you sure you want to return ${returnAmount.toFixed(2)} MAD to ${transaction.bank_name}? This will reverse the withdrawal.`
-    )
+    if (result.dismiss) return // User cancelled
 
-    if (!result.isConfirmed) return
+    let returnAmount = maxReturnAmount
+
+    // Step 2: If partial, ask for amount
+    if (result.isDenied) {
+      const inputResult = await Swal.fire({
+        title: 'Specify Amount',
+        html: `
+          <div style="text-align: left; padding: 10px;">
+            <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #3b82f6;">
+              <p style="margin: 0; color: #1e40af; font-size: 13px;">Maximum Available</p>
+              <p style="margin: 5px 0 0 0; color: #1e3a8a; font-size: 22px; font-weight: bold;">
+                ${maxReturnAmount.toFixed(2)} MAD
+              </p>
+            </div>
+            <label style="display: block; color: #374151; font-size: 14px; font-weight: 500; margin-bottom: 8px;">
+              Amount to Return (MAD)
+            </label>
+          </div>
+        `,
+        input: 'number',
+        inputValue: maxReturnAmount.toFixed(2),
+        inputAttributes: {
+          min: '0.01',
+          max: maxReturnAmount.toString(),
+          step: '0.01',
+          style: 'text-align: center; font-size: 18px; font-weight: bold; padding: 12px;'
+        },
+        showCancelButton: true,
+        confirmButtonText: '✓ Confirm',
+        cancelButtonText: '← Back',
+        confirmButtonColor: '#3b82f6',
+        cancelButtonColor: '#6b7280',
+        width: '450px',
+        inputValidator: (value) => {
+          const num = parseFloat(value)
+          if (!value || isNaN(num)) {
+            return 'Please enter a valid amount'
+          }
+          if (num <= 0) {
+            return 'Amount must be greater than 0'
+          }
+          if (num > maxReturnAmount) {
+            return `Amount cannot exceed ${maxReturnAmount.toFixed(2)} MAD`
+          }
+          return null
+        },
+        customClass: {
+          popup: 'rounded-xl',
+          input: 'rounded-lg border-2 border-blue-300',
+          confirmButton: 'px-6 py-2.5 rounded-lg font-semibold',
+          cancelButton: 'px-6 py-2.5 rounded-lg font-semibold'
+        }
+      })
+
+      if (!inputResult.isConfirmed || !inputResult.value) return // User cancelled
+      returnAmount = parseFloat(inputResult.value)
+    }
+
+    // Step 3: Final confirmation
+    const confirmResult = await Swal.fire({
+      title: 'Confirm Return',
+      html: `
+        <div style="text-align: left; padding: 10px;">
+          <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #10b981;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+              <span style="color: #065f46; font-size: 14px;">Bank:</span>
+              <span style="color: #064e3b; font-weight: 600; font-size: 14px;">${transaction.bank_name}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+              <span style="color: #065f46; font-size: 14px;">Objective:</span>
+              <span style="color: #064e3b; font-weight: 600; font-size: 14px;">${transaction.objective_name}</span>
+            </div>
+            <div style="border-top: 1px solid #86efac; margin: 15px 0; padding-top: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #065f46; font-size: 15px; font-weight: 500;">Return Amount:</span>
+                <span style="color: #10b981; font-weight: bold; font-size: 24px;">
+                  +${returnAmount.toFixed(2)} MAD
+                </span>
+              </div>
+            </div>
+          </div>
+          ${returnAmount < maxReturnAmount ? `
+            <div style="background: #fef3c7; padding: 12px; border-radius: 8px; border: 1px solid #fbbf24;">
+              <p style="margin: 0; color: #92400e; font-size: 13px;">
+                ℹ️ Partial return: ${(maxReturnAmount - returnAmount).toFixed(2)} MAD will remain withdrawn
+              </p>
+            </div>
+          ` : ''}
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '✓ Yes, Return Money',
+      cancelButtonText: '❌ Cancel',
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#6b7280',
+      width: '500px',
+      customClass: {
+        popup: 'rounded-xl',
+        confirmButton: 'px-6 py-2.5 rounded-lg font-semibold',
+        cancelButton: 'px-6 py-2.5 rounded-lg font-semibold'
+      }
+    })
+    
+    if (!confirmResult.isConfirmed) return
 
     try {
-      // 1. Delete the original transaction
-      const { error: deleteError } = await supabase
-        .from('objectives_transactions')
-        .delete()
-        .eq('id', transaction.id)
+      // If partial return, update the transaction amount instead of deleting
+      if (returnAmount < maxReturnAmount) {
+        const newTransactionAmount = transaction.amount + returnAmount
+        
+        const { error: updateError } = await supabase
+          .from('objectives_transactions')
+          .update({ 
+            amount: newTransactionAmount,
+            description: `${transaction.description} (Partial return: ${returnAmount.toFixed(2)} MAD)`
+          })
+          .eq('id', transaction.id)
+        
+        if (updateError) throw updateError
+      } else {
+        // Full return - delete the transaction
+        const { error: deleteError } = await supabase
+          .from('objectives_transactions')
+          .delete()
+          .eq('id', transaction.id)
 
-      if (deleteError) throw deleteError
+        if (deleteError) throw deleteError
+      }
 
       // 2. Return money to bank balance
       const { data: bankData, error: bankFetchError } = await supabase
@@ -156,10 +307,32 @@ export function ObjectiveTransactionsViewer({
 
       if (allocationUpdateError) throw allocationUpdateError
 
-      await showSuccess(
-        'Money Returned!',
-        `${returnAmount.toFixed(2)} MAD has been returned to ${transaction.bank_name}`
-      )
+      await Swal.fire({
+        title: 'Success!',
+        html: `
+          <div style="text-align: center; padding: 10px;">
+            <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
+            <p style="color: #374151; font-size: 16px; margin-bottom: 10px;">
+              Money has been returned successfully
+            </p>
+            <div style="background: #ecfdf5; padding: 15px; border-radius: 8px; display: inline-block;">
+              <p style="margin: 0; color: #065f46; font-size: 14px;">Returned Amount</p>
+              <p style="margin: 5px 0 0 0; color: #10b981; font-size: 28px; font-weight: bold;">
+                +${returnAmount.toFixed(2)} MAD
+              </p>
+            </div>
+          </div>
+        `,
+        icon: 'success',
+        confirmButtonText: 'Done',
+        confirmButtonColor: '#10b981',
+        timer: 3000,
+        timerProgressBar: true,
+        customClass: {
+          popup: 'rounded-xl',
+          confirmButton: 'px-6 py-2.5 rounded-lg font-semibold'
+        }
+      })
 
       // Refresh data
       loadTransactions()

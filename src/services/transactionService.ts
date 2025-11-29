@@ -39,20 +39,41 @@ export const fetchTransactions = async (
 }
 
 export const returnMoney = async (
-  transaction: ObjectiveTransaction
+  transaction: ObjectiveTransaction,
+  returnAmount?: number
 ): Promise<void> => {
   if (transaction.amount >= 0) {
     throw new Error('Can only return withdrawal transactions')
   }
 
-  const returnAmount = Math.abs(transaction.amount)
+  const maxReturnAmount = Math.abs(transaction.amount)
+  const actualReturnAmount = returnAmount && returnAmount <= maxReturnAmount 
+    ? returnAmount 
+    : maxReturnAmount
 
-  const { error: deleteError } = await supabase
-    .from('objectives_transactions')
-    .delete()
-    .eq('id', transaction.id)
-  if (deleteError) throw deleteError
+  // If partial return, update the transaction amount instead of deleting
+  if (actualReturnAmount < maxReturnAmount) {
+    const newTransactionAmount = transaction.amount + actualReturnAmount
+    
+    const { error: updateError } = await supabase
+      .from('objectives_transactions')
+      .update({ 
+        amount: newTransactionAmount,
+        description: `${transaction.description} (Partial return: ${actualReturnAmount.toFixed(2)} MAD)`
+      })
+      .eq('id', transaction.id)
+    
+    if (updateError) throw updateError
+  } else {
+    // Full return - delete the transaction
+    const { error: deleteError } = await supabase
+      .from('objectives_transactions')
+      .delete()
+      .eq('id', transaction.id)
+    if (deleteError) throw deleteError
+  }
 
+  // Update bank balance
   const { data: bankData, error: bankFetchError } = await supabase
     .from('banks')
     .select('balance')
@@ -60,13 +81,14 @@ export const returnMoney = async (
     .single()
   if (bankFetchError) throw bankFetchError
 
-  const newBankBalance = Number(bankData.balance) + returnAmount
+  const newBankBalance = Number(bankData.balance) + actualReturnAmount
   const { error: bankUpdateError } = await supabase
     .from('banks')
     .update({ balance: newBankBalance })
     .eq('id', transaction.bank_id)
   if (bankUpdateError) throw bankUpdateError
 
+  // Update allocation
   const { data: allocationData, error: allocationFetchError } = await supabase
     .from('allocations')
     .select('amount')
@@ -75,7 +97,7 @@ export const returnMoney = async (
     .single()
   if (allocationFetchError) throw allocationFetchError
 
-  const newAllocationAmount = Number(allocationData.amount) + returnAmount
+  const newAllocationAmount = Number(allocationData.amount) + actualReturnAmount
   const { error: allocationUpdateError } = await supabase
     .from('allocations')
     .update({ amount: newAllocationAmount })
