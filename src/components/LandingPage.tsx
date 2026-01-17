@@ -73,7 +73,7 @@ export function LandingPage() {
             <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-0 transition-all duration-500 shadow-inner">
               <PiggyBank size={22} className="text-white" />
             </div>
-            <span className="font-black text-white tracking-tighter text-2xl">CAPITAL</span>
+            <span className="font-black text-white tracking-tighter text-2xl">Finance FLOW</span>
           </div>
 
           <div className="hidden lg:flex items-center gap-10">
@@ -88,7 +88,7 @@ export function LandingPage() {
             onClick={() => navigate('/auth')}
             className="bg-emerald-500 text-white px-7 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-400 transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] active:scale-95"
           >
-            Access Terminal
+            Go
           </button>
         </div>
       </nav>
