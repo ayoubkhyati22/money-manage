@@ -1,292 +1,294 @@
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
 import {
   TrendingUp,
   Target,
   PiggyBank,
+  ShieldCheck,
+  Zap,
+  ArrowUpRight,
+  Globe,
+  Lock,
   BarChart3,
-  Shield,
-  Smartphone,
-  ArrowRight,
-  CheckCircle2
+  CreditCard,
+  Plus
 } from 'lucide-react'
-import { useDarkMode } from '../hooks/useDarkMode'
+
+// --- High-End Custom Components ---
+
+const FeaturePillar = ({ icon: Icon, title, description, delay }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8, delay }}
+    viewport={{ once: true }}
+    className="group relative"
+  >
+    <div className="mb-6 inline-flex p-3 rounded-xl bg-slate-900 border border-emerald-500/20 text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-lg shadow-emerald-500/5">
+      <Icon size={24} />
+    </div>
+    <h3 className="text-xl font-bold text-white mb-3 tracking-tight leading-tight">{title}</h3>
+    <p className="text-slate-400 leading-relaxed text-sm md:text-base font-light">
+      {description}
+    </p>
+  </motion.div>
+)
 
 export function LandingPage() {
   const navigate = useNavigate()
-  const { darkMode } = useDarkMode()
+  
+  // FIX: Attach this ref to the main wrapper
+  const containerRef = useRef(null)
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  })
 
-  const features = [
-    {
-      icon: <PiggyBank className="w-8 h-8" />,
-      title: 'Smart Banking',
-      description: 'Manage multiple bank accounts and track balances in real-time with intuitive visualizations.'
-    },
-    {
-      icon: <TrendingUp className="w-8 h-8" />,
-      title: 'Stock Portfolio',
-      description: 'Track your stock investments, monitor gains/losses, and make informed decisions.'
-    },
-    {
-      icon: <Target className="w-8 h-8" />,
-      title: 'Financial Goals',
-      description: 'Set objectives and allocate funds strategically to achieve your financial targets.'
-    },
-    {
-      icon: <BarChart3 className="w-8 h-8" />,
-      title: 'DCA Plans',
-      description: 'Implement Dollar Cost Averaging strategies with automated tracking and performance analytics.'
-    },
-    {
-      icon: <Shield className="w-8 h-8" />,
-      title: 'Secure & Private',
-      description: 'Your financial data is encrypted and secure with industry-standard protection.'
-    },
-    {
-      icon: <Smartphone className="w-8 h-8" />,
-      title: 'Mobile Ready',
-      description: 'Access your finances anywhere with our responsive design and mobile support.'
-    }
-  ]
+  // Smooth out the scroll value for the progress bar and animations
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  })
 
-  const benefits = [
-    'Track all transactions in one place',
-    'Visualize spending patterns with graphs',
-    'Monitor investment performance',
-    'Set and achieve financial goals',
-    'Export data for analysis',
-    'Dark mode support'
-  ]
+  const opacity = useTransform(scrollYProgress, [0, 0.15], [1, 0])
+  const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 0.95])
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
-      <div className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900 min-h-screen">
-        {/* Navigation */}
-        <nav className="container mx-auto px-6 py-6">
-          <div className="flex justify-between items-center">
+    // FIX: ref={containerRef} is now attached here
+    <div ref={containerRef} className="bg-[#030507] text-slate-200 min-h-screen selection:bg-emerald-500/30 font-sans antialiased overflow-x-hidden">
+      
+      {/* Scroll Progress Indicator (Bottom Fixed) */}
+      <motion.div 
+        className="fixed bottom-0 left-0 right-0 h-1 bg-emerald-500 z-[110] origin-left"
+        style={{ scaleX }}
+      />
+
+      {/* 1. Global Navigation */}
+      <nav className="fixed top-0 w-full z-[100] px-6 py-6">
+        <div className="max-w-7xl mx-auto flex justify-between items-center bg-black/40 backdrop-blur-2xl border border-white/5 rounded-2xl px-6 py-3 shadow-2xl">
+          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-0 transition-all duration-500 shadow-inner">
+              <PiggyBank size={22} className="text-white" />
+            </div>
+            <span className="font-black text-white tracking-tighter text-2xl">CAPITAL</span>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-10">
+            {['Strategy', 'Security', 'Interface'].map((item) => (
+              <a key={item} href={`#${item}`} className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-400 transition-colors">
+                {item}
+              </a>
+            ))}
+          </div>
+
+          <button 
+            onClick={() => navigate('/auth')}
+            className="bg-emerald-500 text-white px-7 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-400 transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] active:scale-95"
+          >
+            Access Terminal
+          </button>
+        </div>
+      </nav>
+
+      {/* 2. Hero Section */}
+      <header className="relative pt-52 pb-32 px-6">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
+          <motion.div style={{ opacity, scale: heroScale }}>
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center space-x-2"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-[0.25em] mb-10"
             >
-              <PiggyBank className="w-8 h-8 text-emerald-600 dark:text-primary-400" />
-              <span className="text-2xl font-bold text-gray-800 dark:text-white">
-                MoneyManager
-              </span>
+              <Zap size={12} fill="currentColor" />
+              <span>Sovereign Financial Control</span>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex gap-4"
-            >
-              <button
-                onClick={() => navigate('/auth')}
-                className="px-6 py-2 text-emerald-600 dark:text-primary-400 hover:bg-emerald-50 dark:hover:bg-dark-700 rounded-lg transition-colors"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => navigate('/auth')}
-                className="px-6 py-2 bg-emerald-600 dark:bg-primary-500 text-white rounded-lg hover:bg-emerald-700 dark:hover:bg-primary-600 transition-colors shadow-lg hover:shadow-xl"
-              >
-                Get Started
-              </button>
-            </motion.div>
-          </div>
-        </nav>
-
-        {/* Hero Section */}
-        <section className="container mx-auto px-6 py-20">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-                Take Control of Your
-                <span className="text-emerald-600 dark:text-primary-400"> Financial Future</span>
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-                A comprehensive money management platform to track expenses, manage investments,
-                and achieve your financial goals with intelligent insights.
-              </p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => navigate('/auth')}
-                  className="px-8 py-4 bg-emerald-600 dark:bg-primary-500 text-white rounded-lg hover:bg-emerald-700 dark:hover:bg-primary-600 transition-colors shadow-lg hover:shadow-xl flex items-center gap-2 text-lg"
-                >
-                  Start Free Today
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="px-8 py-4 border-2 border-emerald-600 dark:border-primary-400 text-emerald-600 dark:text-primary-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-dark-700 transition-colors text-lg"
-                >
-                  Learn More
-                </button>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              className="relative"
-            >
-              <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-dark-700">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-primary-900/20 rounded-lg">
-                    <span className="text-gray-700 dark:text-gray-300">Total Balance</span>
-                    <span className="text-2xl font-bold text-emerald-600 dark:text-primary-400">$24,580.00</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-gray-50 dark:bg-dark-700 rounded-lg">
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Income</div>
-                      <div className="text-xl font-semibold text-green-600 dark:text-green-400">+$5,240</div>
-                    </div>
-                    <div className="p-4 bg-gray-50 dark:bg-dark-700 rounded-lg">
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Expenses</div>
-                      <div className="text-xl font-semibold text-red-600 dark:text-red-400">-$2,180</div>
-                    </div>
-                  </div>
-                  <div className="h-32 bg-gradient-to-r from-emerald-100 to-blue-100 dark:from-primary-900/30 dark:to-blue-900/30 rounded-lg flex items-end justify-around p-4">
-                    {[60, 80, 65, 90, 75, 85].map((height, i) => (
-                      <div
-                        key={i}
-                        className="bg-emerald-600 dark:bg-primary-500 rounded-t"
-                        style={{ width: '12%', height: `${height}%` }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section id="features" className="container mx-auto px-6 py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Everything You Need to Manage Your Money
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              Powerful features designed to simplify your financial life
+            
+            <h1 className="text-7xl md:text-[10rem] font-black text-white leading-[0.8] tracking-tighter mb-10 italic">
+              OWN <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">YOUR FLOW.</span>
+            </h1>
+            
+            <p className="text-xl text-slate-400 max-w-lg mb-12 leading-relaxed font-light">
+              The elite framework for capital management. Track global assets and cash flow with industrial-grade precision and unmatched aesthetic clarity.
             </p>
+
+            <div className="flex flex-wrap gap-6 items-center">
+              <button 
+                onClick={() => navigate('/auth')}
+                className="group flex items-center gap-4 bg-white hover:bg-emerald-500 text-black hover:text-white px-10 py-5 rounded-2xl transition-all duration-500 shadow-2xl"
+              >
+                <span className="font-black text-lg uppercase tracking-tight">Open Vault</span>
+                <ArrowUpRight className="group-hover:rotate-45 transition-transform" />
+              </button>
+              
+              <div className="flex flex-col gap-1 border-l border-white/10 pl-6">
+                <span className="text-white font-bold text-lg">$2.4B+</span>
+                <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Assets Analyzed</span>
+              </div>
+            </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white dark:bg-dark-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-gray-200 dark:border-dark-700"
-              >
-                <div className="text-emerald-600 dark:text-primary-400 mb-4">
-                  {feature.icon}
+          {/* UI Showcase Component */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
+            className="relative"
+          >
+             <div className="absolute -inset-10 bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none" />
+             <div className="bg-[#0a0c10] border border-white/5 rounded-[3rem] p-8 shadow-3xl relative z-20">
+                <div className="flex justify-between items-start mb-12">
+                   <div className="space-y-1">
+                      <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-[0.2em]">Net Capital</p>
+                      <h4 className="text-4xl font-bold text-white font-mono">$842,591.00</h4>
+                   </div>
+                   <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                      <TrendingUp size={20} />
+                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  {feature.description}
-                </p>
-              </motion.div>
-            ))}
+
+                <div className="space-y-6 mb-10">
+                   {[
+                     { l: 'US Equity', v: '+$12,400', p: 75, c: 'bg-emerald-400' },
+                     { l: 'Global Crypto', v: '-$2,102', p: 40, c: 'bg-red-400' },
+                     { l: 'Fixed Assets', v: '+$40,000', p: 90, c: 'bg-blue-400' }
+                   ].map((item, i) => (
+                     <div key={i} className="space-y-2">
+                        <div className="flex justify-between text-[11px] font-bold uppercase tracking-tighter">
+                          <span className="text-slate-400">{item.l}</span>
+                          <span className={item.v.startsWith('+') ? 'text-emerald-400' : 'text-red-400'}>{item.v}</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                           <motion.div 
+                             initial={{ width: 0 }} 
+                             whileInView={{ width: `${item.p}%` }}
+                             className={`h-full ${item.c}`} 
+                           />
+                        </div>
+                     </div>
+                   ))}
+                </div>
+
+                <div className="bg-emerald-500 p-4 rounded-2xl flex justify-between items-center group cursor-pointer active:scale-95 transition-transform">
+                   <span className="text-black font-black text-sm uppercase">Quick Transfer</span>
+                   <Plus className="text-black group-hover:rotate-180 transition-transform duration-500" />
+                </div>
+             </div>
+          </motion.div>
+        </div>
+      </header>
+
+      {/* 3. Principles Section */}
+      <section id="Strategy" className="py-40 px-6 border-t border-white/5 bg-[#05070a]">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-20 mb-32 items-end">
+             <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[0.85]">
+                ARCHITECTURE FOR <br /> <span className="text-slate-600 italic">DECISION MAKING.</span>
+             </h2>
+             <p className="text-slate-400 text-lg font-light leading-relaxed max-w-md">
+               Our system removes the noise of traditional banking. No ads, no recommendations—just your data, visualized for extreme clarity.
+             </p>
           </div>
-        </section>
 
-        {/* Benefits Section */}
-        <section className="container mx-auto px-6 py-20">
-          <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl p-12 border border-gray-200 dark:border-dark-700">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-              >
-                <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-                  Why Choose MoneyManager?
-                </h2>
-                <ul className="space-y-4">
-                  {benefits.map((benefit, index) => (
-                    <motion.li
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center gap-3"
-                    >
-                      <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-primary-400 flex-shrink-0" />
-                      <span className="text-lg text-gray-700 dark:text-gray-300">{benefit}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-              </motion.div>
+          <div className="grid md:grid-cols-3 gap-16">
+            <FeaturePillar 
+              icon={BarChart3} 
+              title="Trajectory Models" 
+              description="Visual projection of assets 10 years into the future based on variable market conditions and savings velocity."
+              delay={0.1}
+            />
+            <FeaturePillar 
+              icon={Lock} 
+              title="Zero-Knowledge Logic" 
+              description="Your data never leaves your control. We utilize client-side encryption for total financial sovereignty."
+              delay={0.2}
+            />
+            <FeaturePillar 
+              icon={Globe} 
+              title="Hyper-Global Sync" 
+              description="Monitor stock tickers, currencies, and custom asset classes across every global market in real-time."
+              delay={0.3}
+            />
+          </div>
+        </div>
+      </section>
 
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="relative"
-              >
-                <div className="bg-gradient-to-br from-emerald-500 to-blue-600 dark:from-primary-600 dark:to-blue-700 rounded-xl p-8 text-white">
-                  <div className="text-5xl font-bold mb-2">100%</div>
-                  <div className="text-xl mb-6">Free to Use</div>
-                  <div className="space-y-2 text-emerald-50 dark:text-primary-100">
-                    <p>No hidden fees</p>
-                    <p>No credit card required</p>
-                    <p>Unlimited transactions</p>
-                  </div>
-                </div>
-              </motion.div>
+      {/* 4. Strategic Flow (White Contrast) */}
+      <section id="Interface" className="bg-white py-40 rounded-t-[5rem] text-black">
+        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-32 items-center">
+          <div className="space-y-12">
+            <h3 className="text-6xl md:text-8xl font-black tracking-tight leading-[0.9]">ONE TOOL. <br /> TOTAL COMMAND.</h3>
+            
+            <div className="space-y-10">
+               {[
+                 { t: 'CONSOLIDATE', d: 'Connect limitless accounts into a single mathematical truth.' },
+                 { t: 'NAVIGATE', d: 'Advanced filtering of tax categories and investment types.' },
+                 { t: 'DOMINATE', d: 'The benchmark tool for those who treat capital as a serious craft.' }
+               ].map((step, idx) => (
+                 <div key={idx} className="flex gap-10 group border-b border-black/10 pb-8 hover:border-emerald-500 transition-colors">
+                    <span className="text-xl font-black text-emerald-500">0{idx+1}</span>
+                    <div className="space-y-2">
+                       <h4 className="font-black text-2xl uppercase tracking-tighter">{step.t}</h4>
+                       <p className="text-slate-500 font-medium leading-tight max-w-sm">{step.d}</p>
+                    </div>
+                 </div>
+               ))}
             </div>
           </div>
-        </section>
 
-        {/* CTA Section */}
-        <section className="container mx-auto px-6 py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-primary-600 dark:to-blue-700 rounded-2xl p-12 text-center text-white shadow-2xl"
-          >
-            <h2 className="text-4xl font-bold mb-4">
-              Ready to Take Control?
-            </h2>
-            <p className="text-xl mb-8 text-emerald-50 dark:text-primary-100">
-              Join thousands of users who are already managing their finances smarter
-            </p>
-            <button
-              onClick={() => navigate('/auth')}
-              className="px-10 py-4 bg-white text-emerald-600 dark:text-primary-600 rounded-lg hover:bg-gray-100 transition-colors shadow-lg hover:shadow-xl text-lg font-semibold flex items-center gap-2 mx-auto"
-            >
-              Get Started Now
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </motion.div>
-        </section>
-
-        {/* Footer */}
-        <footer className="container mx-auto px-6 py-8 border-t border-gray-200 dark:border-dark-700">
-          <div className="text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; 2026 MoneyManager. All rights reserved.</p>
+          <div className="relative aspect-square bg-slate-100 rounded-[3rem] p-10 flex flex-col justify-between overflow-hidden shadow-2xl group">
+             <div className="bg-black text-white w-20 h-20 rounded-full flex items-center justify-center mb-8 rotate-12 group-hover:rotate-0 transition-all duration-700 shadow-xl shadow-black/20">
+                <CreditCard size={32} />
+             </div>
+             <div>
+                <p className="text-[12px] font-black uppercase tracking-[0.4em] mb-4 text-emerald-600">The Modern Ledger</p>
+                <h5 className="text-5xl font-black leading-tight tracking-tight uppercase">Every dollar <br /> accounted for.</h5>
+             </div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] scale-[3] pointer-events-none font-black italic">CAPITAL</div>
           </div>
-        </footer>
-      </div>
+        </div>
+      </section>
+
+      {/* 5. Executive CTA */}
+      <section id="Security" className="py-60 px-6 text-center bg-[#030507]">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <div className="mb-20 inline-flex items-center gap-4 text-emerald-400 px-6 py-2 border border-emerald-500/20 rounded-full bg-emerald-500/5 backdrop-blur-md">
+            <ShieldCheck size={20} />
+            <span className="font-black uppercase tracking-[0.3em] text-xs italic">Military Grade Environment</span>
+          </div>
+
+          <h2 className="text-7xl md:text-[9rem] font-black text-white tracking-tighter italic uppercase mb-12">
+            STAY BOLD.
+          </h2>
+          
+          <button 
+            onClick={() => navigate('/auth')}
+            className="group bg-emerald-600 hover:bg-emerald-500 text-white px-20 py-8 rounded-[2.5rem] transition-all hover:scale-110 active:scale-95 shadow-2xl shadow-emerald-600/20 relative overflow-hidden"
+          >
+             <span className="relative z-10 font-black text-2xl uppercase tracking-tighter">Enter The Dashboard</span>
+             <div className="absolute top-0 -left-[100%] w-full h-full bg-white/20 group-hover:left-[100%] transition-all duration-700 skew-x-12" />
+          </button>
+        </motion.div>
+      </section>
+
+      {/* Footer */}
+      <footer className="max-w-7xl mx-auto px-6 py-20 border-t border-white/5">
+         <div className="flex flex-col md:flex-row justify-between items-center gap-12 text-[10px] font-black uppercase tracking-[0.5em] text-slate-700">
+            <div className="flex gap-12">
+               <a href="#" className="hover:text-emerald-400 transition-colors">Sovereign Cloud</a>
+               <a href="#" className="hover:text-emerald-400 transition-colors">Privacy Stack</a>
+               <a href="#" className="hover:text-emerald-400 transition-colors">Developer Core</a>
+            </div>
+            <p>&copy; 2026 CAPITAL — ESTABLISHED IN THE AGE OF DISRUPTION</p>
+         </div>
+      </footer>
     </div>
   )
 }
