@@ -1,13 +1,16 @@
 // src/App.tsx
 import React from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { DarkModeProvider } from './hooks/useDarkMode'
 import { Layout } from './components/Layout'
 import { AuthForm } from './components/AuthForm'
 import { Dashboard } from './components/Dashboard'
+import { LandingPage } from './components/LandingPage'
+import { ProtectedRoute } from './components/ProtectedRoute'
 
-function AppContent() {
+function HomeRedirect() {
   const { user, loading } = useAuth()
 
   if (loading) {
@@ -18,53 +21,72 @@ function AppContent() {
     )
   }
 
-  if (!user) {
-    return <AuthForm />
-  }
-
-  return (
-    <Layout>
-      <Dashboard />
-    </Layout>
-  )
+  // If user is logged in, redirect to dashboard, otherwise show landing page
+  return user ? <Navigate to="/dashboard" replace /> : <LandingPage />
 }
 
 function App() {
   return (
     <DarkModeProvider>
       <AuthProvider>
-        <AppContent />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: 'var(--toast-bg, #fff)',
-              color: 'var(--toast-text, #374151)',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-              border: '1px solid var(--toast-border, #E5E7EB)',
-            },
-            success: {
-              iconTheme: {
-                primary: '#10B981',
-                secondary: '#fff',
+        <BrowserRouter>
+          <Routes>
+            {/* Landing Page */}
+            <Route path="/" element={<HomeRedirect />} />
+
+            {/* Auth Routes */}
+            <Route path="/auth" element={<AuthForm />} />
+            <Route path="/login" element={<Navigate to="/auth" replace />} />
+            <Route path="/signup" element={<Navigate to="/auth" replace />} />
+
+            {/* Protected Dashboard Route */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch all - redirect to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'var(--toast-bg, #fff)',
+                color: 'var(--toast-text, #374151)',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                border: '1px solid var(--toast-border, #E5E7EB)',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: '#EF4444',
-                secondary: '#fff',
+              success: {
+                iconTheme: {
+                  primary: '#10B981',
+                  secondary: '#fff',
+                },
               },
-            },
-          }}
-        />
-        <style>{`
-          .dark {
-            --toast-bg: #1c3731;
-            --toast-text: #dce6e4;
-            --toast-border: #245048;
-          }
-        `}</style>
+              error: {
+                iconTheme: {
+                  primary: '#EF4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+          <style>{`
+            .dark {
+              --toast-bg: #1c3731;
+              --toast-text: #dce6e4;
+              --toast-border: #245048;
+            }
+          `}</style>
+        </BrowserRouter>
       </AuthProvider>
     </DarkModeProvider>
   )

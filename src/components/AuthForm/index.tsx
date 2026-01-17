@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useDarkMode } from '../../hooks/useDarkMode'
 import { useSweetAlert } from '../../hooks/useSweetAlert'
@@ -10,6 +11,7 @@ import { MultiStepSignUpForm } from './MultiStepSignUpForm'
 import { supabase } from '../../lib/supabase'
 
 export function AuthForm() {
+  const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,7 +20,7 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
-  
+
   // Registration data state
   const [registrationData, setRegistrationData] = useState({
     firstName: '',
@@ -28,7 +30,7 @@ export function AuthForm() {
     password: '',
     confirmPassword: ''
   })
-  
+
   const { signIn, signUp } = useAuth()
   const { theme, setTheme } = useDarkMode()
   const { showError, showSuccess, showInfo } = useSweetAlert()
@@ -52,6 +54,7 @@ export function AuthForm() {
       try {
         await signIn(email, password)
         await showSuccess('Welcome Back!', 'You have successfully logged in')
+        navigate('/dashboard')
       } catch (error: any) {
         console.error('Auth error:', error)
         await showError('Login Failed', error.message || 'An unexpected error occurred')
