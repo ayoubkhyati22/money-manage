@@ -8,13 +8,10 @@ import {
   Target,
   Building2,
   ArrowDownRight,
-  ArrowUpRight,
   Eye,
   EyeOff,
   ChevronRight,
-  Sparkles,
-  PieChart,
-  BarChart3
+  Sparkles
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../../hooks/useAuth'
@@ -105,6 +102,11 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
     }
   }
 
+  // Navigate to a specific tab
+  const navigateToTab = (tab: 'banks' | 'goals') => {
+    window.dispatchEvent(new CustomEvent('tabChange', { detail: tab }))
+  }
+
   const totalBalance = banks.reduce((sum, bank) => sum + Number(bank.balance), 0)
   const totalSaved = objectivesWithAmounts.reduce((sum, obj) => sum + Math.max(0, obj.total_amount), 0)
   const totalWithdrawn = objectivesWithAmounts.reduce((sum, obj) => {
@@ -183,7 +185,7 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
             </button>
           </div>
 
-          <div className="mb-6">
+          <div>
             <div className="flex items-baseline gap-2">
               <span className={`text-4xl lg:text-5xl font-bold tracking-tight transition-all duration-300 ${
                 showBalance ? '' : 'blur-md select-none'
@@ -196,42 +198,16 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
               <span className="text-xl text-white/70">MAD</span>
             </div>
           </div>
-
-          {/* Quick Stats Row */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <ArrowUpRight className="w-4 h-4 text-success-400" />
-                <span className="text-xs text-white/70">Saved</span>
-              </div>
-              <p className="text-lg font-semibold">
-                {totalSaved.toLocaleString('en-US', { minimumFractionDigits: 0 })} MAD
-              </p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <ArrowDownRight className="w-4 h-4 text-danger-400" />
-                <span className="text-xs text-white/70">Withdrawn</span>
-              </div>
-              <p className="text-lg font-semibold">
-                {totalWithdrawn.toLocaleString('en-US', { minimumFractionDigits: 0 })} MAD
-              </p>
-            </div>
-            <div className="hidden lg:block bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="w-4 h-4 text-accent-400" />
-                <span className="text-xs text-white/70">Active Goals</span>
-              </div>
-              <p className="text-lg font-semibold">{goals.length}</p>
-            </div>
-          </div>
         </div>
       </motion.div>
 
       {/* Stats Grid */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Banks Card */}
-        <div className="glass-card p-5 group hover:shadow-lg transition-all">
+        <div
+          onClick={() => navigateToTab('banks')}
+          className="glass-card p-5 group hover:shadow-lg transition-all cursor-pointer"
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-xl bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Building2 className="w-5 h-5 text-accent-600 dark:text-accent-400" />
@@ -243,7 +219,10 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
         </div>
 
         {/* Goals Card */}
-        <div className="glass-card p-5 group hover:shadow-lg transition-all">
+        <div
+          onClick={() => navigateToTab('goals')}
+          className="glass-card p-5 group hover:shadow-lg transition-all cursor-pointer"
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Target className="w-5 h-5 text-success-600 dark:text-success-400" />
@@ -335,7 +314,10 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
                 </motion.div>
               ))}
               {banks.length > 4 && (
-                <button className="w-full py-3 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-colors flex items-center justify-center gap-1">
+                <button
+                  onClick={() => navigateToTab('banks')}
+                  className="w-full py-3 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-colors flex items-center justify-center gap-1"
+                >
                   View all {banks.length} banks
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -408,7 +390,10 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
                 )
               })}
               {objectivesWithAmounts.length > 4 && (
-                <button className="w-full py-3 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-colors flex items-center justify-center gap-1">
+                <button
+                  onClick={() => navigateToTab('goals')}
+                  className="w-full py-3 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-colors flex items-center justify-center gap-1"
+                >
                   View all {objectivesWithAmounts.length} goals
                   <ChevronRight className="w-4 h-4" />
                 </button>
