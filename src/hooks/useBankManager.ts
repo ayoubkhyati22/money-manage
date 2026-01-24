@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Bank, BankFormData } from '../types/bank'
 import { fetchBanks, createBank, updateBank, deleteBank } from '../services/bankService'
 import { useAuth } from './useAuth'
@@ -19,21 +19,14 @@ export const useBankManager = (onUpdate: (banks: Bank[]) => void) => {
   const [hiddenBalances, setHiddenBalances] = useState<Set<string>>(new Set())
   const [formData, setFormData] = useState<BankFormData>(initialFormData)
 
-  useEffect(() => {
-    loadBanks()
-  }, [user])
-
   const loadBanks = async () => {
     if (!user) return
 
-    setLoading(true)
     try {
       const banks = await fetchBanks()
       onUpdate(banks)
     } catch (error: any) {
       await showError('Error Loading Banks', error.message)
-    } finally {
-      setLoading(false)
     }
   }
 

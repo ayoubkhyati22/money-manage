@@ -6,22 +6,8 @@ import { GoalManager } from './GoalManager/index'
 import { TransactionManager } from './TransactionManager'
 import { TransactionHistory } from './TransactionHistory'
 import { OverviewCards } from './OverviewCards/index'
-import { DCAManager } from './DCAManager'
-import { DCAPerformanceChart } from './DCAManager/DCAPerformanceChart'
-import {
-  Building2,
-  Target,
-  ArrowDownCircle,
-  History,
-  TrendingUp,
-  LineChart,
-  BarChart,
-  DollarSign
-} from 'lucide-react'
 import toast from 'react-hot-toast'
-import { StockManager } from './StockManager/StockManager_index'
-import { motion } from "framer-motion";
-
+import { motion, AnimatePresence } from 'framer-motion'
 
 type ActiveTab = 'overview' | 'goals' | 'banks' | 'transactions' | 'history' | 'dca' | 'stocks'
 
@@ -33,39 +19,19 @@ export function Dashboard() {
   const [transactions, setTransactions] = useState<TransactionWithDetails[]>([])
   const [loading, setLoading] = useState(true)
 
-  const tabs = [
-    { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
-    { id: 'goals' as const, label: 'Goals', icon: Target },
-    { id: 'banks' as const, label: 'Banks', icon: Building2 },
-    { id: 'transactions' as const, label: 'Withdraw', icon: ArrowDownCircle },
-    { id: 'history' as const, label: 'History', icon: History },
-    // { id: 'stocks' as const, label: 'Stocks', icon: DollarSign },
-    // { id: 'dca' as const, label: 'DCA', icon: LineChart },
-  ]
+  // Listen for tab changes from Layout
+  useEffect(() => {
+    const handleTabChange = (event: CustomEvent<ActiveTab>) => {
+      setActiveTab(event.detail)
+    }
 
+    window.addEventListener('tabChange', handleTabChange as EventListener)
+    return () => window.removeEventListener('tabChange', handleTabChange as EventListener)
+  }, [])
 
   useEffect(() => {
     if (user) loadAllData()
   }, [user])
-
-  // Listen for DCA navigation event from Layout component
-  useEffect(() => {
-    const handleNavigateToDCA = () => {
-      setActiveTab('dca')
-    }
-
-    window.addEventListener('navigateToDCA', handleNavigateToDCA)
-    return () => window.removeEventListener('navigateToDCA', handleNavigateToDCA)
-  }, [])
-
-  useEffect(() => {
-    const handleNavigateToSTOCKS = () => {
-      setActiveTab('stocks')
-    }
-
-    window.addEventListener('navigateToSTOCKS', handleNavigateToSTOCKS)
-    return () => window.removeEventListener('navigateToSTOCKS', handleNavigateToSTOCKS)
-  }, [])
 
   const loadAllData = async () => {
     if (!user) return
@@ -123,6 +89,12 @@ export function Dashboard() {
 
   const refreshAllData = () => loadAllData()
 
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    enter: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 }
+  }
+
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -143,10 +115,7 @@ export function Dashboard() {
         return (
           <BankManager
             banks={banks}
-            onUpdate={(updated) => {
-              setBanks(updated)
-              refreshAllData()
-            }}
+            onUpdate={setBanks}
           />
         )
       case 'transactions':
@@ -161,145 +130,57 @@ export function Dashboard() {
         )
       case 'history':
         return <TransactionHistory onUpdate={refreshAllData} />
-      case 'dca':totalCount
-        return (
-          <div className="space-y-6">
-            <DCAManager />
-            <DCAPerformanceChart />
-          </div>
-        )
-        case 'stocks':
-        return <StockManager banks={banks} />
       default:
         return null
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900">
-      <div className="pt-safe-top pb-16 sm:pb-0"> {/* espace pour bottom nav sur mobile */}
-        <div className="space-y-4 p-2 sm:p-4 max-w-7xl mx-auto">
-          {/* --- TABS DESKTOP --- */}
-          <div className="hidden sm:block">
-            <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-xl shadow-md border border-mint-200/50 dark:border-dark-600/50 p-1.5">
-              <div className="flex space-x-1">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center space-x-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all flex-1 justify-center duration-300 transform hover:scale-105 ${
-                        activeTab === tab.id
-                          ? 'bg-gradient-to-r from-primary-400 to-primary-500 text-white shadow-md shadow-primary-200 dark:shadow-primary-900/30'
-                          : 'text-dark-500 dark:text-dark-200 hover:text-dark-600 dark:hover:text-dark-100 hover:bg-mint-100/70 dark:hover:bg-dark-700/70'
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline font-medium">{tab.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {/* Loading Skeleton - Hero Card */}
+        <div className="glass-card p-6 animate-pulse">
+          <div className="h-8 w-48 bg-slate-200 dark:bg-slate-700 rounded-lg mb-4"></div>
+          <div className="h-12 w-64 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+        </div>
 
-          {/* --- CONTENU --- */}
-          <div className="animate-fadeIn">{renderContent()}</div>
+        {/* Loading Skeleton - Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="glass-card p-5 animate-pulse">
+              <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded mb-3"></div>
+              <div className="h-8 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Loading Skeleton - Content */}
+        <div className="glass-card p-6 animate-pulse">
+          <div className="h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-4"></div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
+            ))}
+          </div>
         </div>
       </div>
+    )
+  }
 
-      {/* --- BOTTOM NAV MOBILE - ENHANCED DARK VERSION --- */}
-      <div className="sm:hidden fixed bottom-6 left-4 right-4 z-50">
-        {/* Floating Navigation Bar */}
-        <div className="relative">
-          {/* 3D Shadow Layer */}
-          <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/20 to-emerald-900/40 rounded-3xl blur-xl translate-y-2" />
-          
-          {/* Main Navigation Container */}
-          <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl border border-emerald-500/20 shadow-2xl overflow-hidden">
-            {/* Top Highlight */}
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
-            
-            {/* Ambient Glow Background */}
-            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/50 via-transparent to-transparent" />
-            
-            {/* Navigation Buttons */}
-            <div className="relative flex justify-around items-center px-3 py-3 gap-1">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                const active = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center justify-center py-3 transition-all duration-500 ease-out group ${
-                      active ? 'flex-[2] px-4' : 'flex-1 px-2'
-                    }`}
-                  >
-                    {/* Active Glow Base */}
-                    {active && (
-                      <>
-                        {/* Outer Glow - Blur Layer */}
-                        {/* <div className="absolute -inset-2 bg-emerald-500/20 rounded-3xl blur-2xl animate-pulse" /> */}
-                        
-                        {/* Middle Glow */}
-                        <div className="absolute -inset-1 bg-gradient-to-br from-emerald-400/30 to-emerald-400/10 rounded-2xl blur-md" />
-                        
-                        {/* Solid Background Base */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 rounded-2xl shadow-[0_4px_20px_rgba(16,185,129,0.1)]" />
-                        
-                        {/* Top Shine/Reflection */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-2xl" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 35%, 0 50%)' }} />
-                        
-                        {/* Bottom Shadow/Depth */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent rounded-2xl" />
-                      </>
-                    )}
-                    
-                    {/* Content Container */}
-                    <div className={`relative z-10 flex items-center gap-2 transition-all duration-700 ${
-                      active ? 'opacity-100' : 'opacity-100'
-                    }`}>
-                      {/* Icon */}
-                      <Icon 
-                        className={`transition-all duration-700 ${
-                          active 
-                            ? 'w-5 h-5 text-white drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]' 
-                            : 'w-5 h-5 text-slate-400 group-hover:text-emerald-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_1px_rgba(16,185,129,0.2)]'
-                        }`}
-                        strokeWidth={active ? 2.5 : 2}
-                      />
-                      
-                      {/* Label */}
-                      <motion.span 
-                        className="whitespace-nowrap overflow-hidden text-xs"
-                        initial={false}
-                        animate={{
-                          maxWidth: active ? '100px' : '0px',
-                          opacity: active ? 1 : 0,
-                          x: active ? 0 : -8,
-                        }}
-                        transition={{
-                          duration: 0.5,
-                          ease: "easeOut"
-                        }}
-                      >
-                        <span className="text-white drop-shadow-[0_0_6px_rgba(16,185,129,0.2)]">
-                          {tab.label}
-                        </span>
-                      </motion.span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            
-            {/* Bottom Glow Line */}
-            {/* <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" /> */}
-          </div>
-        </div>
-        </div>
+  return (
+    <div className="min-h-[calc(100vh-8rem)]">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          variants={pageVariants}
+          initial="initial"
+          animate="enter"
+          exit="exit"
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+        >
+          {renderContent()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }

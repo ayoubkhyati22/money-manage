@@ -12,6 +12,7 @@ import { AddMoneyForm } from './AddMoneyForm'
 import { GoalCard } from './GoalCard'
 import { AllocationsModal } from './AllocationsModal'
 import { bankService } from '../../services/bankService'
+import { motion } from 'framer-motion'
 
 interface GoalManagerProps {
   goals: Goal[]
@@ -70,7 +71,6 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
   const loadGoals = async () => {
     if (!user) return
-
     setLoading(true)
     try {
       const data = await goalService.loadGoals(user.id)
@@ -102,7 +102,6 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
   const loadBanks = async () => {
     if (!user) return
-
     try {
       const data = await bankService.loadBanks(user.id)
       onBanksUpdate(data)
@@ -377,12 +376,12 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
   if (loading && goals.length === 0) {
     return (
-      <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600 p-8">
+      <div className="glass-card p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 dark:bg-dark-600 rounded w-1/4"></div>
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-lg w-1/4"></div>
           <div className="space-y-3">
-            <div className="h-16 bg-gray-200 dark:bg-dark-600 rounded"></div>
-            <div className="h-16 bg-gray-200 dark:bg-dark-600 rounded"></div>
+            <div className="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
+            <div className="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
           </div>
         </div>
       </div>
@@ -390,18 +389,32 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 mt-7">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-dark-100">Financial Objectives</h2>
+    <div className="space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-success-500 to-accent-500 flex items-center justify-center shadow-lg">
+            <Target className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-display font-bold text-slate-800 dark:text-white">Goals</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Track your savings objectives</p>
+          </div>
+        </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center space-x-1.5 sm:space-x-2 bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 text-sm rounded-lg transition-colors"
+          className="btn-primary"
         >
-          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          <span>Add</span>
+          <Plus className="w-4 h-4" />
+          <span>Add Goal</span>
         </button>
-      </div>
+      </motion.div>
 
+      {/* Forms */}
       {showForm && (
         <GoalForm
           formData={formData}
@@ -452,35 +465,51 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
         />
       )}
 
-      <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-200 dark:border-dark-600">
-        <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-dark-600">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-dark-100">Your Objectives</h3>
+      {/* Goals Grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card overflow-hidden"
+      >
+        <div className="p-5 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center">
+              <Target className="w-5 h-5 text-success-600 dark:text-success-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-800 dark:text-white">Your Objectives</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {goals.length} {goals.length === 1 ? 'goal' : 'goals'}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="p-3 sm:p-6">
+        <div className="p-5">
           {goals.length === 0 ? (
-            <div className="text-center py-6 sm:py-8">
-              <Target className="mx-auto w-10 h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-dark-500 mb-3 sm:mb-4" />
-              <p className="text-sm sm:text-base text-gray-500 dark:text-dark-300">No objectives created yet</p>
-              <p className="text-xs sm:text-sm text-gray-400 dark:text-dark-400 mt-1">Click "Add" to get started</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                <Target className="w-8 h-8 text-slate-400" />
+              </div>
+              <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-1">No goals yet</h4>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Create your first savings goal to get started
+              </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-              {goals.map((goal) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {goals.map((goal, index) => (
                 <GoalCard
                   key={goal.id}
                   goal={goal}
+                  index={index}
                   currentAmount={objectiveAmounts[goal.id] || 0}
                   onEdit={() => handleEdit(goal)}
                   onDelete={() => handleDelete(goal)}
                   onAddMoney={() => {
                     setSelectedObjective(goal)
                     setShowAddMoneyForm(true)
-                    // Scroll to top
-                    window.scrollTo({
-                      top: 0,
-                      behavior: 'smooth'
-                    })
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
                   }}
                   onManageAllocations={() => openAllocationsModal(goal)}
                 />
@@ -488,7 +517,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

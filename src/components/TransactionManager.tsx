@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { Bank, Goal, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useSweetAlert } from '../hooks/useSweetAlert'
-import { ArrowDownCircle, DollarSign } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { ArrowDownCircle, DollarSign, AlertCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 interface TransactionManagerProps {
   banks: Bank[]
@@ -91,7 +91,6 @@ export function TransactionManager({
       return
     }
 
-    // Check if there's enough allocation for this objective from this bank
     const allocation = availableAllocations.find(a => a.objective_id === formData.objective_id)
     if (!allocation || amount > allocation.allocated_amount) {
       const availableAmount = allocation?.allocated_amount || 0
@@ -102,7 +101,6 @@ export function TransactionManager({
       return
     }
 
-    // Show confirmation dialog
     const result = await showConfirm(
       'Confirm Withdrawal',
       `Are you sure you want to withdraw ${amount.toFixed(2)} MAD from ${selectedBank.name} for ${allocation.objective_name}?`
@@ -112,19 +110,17 @@ export function TransactionManager({
 
     setLoading(true)
     try {
-      // Create withdrawal transaction in objectives_transactions (negative amount)
       const { error: transactionError } = await supabase
         .from('objectives_transactions')
         .insert([{
           objective_id: formData.objective_id,
           bank_id: formData.bank_id,
-          amount: -amount, // Negative for withdrawal
+          amount: -amount,
           description: formData.description || `Withdrawal: ${amount.toFixed(2)} MAD`
         }])
 
       if (transactionError) throw transactionError
 
-      // Update bank balance (decrease)
       const newBankBalance = Number(selectedBank.balance) - amount
       const { error: bankError } = await supabase
         .from('banks')
@@ -133,7 +129,6 @@ export function TransactionManager({
 
       if (bankError) throw bankError
 
-      // Update allocation (decrease)
       const newAllocationAmount = allocation.allocated_amount - amount
       const { error: allocationError } = await supabase
         .from('allocations')
@@ -148,11 +143,8 @@ export function TransactionManager({
         `${amount.toFixed(2)} MAD has been withdrawn from ${selectedBank.name}`
       )
 
-      // Reset form
       setFormData({ bank_id: '', objective_id: '', amount: '', description: '' })
       setAvailableAllocations([])
-
-      // Notify parent to refresh data
       onTransactionAdded()
     } catch (error: any) {
       await showError('Transaction Failed', error.message)
@@ -165,209 +157,227 @@ export function TransactionManager({
   const selectedAllocation = availableAllocations.find(a => a.objective_id === formData.objective_id)
 
   return (
-    <div className="space-y-4 sm:space-y-6 mt-7">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl shadow-lg">
-            <ArrowDownCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+    <div className="space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-3"
+      >
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-danger-500 to-danger-600 flex items-center justify-center shadow-lg">
+          <ArrowDownCircle className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-display font-bold text-slate-800 dark:text-white">Withdraw</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Withdraw money from your objectives</p>
+        </div>
+      </motion.div>
+
+      {/* Form Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card overflow-hidden"
+      >
+        {/* Header */}
+        <div className="p-5 border-b border-slate-200 dark:border-slate-700 bg-danger-50 dark:bg-danger-900/20">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center border border-danger-200 dark:border-danger-800">
+              <DollarSign className="w-5 h-5 text-danger-600 dark:text-danger-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-danger-900 dark:text-danger-100">Withdrawal Form</h3>
+              <p className="text-sm text-danger-700 dark:text-danger-300">Select bank, objective, and amount</p>
+            </div>
           </div>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-5 space-y-5">
+          {/* Bank Selection */}
           <div>
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-dark-100">Record Withdrawal</h2>
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-dark-300 hidden sm:block">Withdraw money from your objectives</p>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              Select Bank *
+            </label>
+            <select
+              value={formData.bank_id}
+              onChange={(e) => setFormData({ ...formData, bank_id: e.target.value, objective_id: '' })}
+              className="select-modern"
+              required
+            >
+              <option value="">Choose a bank...</option>
+              {banks.map((bank) => (
+                <option key={bank.id} value={bank.id}>
+                  {bank.name} - {Number(bank.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })} MAD
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
-      </div>
 
-      <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 overflow-hidden">
-        <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 p-3 sm:p-6 border-b border-red-200 dark:border-dark-600">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-white dark:bg-dark-800 border-2 border-red-300 dark:border-red-600 rounded-xl shadow-md">
-              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-red-900 dark:text-red-100">Withdrawal Form</h3>
-              <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 hidden sm:block">Select bank, objective, and amount to withdraw</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-3 sm:p-6">
-          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-6">
-            {/* Bank Selection */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-dark-200 mb-1 sm:mb-2">
-                Select Bank *
+          {/* Objective Selection */}
+          {formData.bank_id && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+            >
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Select Objective *
               </label>
               <select
-                value={formData.bank_id}
-                onChange={(e) => setFormData({ ...formData, bank_id: e.target.value, objective_id: '' })}
-                className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
+                value={formData.objective_id}
+                onChange={(e) => setFormData({ ...formData, objective_id: e.target.value })}
+                className="select-modern"
                 required
               >
-                <option value="">Choose a bank...</option>
-                {banks.map((bank) => (
-                  <option key={bank.id} value={bank.id}>
-                    {bank.name} - {Number(bank.balance).toFixed(2)} MAD
+                <option value="">Choose an objective...</option>
+                {availableAllocations.map((allocation) => (
+                  <option key={allocation.objective_id} value={allocation.objective_id}>
+                    {allocation.objective_name} - Available: {allocation.allocated_amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} MAD
                   </option>
                 ))}
               </select>
-            </div>
 
-            {/* Objective Selection */}
-            {formData.bank_id && (
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-dark-200 mb-1 sm:mb-2">
-                  Select Objective *
-                </label>
-                <select
-                  value={formData.objective_id}
-                  onChange={(e) => setFormData({ ...formData, objective_id: e.target.value })}
-                  className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
-                  required
-                >
-                  <option value="">Choose an objective...</option>
-                  {availableAllocations.map((allocation) => (
-                    <option key={allocation.objective_id} value={allocation.objective_id}>
-                      {allocation.objective_name} - Available: {allocation.allocated_amount.toFixed(2)} MAD
-                    </option>
-                  ))}
-                </select>
-
-                {availableAllocations.length === 0 && (
-                  <div className="mt-2 p-2 sm:p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg">
-                    <p className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-300">
-                      No allocations found for this bank. Please allocate funds to objectives first.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Amount and Description */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-dark-200 mb-1 sm:mb-2">
-                  Withdrawal Amount (MAD) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max={Math.min(
-                    selectedBank?.balance || 0,
-                    selectedAllocation?.allocated_amount || 0
-                  )}
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
-                  placeholder="0.00"
-                  required
-                />
-                {selectedAllocation && (
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-dark-400 mt-1">
-                    Max available: {selectedAllocation.allocated_amount.toFixed(2)} MAD
+              {availableAllocations.length === 0 && (
+                <div className="mt-3 p-3 bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 rounded-xl flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-warning-600 dark:text-warning-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-warning-700 dark:text-warning-300">
+                    No allocations found for this bank. Please allocate funds to objectives first.
                   </p>
-                )}
-              </div>
+                </div>
+              )}
+            </motion.div>
+          )}
 
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-dark-200 mb-1 sm:mb-2">
-                  Description *
-                </label>
-                <input
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400"
-                  placeholder="e.g., Grocery shopping, Gas, etc."
-                  required
-                />
-              </div>
+          {/* Amount and Description */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Amount (MAD) *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                max={Math.min(
+                  selectedBank?.balance || 0,
+                  selectedAllocation?.allocated_amount || 0
+                )}
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                className="input-modern"
+                placeholder="0.00"
+                required
+              />
+              {selectedAllocation && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Max: {selectedAllocation.allocated_amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} MAD
+                </p>
+              )}
             </div>
 
-            {/* Summary */}
-            {formData.amount && selectedBank && selectedAllocation && (
-              <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl p-3 sm:p-4">
-                <div className="flex items-center space-x-2 mb-2 sm:mb-3">
-                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-                  <h4 className="text-xs sm:text-sm font-semibold text-blue-900 dark:text-blue-100">Transaction Summary</h4>
-                </div>
-                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-blue-700 dark:text-blue-300">Bank:</span>
-                    <span className="font-semibold text-blue-900 dark:text-blue-100">{selectedBank.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-blue-700 dark:text-blue-300">Objective:</span>
-                    <span className="font-semibold text-blue-900 dark:text-blue-100">{selectedAllocation.objective_name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-blue-700 dark:text-blue-300">Withdrawal Amount:</span>
-                    <span className="font-semibold text-red-600 dark:text-red-400">-{parseFloat(formData.amount).toFixed(2)} MAD</span>
-                  </div>
-                  <div className="border-t border-blue-200 dark:border-blue-700 pt-2 space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-blue-700 dark:text-blue-300">Remaining in Bank:</span>
-                      <span className="font-semibold text-blue-900 dark:text-blue-100">
-                        {(Number(selectedBank.balance) - parseFloat(formData.amount)).toFixed(2)} MAD
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-blue-700 dark:text-blue-300">Remaining in Allocation:</span>
-                      <span className="font-semibold text-blue-900 dark:text-blue-100">
-                        {(selectedAllocation.allocated_amount - parseFloat(formData.amount)).toFixed(2)} MAD
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center space-x-2 sm:space-x-3 pt-2 sm:pt-4">
-              <button
-                type="submit"
-                disabled={loading || !formData.bank_id || !formData.objective_id || !formData.amount || !formData.description}
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold px-4 py-2 sm:px-6 sm:py-3 text-sm rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100"
-              >
-                {loading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-sm">Recording...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <ArrowDownCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="text-sm">Add</span>
-                  </div>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({ bank_id: '', objective_id: '', amount: '', description: '' })
-                  setAvailableAllocations([])
-                }}
-                className="text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 px-3 py-2 sm:px-4 sm:py-3 text-sm rounded-xl transition-colors font-medium"
-              >
-                Clear
-              </button>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Description *
+              </label>
+              <input
+                type="text"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="input-modern"
+                placeholder="e.g., Grocery shopping"
+                required
+              />
             </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Empty State or Help Text */}
-      {banks.length === 0 && (
-        <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-mint-200/50 dark:border-dark-600/50 p-8 text-center">
-          <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-dark-700 dark:to-dark-600 rounded-full mx-auto mb-4">
-            <ArrowDownCircle className="w-8 h-8 text-gray-400 dark:text-dark-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-100 mb-2">No Banks Available</h3>
-          <p className="text-gray-600 dark:text-dark-300">
-            You need to add banks and create objectives with allocations before you can record withdrawals.
+
+          {/* Summary */}
+          {formData.amount && selectedBank && selectedAllocation && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl"
+            >
+              <h4 className="text-sm font-semibold text-primary-900 dark:text-primary-100 mb-3">Transaction Summary</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-primary-700 dark:text-primary-300">Bank:</span>
+                  <span className="font-medium text-primary-900 dark:text-primary-100">{selectedBank.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-primary-700 dark:text-primary-300">Objective:</span>
+                  <span className="font-medium text-primary-900 dark:text-primary-100">{selectedAllocation.objective_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-primary-700 dark:text-primary-300">Withdrawal:</span>
+                  <span className="font-bold text-danger-600 dark:text-danger-400">-{parseFloat(formData.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} MAD</span>
+                </div>
+                <div className="border-t border-primary-200 dark:border-primary-700 pt-2 mt-2 space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-primary-600 dark:text-primary-400">Remaining in Bank:</span>
+                    <span className="text-primary-900 dark:text-primary-100">
+                      {(Number(selectedBank.balance) - parseFloat(formData.amount)).toLocaleString('en-US', { minimumFractionDigits: 2 })} MAD
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-primary-600 dark:text-primary-400">Remaining Allocation:</span>
+                    <span className="text-primary-900 dark:text-primary-100">
+                      {(selectedAllocation.allocated_amount - parseFloat(formData.amount)).toLocaleString('en-US', { minimumFractionDigits: 2 })} MAD
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              type="submit"
+              disabled={loading || !formData.bank_id || !formData.objective_id || !formData.amount || !formData.description}
+              className="btn-danger flex-1 sm:flex-none"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <ArrowDownCircle className="w-4 h-4" />
+                  <span>Withdraw</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({ bank_id: '', objective_id: '', amount: '', description: '' })
+                setAvailableAllocations([])
+              }}
+              className="btn-ghost"
+            >
+              Clear
+            </button>
+          </div>
+        </form>
+      </motion.div>
+
+      {/* Empty State */}
+      {banks.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="glass-card p-8 text-center"
+        >
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <ArrowDownCircle className="w-8 h-8 text-slate-400" />
+          </div>
+          <h3 className="font-semibold text-slate-700 dark:text-slate-200 mb-1">No Banks Available</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Add banks and create objectives with allocations before withdrawing.
           </p>
-        </div>
+        </motion.div>
       )}
     </div>
   )

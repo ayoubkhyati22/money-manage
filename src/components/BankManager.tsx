@@ -3,7 +3,7 @@ import { useBankManager } from '../hooks/useBankManager'
 import { BankHeader } from './BankManager/BankHeader'
 import { BankForm } from './BankManager/BankForm'
 import { BankGrid } from './BankManager/BankGrid'
-import { LoadingState } from './BankManager/LoadingState'
+import { AnimatePresence } from 'framer-motion'
 
 export function BankManager({ banks, onUpdate }: BankManagerProps) {
   const {
@@ -21,24 +21,22 @@ export function BankManager({ banks, onUpdate }: BankManagerProps) {
     toggleForm
   } = useBankManager(onUpdate)
 
-  if (loading && banks.length === 0) {
-    return <LoadingState />
-  }
-
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       <BankHeader onAddClick={toggleForm} />
 
-      {showForm && (
-        <BankForm
-          formData={formData}
-          editingBank={editingBank}
-          loading={loading}
-          onSubmit={handleSubmit}
-          onChange={setFormData}
-          onCancel={resetForm}
-        />
-      )}
+      <AnimatePresence>
+        {showForm && (
+          <BankForm
+            formData={formData}
+            editingBank={editingBank}
+            loading={loading}
+            onSubmit={handleSubmit}
+            onChange={setFormData}
+            onCancel={resetForm}
+          />
+        )}
+      </AnimatePresence>
 
       <BankGrid
         banks={banks}

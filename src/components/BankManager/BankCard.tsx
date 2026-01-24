@@ -1,6 +1,7 @@
-import { Building2, Edit2, Trash2, Eye, EyeOff, ShieldCheck, Zap } from 'lucide-react'
+import { Building2, Edit2, Trash2, Eye, EyeOff, MoreVertical } from 'lucide-react'
 import { Bank } from '../../types/bank'
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useState } from 'react'
 
 interface BankCardProps {
   bank: Bank
@@ -11,11 +12,11 @@ interface BankCardProps {
   onToggleVisibility: (bankId: string) => void
 }
 
-const luxuryThemes = [
-  'from-zinc-900 via-slate-900 to-black',        // The Obsidian
-  'from-emerald-950 via-teal-900 to-slate-900',  // The Emerald Reserve
-  'from-indigo-950 via-purple-950 to-slate-950', // The Royal Velocity
-  'from-rose-950 via-slate-900 to-zinc-900',     // The Crimson Platinum
+const cardGradients = [
+  'from-slate-800 via-slate-900 to-slate-950',
+  'from-primary-700 via-primary-800 to-primary-900',
+  'from-accent-700 via-accent-800 to-accent-900',
+  'from-success-700 via-success-800 to-success-900',
 ]
 
 export function BankCard({
@@ -26,156 +27,116 @@ export function BankCard({
   onDelete,
   onToggleVisibility
 }: BankCardProps) {
-  const gradient = luxuryThemes[index % luxuryThemes.length]
-
-  // --- 3D Tilt Logic ---
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-
-  const mouseXSpring = useSpring(x)
-  const mouseYSpring = useSpring(y)
-
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7deg", "-7deg"])
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7deg", "7deg"])
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const width = rect.width
-    const height = rect.height
-    const mouseX = e.clientX - rect.left
-    const mouseY = e.clientY - rect.top
-    const xPct = mouseX / width - 0.5
-    const yPct = mouseY / height - 0.5
-    x.set(xPct)
-    y.set(yPct)
-  }
-
-  const handleMouseLeave = () => {
-    x.set(0)
-    y.set(0)
-  }
+  const [showMenu, setShowMenu] = useState(false)
+  const gradient = cardGradients[index % cardGradients.length]
 
   return (
     <motion.div
-      style={{
-        rotateX,
-        rotateY,
-        transformStyle: "preserve-3d",
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="relative w-full h-56 sm:h-60 perspective-1000 group cursor-default"
+      transition={{ delay: index * 0.1, duration: 0.3 }}
+      className="group relative"
     >
-      {/* Outer Glow / Shadow */}
-      <div className="absolute inset-4 bg-emerald-500/20 blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-      {/* Physical Card Container */}
-      <div
-        className={`relative w-full h-full rounded-[2rem] bg-gradient-to-br ${gradient} p-1 overflow-hidden shadow-2xl border border-white/5`}
-      >
-        {/* Holographic Grain Texture */}
-        <div className="absolute inset-0 opacity-20 mix-blend-overlay pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-        
-        {/* Silk/Metal Shine overlay */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-30 group-hover:opacity-60 transition-opacity duration-700" />
-
-        <div 
-          className="relative h-full flex flex-col p-6 sm:p-7 bg-black/20 rounded-[1.8rem] backdrop-blur-sm"
-          style={{ transform: "translateZ(50px)" }} // Lift content in 3D space
-        >
-          {/* Header Area */}
-          <div className="flex justify-between items-start">
-            <div className="flex gap-4 items-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-white/20 blur-md rounded-xl" />
-                <div className="relative w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-2.5 flex items-center justify-center overflow-hidden">
-                  {bank.logo ? (
-                    <img src={bank.logo} alt="" className="w-full h-full object-contain filter saturate-150 shadow-sm" />
-                  ) : (
-                    <Building2 className="w-6 h-6 text-emerald-400" />
-                  )}
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <h4 className="text-white font-black text-lg uppercase tracking-tighter leading-tight">
-                  {bank.name}
-                </h4>
-              </div>
-            </div>
-
-            {/* Premium Action Cluster */}
-            <div className="flex flex-col gap-3 translate-x-2">
-              <div className="bg-black/40 backdrop-blur-xl rounded-full border border-white/10 p-1 flex flex-col items-center">
-                 {[
-                  { icon: isBalanceHidden ? EyeOff : Eye, fn: () => onToggleVisibility(bank.id), color: 'text-white/60 hover:text-white' },
-                  { icon: Edit2, fn: () => onEdit(bank), color: 'text-white/60 hover:text-emerald-400' },
-                  { icon: Trash2, fn: () => onDelete(bank), color: 'text-white/60 hover:text-red-400' }
-                 ].map((act, i) => (
-                   <button 
-                     key={i} 
-                     onClick={(e) => { e.stopPropagation(); act.fn(); }}
-                     className={`p-2 transition-colors duration-300 rounded-full hover:bg-white/5 ${act.color}`}
-                   >
-                     <act.icon size={16} />
-                   </button>
-                 ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Central IC Chip UI Detail */}
-         
-
-          {/* Balance Display (The Core) */}
-          <div className="mt-auto relative">
-            
-            <div className="flex items-baseline gap-3">
-              <span className="font-black text-sm text-emerald-500/80 tracking-widest uppercase">MAD</span>
-              
-              <div className="relative group/bal flex-1">
-                 {isBalanceHidden ? (
-                    <div className="flex gap-2">
-                       {[...Array(5)].map((_, i) => (
-                         <motion.div 
-                          key={i} 
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ repeat: Infinity, delay: i * 0.1, duration: 2 }}
-                          className="w-2.5 h-2.5 bg-white/20 rounded-full backdrop-blur-sm" 
-                         />
-                       ))}
-                    </div>
-                 ) : (
-                    <motion.h3 
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="text-3xl sm:text-4xl font-bold text-white tracking-tighter font-mono group-hover/bal:text-emerald-400 transition-colors"
-                    >
-                      {Number(bank.balance).toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}
-                    </motion.h3>
-                 )}
-                 
-                 {/* Decorative background flourish */}
-                 <div className="absolute -left-12 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Zap size={60} fill="currentColor" className="text-white" />
-                 </div>
-              </div>
-            </div>
-          </div>
-        
+      {/* Card */}
+      <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-6 h-48 shadow-lg hover:shadow-xl transition-shadow duration-300`}>
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
         </div>
 
-        {/* Shine Animation Refracted across the metal */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 ease-in-out pointer-events-none" />
-      </div>
+        {/* Shine Effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
-      {/* Shadow Casting below the card */}
-      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-[80%] h-4 bg-black/60 blur-[30px] rounded-full group-hover:w-[90%] transition-all" />
+        {/* Content */}
+        <div className="relative z-10 h-full flex flex-col">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-auto">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                {bank.logo ? (
+                  <img src={bank.logo} alt={bank.name} className="w-6 h-6 object-contain" />
+                ) : (
+                  <Building2 className="w-5 h-5 text-white" />
+                )}
+              </div>
+              <div>
+                <h4 className="text-white font-semibold text-sm">{bank.name}</h4>
+                <p className="text-white/50 text-xs">Bank Account</p>
+              </div>
+            </div>
+
+            {/* Actions Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <MoreVertical className="w-4 h-4 text-white/70" />
+              </button>
+
+              {showMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute right-0 top-full mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-20 min-w-[140px]"
+                  >
+                    <button
+                      onClick={() => { onToggleVisibility(bank.id); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    >
+                      {isBalanceHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      {isBalanceHidden ? 'Show Balance' : 'Hide Balance'}
+                    </button>
+                    <button
+                      onClick={() => { onEdit(bank); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => { onDelete(bank); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Balance */}
+          <div>
+            <p className="text-white/50 text-xs mb-1">Available Balance</p>
+            <div className="flex items-baseline gap-2">
+              {isBalanceHidden ? (
+                <div className="flex gap-1.5">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="w-2 h-2 bg-white/30 rounded-full" />
+                  ))}
+                </div>
+              ) : (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-2xl font-bold text-white tracking-tight"
+                >
+                  {Number(bank.balance).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
+                </motion.span>
+              )}
+              <span className="text-white/70 text-sm font-medium">MAD</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </motion.div>
   )
 }

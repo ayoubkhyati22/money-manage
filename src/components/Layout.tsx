@@ -1,232 +1,315 @@
-// src/components/Layout.tsx
 import { ReactNode, useState, useEffect, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { ThemeSelector } from './ThemeSelector'
-import { LogOut, DollarSign, Menu, X, User, LineChart } from 'lucide-react'
+import { useDarkMode } from '../hooks/useDarkMode'
+import {
+  LayoutDashboard,
+  Target,
+  Building2,
+  ArrowDownCircle,
+  History,
+  LogOut,
+  Moon,
+  Sun,
+  Menu,
+  X,
+  ChevronLeft,
+  User,
+  Settings,
+  Bell,
+  Search,
+  Wallet
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface LayoutProps {
   children: ReactNode
 }
 
+type ActiveTab = 'overview' | 'goals' | 'banks' | 'transactions' | 'history'
+
+const navigationItems = [
+  { id: 'overview' as const, label: 'Overview', icon: LayoutDashboard },
+  { id: 'goals' as const, label: 'Goals', icon: Target },
+  { id: 'banks' as const, label: 'Banks', icon: Building2 },
+  { id: 'transactions' as const, label: 'Withdraw', icon: ArrowDownCircle },
+  { id: 'history' as const, label: 'History', icon: History },
+]
+
 export function Layout({ children }: LayoutProps) {
   const { user, signOut } = useAuth()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const { isDarkMode, toggleDarkMode } = useDarkMode()
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview')
+  const sidebarRef = useRef<HTMLDivElement>(null)
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
-
-  const handleSignOut = () => {
-    setIsMenuOpen(false)
-    signOut()
+  // Dispatch tab change event
+  const handleTabChange = (tabId: ActiveTab) => {
+    setActiveTab(tabId)
+    window.dispatchEvent(new CustomEvent('tabChange', { detail: tabId }))
+    setMobileMenuOpen(false)
   }
 
-  // Close dropdown if clicked outside
+  // Close mobile menu on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false)
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
+    if (mobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
     return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [mobileMenuOpen])
+
+  // Listen for external tab change requests
+  useEffect(() => {
+    const handleNavigateToDCA = () => handleTabChange('overview')
+    const handleNavigateToSTOCKS = () => handleTabChange('overview')
+
+    window.addEventListener('navigateToDCA', handleNavigateToDCA)
+    window.addEventListener('navigateToSTOCKS', handleNavigateToSTOCKS)
+    return () => {
+      window.removeEventListener('navigateToDCA', handleNavigateToDCA)
+      window.removeEventListener('navigateToSTOCKS', handleNavigateToSTOCKS)
+    }
   }, [])
 
-  // Navigate to DCA section
-  const handleNavigateToDCA = () => {
-    setIsMenuOpen(false)
-    // Dispatch custom event to change active tab
-    window.dispatchEvent(new CustomEvent('navigateToDCA'))
-  }
-
-  const handleNavigateToSTOCKS = () => {
-    setIsMenuOpen(false)
-    // Dispatch custom event to change active tab
-    window.dispatchEvent(new CustomEvent('navigateToSTOCKS'))
-  }
+  const userInitials = user?.email?.split('@')[0]?.slice(0, 2)?.toUpperCase() || 'U'
+  const userName = user?.email?.split('@')[0] || 'User'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900">
-      {/* Safe area spacer for mobile status bar */}
-      <div className="h-0 sm:h-0 safe-area-top" />
-
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm shadow-md border-b border-mint-200/50 dark:border-dark-600/50 z-50">
-        <br />
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 h-14 sm:h-16 flex items-center">
-          <div className="flex justify-between items-center w-full">
-
-            {/* Logo */}
-            {/* User Avatar Icon */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full shadow-md">
-                <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xs sm:text-sm font-semibold text-dark-500 dark:text-white truncate max-w-[100px]">
-                  Welcome back!
-                </h1>
-                <p className="text-[10px] sm:text-xs text-dark-400 dark:text-dark-300 font-medium hidden sm:block">
-                  {user?.email?.split("@")[0]}
-                </p>
-              </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-dark-900">
+      {/* Desktop Sidebar */}
+      <aside
+        ref={sidebarRef}
+        className={`fixed left-0 top-0 h-full z-40 hidden lg:flex flex-col transition-all duration-300 ease-out
+          ${sidebarCollapsed ? 'w-20' : 'w-72'}
+          bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-sidebar dark:shadow-sidebar-dark`}
+      >
+        {/* Logo Area */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700">
+          <motion.div
+            className="flex items-center gap-3"
+            initial={false}
+            animate={{ opacity: sidebarCollapsed ? 0 : 1 }}
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg">
+              <Wallet className="w-5 h-5 text-white" />
             </div>
+            {!sidebarCollapsed && (
+              <span className="font-display font-bold text-lg text-slate-800 dark:text-white">
+                FinanceFlow
+              </span>
+            )}
+          </motion.div>
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            <ChevronLeft className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
 
-            {/* Desktop User Info and Controls */}
-            <div className="hidden lg:flex items-center space-x-3">
-              {/* DCA Button for Desktop */}
-              <button
-                disabled
-                onClick={handleNavigateToDCA}
-                className="flex items-center space-x-1.5 px-3 py-2 text-xs font-medium text-gray-400 dark:text-dark-500 bg-gray-50 dark:bg-dark-800 rounded-lg border border-gray-200 dark:border-dark-700 cursor-not-allowed opacity-60 select-none"
-                title="DCA Investments"
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {navigationItems.map((item) => {
+            const Icon = item.icon
+            const isActive = activeTab === item.id
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => handleTabChange(item.id)}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative
+                  ${isActive
+                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100'
+                  }`}
+                whileHover={{ x: 4 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <LineChart className="w-3.5 h-3.5" />
-                <span>DCA</span>
-              </button>
-
-              <button
-                onClick={handleNavigateToSTOCKS}
-                className="flex items-center space-x-1.5 px-3 py-2 text-xs font-medium text-dark-500 dark:text-dark-200 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-dark-700 rounded-lg transition-all duration-300 border border-mint-200 dark:border-dark-600"
-                title="Investments"
-              >
-                <LineChart className="w-3.5 h-3.5" />
-                <span>STOCKS</span>
-              </button>
-
-              {/* Theme Selector */}
-              <ThemeSelector />
-
-              <div className="text-right">
-                <p className="text-xs font-medium text-dark-500 dark:text-dark-200">{user?.email}</p>
-              </div>
-
-              <button
-                onClick={signOut}
-                className="flex items-center space-x-1.5 px-3 py-2 text-xs font-medium text-dark-500 dark:text-dark-200 hover:text-white hover:bg-gradient-to-r hover:from-accent-400 hover:to-accent-500 rounded-lg transition-all duration-300 hover:shadow-md border border-mint-200 dark:border-dark-600 hover:border-accent-400"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-
-            {/* Mobile User Menu */}
-            <div className="lg:hidden relative" ref={menuRef}>
-              <button
-                onClick={toggleMenu}
-                className="flex items-center space-x-1.5 px-2 py-1.5 text-xs font-medium text-dark-500 dark:text-dark-200 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-dark-700 rounded-lg border border-mint-200 dark:border-dark-600 transition-all duration-300"
-              >
-                <User className="w-4 h-4" />
-                <span className="truncate max-w-[100px]">{user?.email?.split("@")[0]}</span>
-                {isMenuOpen ? <X className="w-3.5 h-3.5" /> : <Menu className="w-3.5 h-3.5" />}
-              </button>
-
-              {/* Mobile Dropdown */}
-              {isMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-dark-800 rounded-lg shadow-lg border border-mint-200 dark:border-dark-600 py-1.5 z-50 animate-fade-in">
-                  <div className="px-3 py-1.5">
-                    <p className="text-xs font-medium text-dark-600 dark:text-dark-200 truncate">{user?.email}</p>
-                    <p className="text-[10px] text-dark-400 dark:text-dark-300">Welcome back!</p>
+                {isActive && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className="absolute left-0 w-1 h-8 bg-primary-500 rounded-r-full"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary-500' : ''}`} />
+                {!sidebarCollapsed && (
+                  <span className="font-medium truncate">{item.label}</span>
+                )}
+                {sidebarCollapsed && (
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-slate-900 dark:bg-slate-700 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                    {item.label}
                   </div>
+                )}
+              </motion.button>
+            )
+          })}
+        </nav>
 
-                  {/* DCA Navigation in Mobile Dropdown */}
-                  <div className="px-3 py-1.5 border-t border-mint-200/70 dark:border-dark-600 mt-1">
-                    <p className="text-[10px] font-medium text-dark-400 dark:text-dark-300 mb-1">Quick Access</p>
-                  </div>
-                  <button
-                    disabled
-                    onClick={handleNavigateToDCA}
-                    className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-medium text-gray-400 dark:text-dark-500 bg-gray-50 dark:bg-dark-800 cursor-not-allowed opacity-60 select-none"
-                  >
-                    <div className="flex items-center space-x-1.5">
-                      <LineChart className="w-3.5 h-3.5" />
-                      <span>DCA Investments</span>
-                    </div>
-                  </button>
+        {/* User Section */}
+        <div className="p-3 border-t border-slate-200 dark:border-slate-700">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleDarkMode}
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all mb-2`}
+          >
+            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            {!sidebarCollapsed && (
+              <span className="font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+            )}
+          </button>
 
-                  <button
-                    onClick={handleNavigateToSTOCKS}
-                    className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-medium text-dark-500 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-dark-700 transition-colors duration-300"
-                  >
-                    <div className="flex items-center space-x-1.5">
-                      <LineChart className="w-3.5 h-3.5" />
-                      <span>STOCKS Investments</span>
-                    </div>
-                  </button>
-
-                  {/* Theme Selector in Mobile Dropdown */}
-                  <ThemeSelector inDropdown={true} />
-
-                  <div className="border-t border-mint-200/70 dark:border-dark-600 my-1"></div>
-                  <button
-                    onClick={handleSignOut}
-                    className="flex items-center space-x-1.5 w-full px-3 py-1.5 text-xs font-medium text-dark-500 dark:text-dark-200 hover:text-white hover:bg-gradient-to-r hover:from-accent-400 hover:to-accent-500 transition-colors duration-300"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              )}
+          {/* User Info */}
+          <div className={`flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+              {userInitials}
             </div>
+            {!sidebarCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-slate-800 dark:text-white truncate">{userName}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Sign Out */}
+          <button
+            onClick={signOut}
+            className={`w-full flex items-center gap-3 px-3 py-3 mt-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 hover:text-danger-600 dark:hover:text-danger-400 transition-all`}
+          >
+            <LogOut className="w-5 h-5" />
+            {!sidebarCollapsed && <span className="font-medium">Sign Out</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Mobile Header */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 z-40 flex items-center justify-between px-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg">
+            <Wallet className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-display font-bold text-slate-800 dark:text-white">FinanceFlow</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            {isDarkMode ? <Sun className="w-5 h-5 text-slate-600 dark:text-slate-300" /> : <Moon className="w-5 h-5 text-slate-600" />}
+          </button>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white font-semibold text-xs">
+            {userInitials}
           </div>
         </div>
       </header>
 
-      {/* Main Content with padding to account for fixed header and safe area */}
-      <main className="relative pt-14 sm:pt-16 safe-area-top-padding">
-        {children}
-      </main>
-      <br />
-      <br />
-      {/* Footer */}
-      <footer className="hidden md:block bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm border-t border-mint-200/50 dark:border-dark-600/50 mt-8">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="py-4 sm:py-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Company Info */}
-              <div className="md:col-span-2">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg shadow-md">
-                    <DollarSign className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className="text-base font-semibold text-dark-500 dark:text-dark-100">FinanceFlow</h3>
-                </div>
-                <p className="text-xs text-dark-400 dark:text-dark-300 mb-2 max-w-md">
-                  Manage your funds smartly across multiple banks with intelligent goal tracking and transaction management.
-                  Take control of your financial future today.
-                </p>
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-1.5">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-[10px] text-dark-400 dark:text-dark-300">All systems operational</span>
-                  </div>
-                </div>
-              </div>
+      {/* Main Content Area */}
+      <main className={`min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'} pt-16 lg:pt-0 pb-24 lg:pb-0`}>
+        {/* Desktop Top Bar */}
+        <div className="hidden lg:flex h-16 items-center justify-between px-6 border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-display font-semibold text-slate-800 dark:text-white capitalize">
+              {activeTab === 'overview' ? 'Dashboard' : activeTab}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="pl-10 pr-4 py-2 w-64 bg-slate-100 dark:bg-slate-700 border-none rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+              />
             </div>
 
-            {/* Bottom Section */}
-            <div className="border-t border-mint-200/50 dark:border-dark-600/50 mt-4 pt-4">
-              <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
-                <div className="flex items-center space-x-3">
-                  <p className="text-xs text-dark-400 dark:text-dark-300">
-                    © {new Date().getFullYear()} FinanceFlow. All rights reserved.
-                  </p>
-                </div>
+            {/* Notifications */}
+            <button className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+              <Bell className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-danger-500 rounded-full"></span>
+            </button>
 
-                <div className="flex items-center space-x-4">
-                  {/* Version Info */}
-                  <div className="hidden sm:flex items-center space-x-1.5">
-                    <div className="w-1 h-1 bg-dark-400 dark:bg-dark-500 rounded-full"></div>
-                    <span className="text-[10px] text-dark-400 dark:text-dark-300 font-mono">v1.0.0</span>
-                  </div>
-                </div>
-              </div>
+            {/* Settings */}
+            <button className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+              <Settings className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+            </button>
+          </div>
+        </div>
+
+        {/* Page Content */}
+        <div className="p-4 lg:p-6">
+          {children}
+        </div>
+      </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+        <div className="mx-4 mb-4">
+          <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 px-2 py-2">
+            <div className="flex justify-around items-center">
+              {navigationItems.map((item) => {
+                const Icon = item.icon
+                const isActive = activeTab === item.id
+                return (
+                  <motion.button
+                    key={item.id}
+                    onClick={() => handleTabChange(item.id)}
+                    className={`relative flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
+                      isActive
+                        ? 'text-primary-600 dark:text-primary-400'
+                        : 'text-slate-500 dark:text-slate-400'
+                    }`}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="mobileActiveTab"
+                        className="absolute inset-0 bg-primary-100 dark:bg-primary-900/30 rounded-xl"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                    <Icon className={`w-5 h-5 relative z-10 ${isActive ? 'text-primary-500' : ''}`} />
+                    <span className={`text-[10px] font-medium relative z-10 ${isActive ? 'text-primary-600 dark:text-primary-400' : ''}`}>
+                      {item.label}
+                    </span>
+                  </motion.button>
+                )
+              })}
             </div>
           </div>
         </div>
-      </footer>
+      </nav>
 
-      {/* Add CSS for safe areas */}
-
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="lg:hidden fixed left-0 top-0 h-full w-72 bg-white dark:bg-slate-800 shadow-xl z-50"
+            >
+              {/* Mobile sidebar content */}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
