@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useDarkMode } from '../hooks/useDarkMode'
+
 import {
   LayoutDashboard,
   Target,
@@ -17,7 +18,10 @@ import {
   Settings,
   Bell,
   Search,
-  Wallet
+  Wallet,
+  ArrowRight,
+  Zap,
+  Text
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -151,40 +155,85 @@ export function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* User Section */}
-        <div className="p-3 border-t border-slate-200 dark:border-slate-700">
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleDarkMode}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all mb-2`}
-          >
-            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            {!sidebarCollapsed && (
-              <span className="font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-            )}
-          </button>
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+  
+  {/* --- NOVANTEK POWERED BANNER --- */}
+  <motion.a
+    href="https://www.novaytek.com/"
+    target="_blank"
+    rel="noopener noreferrer"
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    className={`group relative overflow-hidden flex items-center bg-gradient-to-br from-[#1a1a2e] to-[#16213e] dark:from-indigo-950 dark:to-slate-950 rounded-2xl p-3 shadow-lg shadow-indigo-500/10 transition-all ${
+      sidebarCollapsed ? 'justify-center h-12' : 'justify-between min-h-[64px]'
+    }`}
+  >
+    {/* Decorative Glowing Pulse */}
+    <div className="absolute top-0 right-0 w-24 h-24 bg-primary-500/10 blur-[40px] -mr-10 -mt-10 group-hover:bg-primary-500/20 transition-all duration-500" />
+    
+    <div className="flex items-center gap-3">
+      {/* Tiny icon-only version for Collapsed state */}
+      <div className="flex-shrink-0 w-6 flex items-center justify-center">
+        <Zap className="w-4 h-4 text-primary-400 group-hover:animate-pulse" />
+      </div>
 
-          {/* User Info */}
-          <div className={`flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 ${sidebarCollapsed ? 'justify-center' : ''}`}>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-              {userInitials}
-            </div>
-            {!sidebarCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-slate-800 dark:text-white truncate">{userName}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Sign Out */}
-          <button
-            onClick={signOut}
-            className={`w-full flex items-center gap-3 px-3 py-3 mt-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 hover:text-danger-600 dark:hover:text-danger-400 transition-all`}
-          >
-            <LogOut className="w-5 h-5" />
-            {!sidebarCollapsed && <span className="font-medium">Sign Out</span>}
-          </button>
+      {!sidebarCollapsed && (
+        <div className="flex flex-col">
+          <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-slate-500 leading-tight">
+            Powered By
+          </span>
+          <span>NOVAYTEK</span>
+         
         </div>
+      )}
+    </div>
+
+    {!sidebarCollapsed && (
+      <div className="bg-white/10 p-1.5 rounded-lg backdrop-blur-md border border-white/5 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+        <ArrowRight size={14} className="text-white" />
+      </div>
+    )}
+  </motion.a>
+
+  {/* Theme Toggle */}
+  <button
+    onClick={toggleDarkMode}
+    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+  >
+    {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+    {!sidebarCollapsed && (
+      <span className="font-medium text-sm">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+    )}
+  </button>
+
+  {/* User Info Container */}
+  <div className={`flex items-center gap-3 px-3 py-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40 backdrop-blur-sm ${sidebarCollapsed ? 'justify-center' : ''}`}>
+    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-500/20 flex-shrink-0">
+      {userInitials}
+    </div>
+    {!sidebarCollapsed && (
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-slate-800 dark:text-slate-100 text-sm truncate leading-tight">
+          {userName}
+        </p>
+        <p className="text-[11px] text-slate-500 dark:text-slate-500 truncate mt-0.5">
+          {user?.email}
+        </p>
+      </div>
+    )}
+  </div>
+
+  {/* Sign Out */}
+  <button
+    onClick={signOut}
+    className="w-full group flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 transition-all"
+  >
+    <div className="p-1 rounded-lg group-hover:bg-red-100 dark:group-hover:bg-red-900/30 transition-colors">
+        <LogOut className="w-4 h-4" />
+    </div>
+    {!sidebarCollapsed && <span className="font-semibold text-sm">Sign Out</span>}
+  </button>
+</div>
       </aside>
 
       {/* Mobile Header */}
