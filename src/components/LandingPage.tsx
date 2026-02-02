@@ -118,7 +118,7 @@ export function LandingPage() {
             </span>
             
             <h1 className="text-6xl md:text-[8rem] font-bold text-white leading-[0.85] tracking-[-0.04em] mb-12">
-              Bespoke <br /> 
+              Money manage <br /> 
               <span className="text-slate-500">Capital Flow.</span>
             </h1>
             
