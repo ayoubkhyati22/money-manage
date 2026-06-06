@@ -99,14 +99,25 @@ export function GoalCard({ goal, index, currentAmount, showAmounts: globalShow, 
             )}
           </div>
           {goal.target_amount && (
-            <div className="h-1 bg-slate-100 dark:bg-slate-700/80 rounded-full overflow-hidden">
-              <motion.div
-                className={`h-full rounded-full bg-gradient-to-r ${barGradient}`}
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.9, delay: index * 0.06, ease: 'easeOut' }}
-              />
-            </div>
+            <>
+              <div className="h-1 bg-slate-100 dark:bg-slate-700/80 rounded-full overflow-hidden mb-1">
+                <motion.div
+                  className={`h-full rounded-full bg-gradient-to-r ${barGradient}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.9, delay: index * 0.06, ease: 'easeOut' }}
+                />
+              </div>
+              {showAmount ? (
+                <p className="text-[10px] text-slate-400 text-right">
+                  of {Number(goal.target_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })} MAD
+                </p>
+              ) : (
+                <div className="flex justify-end gap-1">
+                  {[...Array(3)].map((_, i) => <span key={i} className="w-1 h-1 bg-slate-200 dark:bg-slate-600 rounded-full" />)}
+                </div>
+              )}
+            </>
           )}
         </div>
 
