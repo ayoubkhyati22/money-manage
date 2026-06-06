@@ -201,7 +201,7 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
             unit: 'MAD', icon: TrendingUp, color: 'text-success-500', bg: 'bg-success-500/10 dark:bg-success-500/15',
           },
           {
-            label: 'Goals', value: goals.length, unit: 'active',
+            label: 'Goals', value: goals.length, unit: '',
             icon: Target, color: 'text-primary-500', bg: 'bg-primary-500/10 dark:bg-primary-500/15',
           },
           {
