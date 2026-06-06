@@ -198,23 +198,31 @@ export function OverviewCards({ banks, goals }: OverviewCardsProps) {
         {[
           {
             label: 'Saved', value: totalSaved.toLocaleString('en-US', { maximumFractionDigits: 0 }),
-            unit: 'MAD', icon: TrendingUp, color: 'text-success-500', bg: 'bg-success-500/10 dark:bg-success-500/15',
+            unit: 'MAD', icon: TrendingUp, color: 'text-success-500', bg: 'bg-success-500/10 dark:bg-success-500/15', hide: true,
           },
           {
-            label: 'Goals', value: goals.length, unit: '',
-            icon: Target, color: 'text-primary-500', bg: 'bg-primary-500/10 dark:bg-primary-500/15',
+            label: 'Goals', value: String(goals.length), unit: '',
+            icon: Target, color: 'text-primary-500', bg: 'bg-primary-500/10 dark:bg-primary-500/15', hide: false,
           },
           {
             label: 'Spent', value: totalWithdrawn.toLocaleString('en-US', { maximumFractionDigits: 0 }),
-            unit: 'MAD', icon: ArrowDownRight, color: 'text-danger-500', bg: 'bg-danger-500/10 dark:bg-danger-500/15',
+            unit: 'MAD', icon: ArrowDownRight, color: 'text-danger-500', bg: 'bg-danger-500/10 dark:bg-danger-500/15', hide: true,
           },
-        ].map(({ label, value, unit, icon: Icon, color, bg }) => (
+        ].map(({ label, value, unit, icon: Icon, color, bg, hide }) => (
           <div key={label} className="glass-card p-4">
             <div className={`w-8 h-8 rounded-xl ${bg} flex items-center justify-center mb-3`}>
               <Icon className={`w-4 h-4 ${color}`} />
             </div>
-            <p className="text-base font-bold text-slate-800 dark:text-white leading-tight">{value}</p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{label} · {unit}</p>
+            {hide && !showBalance ? (
+              <div className="flex items-center gap-1.5 h-6 mb-0.5">
+                {[...Array(4)].map((_, i) => (
+                  <span key={i} className="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full" />
+                ))}
+              </div>
+            ) : (
+              <p className="text-base font-bold text-slate-800 dark:text-white leading-tight">{value}</p>
+            )}
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{label}{unit ? ` · ${unit}` : ''}</p>
           </div>
         ))}
       </motion.div>
