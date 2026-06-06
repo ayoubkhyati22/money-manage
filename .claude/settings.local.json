@@ -5,7 +5,8 @@
       "Bash(npm run build:*)",
       "Bash(dir:*)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\hp\\\\Desktop\\\\money-manage\\\\src\\\\components\" -Recurse -Include \"*Goal*\" -ErrorAction SilentlyContinue)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(npx tsc *)"
     ]
   }
 }

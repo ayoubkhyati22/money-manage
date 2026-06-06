@@ -13,6 +13,7 @@ interface GoalCardProps {
   onDelete: () => void
   onAddMoney: () => void
   onManageAllocations: () => void
+  onViewDetails?: () => void
 }
 
 const categoryColors: Record<string, { bg: string; text: string; dot: string }> = {
@@ -27,7 +28,7 @@ const categoryColors: Record<string, { bg: string; text: string; dot: string }> 
 }
 const defaultColor = { bg: 'bg-primary-100 dark:bg-primary-900/30', text: 'text-primary-600 dark:text-primary-400', dot: 'bg-primary-500' }
 
-export function GoalCard({ goal, index, currentAmount, showAmounts: globalShow, onEdit, onDelete, onAddMoney, onManageAllocations }: GoalCardProps) {
+export function GoalCard({ goal, index, currentAmount, showAmounts: globalShow, onEdit, onDelete, onAddMoney, onManageAllocations, onViewDetails }: GoalCardProps) {
   const [localShow, setLocalShow] = useState<boolean | null>(null)
 
   const showAmount = localShow !== null ? localShow : globalShow
@@ -49,7 +50,8 @@ export function GoalCard({ goal, index, currentAmount, showAmounts: globalShow, 
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, ease: 'easeOut' }}
-      className="group rounded-2xl border border-slate-200 dark:border-slate-700/60 overflow-hidden transition-colors hover:border-slate-300 dark:hover:border-slate-600"
+      onClick={onViewDetails}
+      className={`group rounded-2xl border border-slate-200 dark:border-slate-700/60 overflow-hidden transition-colors hover:border-slate-300 dark:hover:border-slate-600 ${onViewDetails ? 'cursor-pointer' : ''}`}
     >
       {/* Accent top bar */}
       <div className={`h-0.5 w-full bg-gradient-to-r ${barGradient}`} />
@@ -69,7 +71,7 @@ export function GoalCard({ goal, index, currentAmount, showAmounts: globalShow, 
             )}
           </div>
           <button
-            onClick={() => setLocalShow(v => v === null ? !globalShow : !v)}
+            onClick={(e) => { e.stopPropagation(); setLocalShow(v => v === null ? !globalShow : !v) }}
             className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-400"
           >
             {showAmount ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
@@ -139,7 +141,7 @@ export function GoalCard({ goal, index, currentAmount, showAmounts: globalShow, 
           ].map(({ icon: Icon, onClick, cls, iconCls }) => (
             <div
               key={iconCls + cls}
-              onClick={onClick}
+              onClick={(e) => { e.stopPropagation(); onClick() }}
               className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer flex-shrink-0 ${cls}`}
               style={{ minHeight: 28, minWidth: 28 }}
             >

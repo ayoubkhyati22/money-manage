@@ -12,6 +12,7 @@ import { GoalForm } from './GoalForm'
 import { AddMoneyForm } from './AddMoneyForm'
 import { GoalCard } from './GoalCard'
 import { AllocationsModal } from './AllocationsModal'
+import { GoalDetailPage } from './GoalDetailPage'
 import { bankService } from '../../services/bankService'
 import { motion } from 'framer-motion'
 
@@ -32,8 +33,11 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
   const [selectedObjective, setSelectedObjective] = useState<Goal | null>(null)
   const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [objectiveAmounts, setObjectiveAmounts] = useState<{ [goalId: string]: number }>({})
   const [allocations, setAllocations] = useState<Allocation[]>([])
+  const [loadingAllocations, setLoadingAllocations] = useState(false)
+  const [detailPageGoal, setDetailPageGoal] = useState<Goal | null>(null)
   const [editingAllocation, setEditingAllocation] = useState<Allocation | null>(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -95,11 +99,14 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
   }
 
   const loadAllocations = async (goalId: string) => {
+    setLoadingAllocations(true)
     try {
       const data = await goalService.loadAllocations(goalId)
       setAllocations(data)
     } catch (error: any) {
       toast.error('Error loading allocations: ' + error.message)
+    } finally {
+      setLoadingAllocations(false)
     }
   }
 
@@ -330,6 +337,70 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
     setShowAddMoneyForm(false)
   }
 
+  const openDetailPage = (goal: Goal) => {
+    setDetailPageGoal(goal)
+    loadAllocations(goal.id)
+  }
+
+  const closeDetailPage = () => {
+    setDetailPageGoal(null)
+    setAllocations([])
+  }
+
+  const handleAddMoneyInPage = async (bankId: string, amount: number, description: string) => {
+    if (!detailPageGoal) throw new Error('No goal selected')
+    setSubmitting(true)
+    try {
+      await allocationService.addMoney(detailPageGoal.id, bankId, amount, description, banks)
+      loadObjectiveAmounts()
+      loadBanks()
+      loadAllocations(detailPageGoal.id)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleSaveEditInPage = async (data: { name: string; category: string | null; target_amount: number | null; target_date: string | null; notes: string }) => {
+    if (!detailPageGoal) throw new Error('No goal selected')
+    setSubmitting(true)
+    try {
+      await goalService.updateGoal(detailPageGoal.id, data)
+      loadGoals()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDeleteInPage = async () => {
+    if (!detailPageGoal) throw new Error('No goal selected')
+    setSubmitting(true)
+    try {
+      const currentAmt = objectiveAmounts[detailPageGoal.id] || 0
+      if (currentAmt > 0) {
+        await allocationService.returnMoneyToBanks(detailPageGoal.id, banks)
+      }
+      await goalService.deleteGoal(detailPageGoal.id)
+      toast.success('Goal deleted!')
+      closeDetailPage()
+      loadGoals()
+      if (currentAmt > 0) loadBanks()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDeleteAllocationInPage = async (allocation: Allocation) => {
+    setSubmitting(true)
+    try {
+      await allocationService.deleteAllocation(allocation, banks)
+      loadAllocations(allocation.goal_id)
+      loadObjectiveAmounts()
+      loadBanks()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const openAllocationsModal = (goal: Goal) => {
     setSelectedObjective(goal)
     setShowAllocationsModal(true)
@@ -391,6 +462,32 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
           {[1, 2, 3].map(i => <div key={i} className="h-56 rounded-2xl bg-slate-200 dark:bg-slate-700 animate-pulse" />)}
         </div>
       </div>
+    )
+  }
+
+  if (detailPageGoal) {
+    const freshGoal = goals.find(g => g.id === detailPageGoal.id) || detailPageGoal
+    return (
+      <motion.div
+        initial={{ x: 40, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 360, damping: 36 }}
+      >
+        <GoalDetailPage
+          goal={freshGoal}
+          currentAmount={objectiveAmounts[freshGoal.id] || 0}
+          showAmounts={showAmounts}
+          allocations={allocations}
+          loadingAllocations={loadingAllocations}
+          banks={banks}
+          submitting={submitting}
+          onBack={closeDetailPage}
+          onAddMoney={handleAddMoneyInPage}
+          onSaveEdit={handleSaveEditInPage}
+          onConfirmDelete={handleDeleteInPage}
+          onDeleteAllocation={handleDeleteAllocationInPage}
+        />
+      </motion.div>
     )
   }
 
@@ -562,6 +659,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
                 onManageAllocations={() => openAllocationsModal(goal)}
+                onViewDetails={() => openDetailPage(goal)}
               />
             ))}
           </div>
