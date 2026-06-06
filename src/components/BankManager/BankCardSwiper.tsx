@@ -9,7 +9,7 @@ import 'swiper/css/pagination';
 
 interface BankCardSwiperProps {
   banks: Bank[];
-  hiddenBalances: Set<string>;
+  visibleBalances: Set<string>;
   onEdit: (bank: Bank) => void;
   onDelete: (bank: Bank) => void;
   onToggleVisibility: (bankId: string) => void;
@@ -17,7 +17,7 @@ interface BankCardSwiperProps {
 
 export function BankCardSwiper({
   banks,
-  hiddenBalances,
+  visibleBalances,
   onEdit,
   onDelete,
   onToggleVisibility,
@@ -36,7 +36,7 @@ export function BankCardSwiper({
             <BankCard
               bank={bank}
               index={index}
-              isBalanceHidden={hiddenBalances.has(bank.id)}
+              isBalanceHidden={!visibleBalances.has(bank.id)}
               onEdit={onEdit}
               onDelete={onDelete}
               onToggleVisibility={onToggleVisibility}

@@ -1,15 +1,13 @@
-import { Building2, Edit2, Trash2, Eye, EyeOff, MoreVertical } from 'lucide-react'
+import { Building2, Eye, EyeOff } from 'lucide-react'
 import { Bank } from '../../types/bank'
 import { motion } from 'framer-motion'
-import { useState } from 'react'
 
 interface BankCardProps {
   bank: Bank
   index: number
   isBalanceHidden: boolean
-  onEdit: (bank: Bank) => void
-  onDelete: (bank: Bank) => void
   onToggleVisibility: (bankId: string) => void
+  onClick: () => void
 }
 
 const cardGradients = [
@@ -19,41 +17,32 @@ const cardGradients = [
   'from-success-700 via-success-800 to-success-900',
 ]
 
-export function BankCard({
-  bank,
-  index,
-  isBalanceHidden,
-  onEdit,
-  onDelete,
-  onToggleVisibility
-}: BankCardProps) {
-  const [showMenu, setShowMenu] = useState(false)
+export function BankCard({ bank, index, isBalanceHidden, onToggleVisibility, onClick }: BankCardProps) {
   const gradient = cardGradients[index % cardGradients.length]
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.3 }}
-      className="group relative"
+      whileHover={{ y: -3, transition: { duration: 0.18 } }}
+      whileTap={{ scale: 0.98 }}
+      className="group relative cursor-pointer"
+      onClick={onClick}
     >
-      {/* Card */}
-      <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-6 h-48 shadow-lg hover:shadow-xl transition-shadow duration-300`}>
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
+      <div
+        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-5 shadow-md`}
+      >
+        {/* Background circles */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
         </div>
+        {/* Shine sweep */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
 
-        {/* Shine Effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-
-        {/* Content */}
-        <div className="relative z-10 h-full flex flex-col">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-auto">
+        <div className="relative z-10 flex flex-col gap-4">
+          {/* Header row */}
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
                 {bank.logo ? (
                   <img src={bank.logo} alt={bank.name} className="w-6 h-6 object-contain" />
                 ) : (
@@ -66,48 +55,14 @@ export function BankCard({
               </div>
             </div>
 
-            {/* Actions Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                <MoreVertical className="w-4 h-4 text-white/70" />
-              </button>
-
-              {showMenu && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="absolute right-0 top-full mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-20 min-w-[140px]"
-                  >
-                    <button
-                      onClick={() => { onToggleVisibility(bank.id); setShowMenu(false); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                    >
-                      {isBalanceHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      {isBalanceHidden ? 'Show Balance' : 'Hide Balance'}
-                    </button>
-                    <button
-                      onClick={() => { onEdit(bank); setShowMenu(false); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => { onDelete(bank); setShowMenu(false); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleVisibility(bank.id) }}
+              className="p-1.5 hover:opacity-70 transition-opacity"
+            >
+              {isBalanceHidden
+                ? <Eye className="w-3.5 h-3.5 text-white" />
+                : <EyeOff className="w-3.5 h-3.5 text-white" />}
+            </button>
           </div>
 
           {/* Balance */}
@@ -115,9 +70,9 @@ export function BankCard({
             <p className="text-white/50 text-xs mb-1">Available Balance</p>
             <div className="flex items-baseline gap-2">
               {isBalanceHidden ? (
-                <div className="flex gap-1.5">
+                <div className="flex gap-1.5 items-center h-7">
                   {[...Array(5)].map((_, i) => (
-                    <div key={i} className="w-2 h-2 bg-white/30 rounded-full" />
+                    <div key={i} className="w-1.5 h-1.5 bg-white/30 rounded-full" />
                   ))}
                 </div>
               ) : (
@@ -128,7 +83,7 @@ export function BankCard({
                 >
                   {Number(bank.balance).toLocaleString('en-US', {
                     minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
+                    maximumFractionDigits: 2,
                   })}
                 </motion.span>
               )}

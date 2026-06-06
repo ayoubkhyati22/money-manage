@@ -41,7 +41,7 @@ const navigationItems = [
 
 export function Layout({ children }: LayoutProps) {
   const { user, signOut } = useAuth()
-  const { isDarkMode, toggleDarkMode } = useDarkMode()
+  const { isDark: isDarkMode, toggleTheme: toggleDarkMode } = useDarkMode()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview')
@@ -237,38 +237,34 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 z-40 flex items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg">
-            <Wallet className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-display font-bold text-slate-800 dark:text-white">FinanceFlow</span>
-        </div>
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 shadow-[0_4px_16px_0_rgba(0,0,0,0.08)] dark:shadow-[0_4px_16px_0_rgba(0,0,0,0.3)] z-40 flex items-center justify-between px-4 rounded-b-[16px]">
+        <button
+          onClick={toggleDarkMode}
+          className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+        >
+          {isDarkMode ? <Sun className="w-5 h-5 text-slate-600 dark:text-slate-300" /> : <Moon className="w-5 h-5 text-slate-600" />}
+        </button>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-          >
-            {isDarkMode ? <Sun className="w-5 h-5 text-slate-600 dark:text-slate-300" /> : <Moon className="w-5 h-5 text-slate-600" />}
-          </button>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white font-semibold text-xs">
-            {userInitials}
-          </div>
+        <h1 className="font-display font-semibold text-slate-800 dark:text-white text-lg">
+          {activeTab === 'overview' ? 'Dashboard' : navigationItems.find(item => item.id === activeTab)?.label}
+        </h1>
+
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white font-semibold text-xs">
+          {userInitials}
         </div>
       </header>
 
       {/* Main Content Area */}
       <main className={`min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'} pt-16 lg:pt-0 pb-24 lg:pb-0`}>
         {/* Desktop Top Bar */}
-        <div className="hidden lg:flex h-16 items-center justify-between px-6 border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-display font-semibold text-slate-800 dark:text-white capitalize">
-              {activeTab === 'overview' ? 'Dashboard' : activeTab}
-            </h1>
-          </div>
+        <div className="hidden lg:flex h-16 items-center px-6 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 backdrop-blur-xl shadow-[0_4px_16px_0_rgba(0,0,0,0.08)] dark:shadow-[0_4px_16px_0_rgba(0,0,0,0.3)] rounded-b-[16px]">
+          <div className="flex-1" />
 
-          <div className="flex items-center gap-3">
+          <h1 className="text-xl font-display font-semibold text-slate-800 dark:text-white">
+            {activeTab === 'overview' ? 'Dashboard' : navigationItems.find(item => item.id === activeTab)?.label}
+          </h1>
+
+          <div className="flex-1 flex items-center justify-end gap-3">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -299,40 +295,36 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-        <div className="mx-4 mb-4">
-          <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 px-2 py-2">
-            <div className="flex justify-around items-center">
-              {navigationItems.map((item) => {
-                const Icon = item.icon
-                const isActive = activeTab === item.id
-                return (
-                  <motion.button
-                    key={item.id}
-                    onClick={() => handleTabChange(item.id)}
-                    className={`relative flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
-                      isActive
-                        ? 'text-primary-600 dark:text-primary-400'
-                        : 'text-slate-500 dark:text-slate-400'
-                    }`}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="mobileActiveTab"
-                        className="absolute inset-0 bg-primary-100 dark:bg-primary-900/30 rounded-xl"
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                      />
-                    )}
-                    <Icon className={`w-5 h-5 relative z-10 ${isActive ? 'text-primary-500' : ''}`} />
-                    <span className={`text-[10px] font-medium relative z-10 ${isActive ? 'text-primary-600 dark:text-primary-400' : ''}`}>
-                      {item.label}
-                    </span>
-                  </motion.button>
-                )
-              })}
-            </div>
-          </div>
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 rounded-t-[16px] border-t border-slate-200/60 dark:border-slate-700/60 shadow-[0_-4px_20px_0_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_20px_0_rgba(0,0,0,0.35)]">
+        <div className="flex justify-around items-center px-2 py-2">
+          {navigationItems.map((item) => {
+            const Icon = item.icon
+            const isActive = activeTab === item.id
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => handleTabChange(item.id)}
+                className={`relative flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
+                  isActive
+                    ? 'text-primary-600 dark:text-primary-400'
+                    : 'text-slate-500 dark:text-slate-400'
+                }`}
+                whileTap={{ scale: 0.95 }}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="mobileActiveTab"
+                    className="absolute inset-0 bg-primary-100 dark:bg-primary-900/30 rounded-xl"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <Icon className={`w-5 h-5 relative z-10 ${isActive ? 'text-primary-500' : ''}`} />
+                <span className={`text-[10px] font-medium relative z-10 ${isActive ? 'text-primary-600 dark:text-primary-400' : ''}`}>
+                  {item.label}
+                </span>
+              </motion.button>
+            )
+          })}
         </div>
       </nav>
 

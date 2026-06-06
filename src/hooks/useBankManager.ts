@@ -16,7 +16,7 @@ export const useBankManager = (onUpdate: (banks: Bank[]) => void) => {
   const [showForm, setShowForm] = useState(false)
   const [editingBank, setEditingBank] = useState<Bank | null>(null)
   const [loading, setLoading] = useState(false)
-  const [hiddenBalances, setHiddenBalances] = useState<Set<string>>(new Set())
+  const [visibleBalances, setVisibleBalances] = useState<Set<string>>(new Set())
   const [formData, setFormData] = useState<BankFormData>(initialFormData)
 
   const loadBanks = async () => {
@@ -84,7 +84,7 @@ export const useBankManager = (onUpdate: (banks: Bank[]) => void) => {
   }
 
   const toggleBalanceVisibility = (bankId: string) => {
-    setHiddenBalances(prev => {
+    setVisibleBalances(prev => {
       const newSet = new Set(prev)
       if (newSet.has(bankId)) {
         newSet.delete(bankId)
@@ -107,7 +107,7 @@ export const useBankManager = (onUpdate: (banks: Bank[]) => void) => {
     showForm,
     editingBank,
     loading,
-    hiddenBalances,
+    visibleBalances,
     formData,
     setFormData,
     handleSubmit,
