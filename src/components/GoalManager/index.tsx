@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import { goalService } from '../../services/goalService'
 import { allocationService } from '../../services/allocationService'
 import type { Allocation } from '../../types/goal'
+import { categories } from '../../types/goal'
 import { GoalForm } from './GoalForm'
 import { AddMoneyForm } from './AddMoneyForm'
 import { GoalCard } from './GoalCard'
@@ -25,6 +26,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
   const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [showAmounts, setShowAmounts] = useState(false)
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [showAddMoneyForm, setShowAddMoneyForm] = useState(false)
   const [showAllocationsModal, setShowAllocationsModal] = useState(false)
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
@@ -497,7 +499,27 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
         />
       )}
 
-      {/* ── Goals grid ── */}
+      {/* ── Category filter ── */}
+      {goals.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {[{ label: 'All', value: null as string | null }, ...categories.filter(c => goals.some(g => g.category === c)).map(c => ({ label: c, value: c }))].map(({ label, value }) => (
+            <div
+              key={label}
+              onClick={() => setActiveCategory(prev => value === null ? null : prev === value ? null : value)}
+              className={`flex-shrink-0 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                activeCategory === value
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+              style={{ height: 28, display: 'flex', alignItems: 'center' }}
+            >
+              {label}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Goals list ── */}
       {goals.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -519,27 +541,32 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
             Add your first goal
           </button>
         </motion.div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {goals.map((goal, index) => (
-            <GoalCard
-              key={goal.id}
-              goal={goal}
-              index={index}
-              currentAmount={objectiveAmounts[goal.id] || 0}
-              showAmounts={showAmounts}
-              onEdit={() => handleEdit(goal)}
-              onDelete={() => handleDelete(goal)}
-              onAddMoney={() => {
-                setSelectedObjective(goal)
-                setShowAddMoneyForm(true)
-                window.scrollTo({ top: 0, behavior: 'smooth' })
-              }}
-              onManageAllocations={() => openAllocationsModal(goal)}
-            />
-          ))}
-        </div>
-      )}
+      ) : (() => {
+        const filtered = activeCategory ? goals.filter(g => g.category === activeCategory) : goals
+        return filtered.length === 0 ? (
+          <p className="text-center py-10 text-sm text-slate-400">No goals in this category</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-3">
+            {filtered.map((goal, index) => (
+              <GoalCard
+                key={goal.id}
+                goal={goal}
+                index={index}
+                currentAmount={objectiveAmounts[goal.id] || 0}
+                showAmounts={showAmounts}
+                onEdit={() => handleEdit(goal)}
+                onDelete={() => handleDelete(goal)}
+                onAddMoney={() => {
+                  setSelectedObjective(goal)
+                  setShowAddMoneyForm(true)
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                onManageAllocations={() => openAllocationsModal(goal)}
+              />
+            ))}
+          </div>
+        )
+      })()}
     </div>
   )
 }
