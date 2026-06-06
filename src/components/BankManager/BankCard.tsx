@@ -28,7 +28,7 @@ export function BankCard({ bank, index, isBalanceHidden, onToggleVisibility, onC
       onClick={onClick}
     >
       <div
-        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-5 shadow-md`}
+        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-6 shadow-md`}
       >
         {/* Background circles */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -38,19 +38,19 @@ export function BankCard({ bank, index, isBalanceHidden, onToggleVisibility, onC
         {/* Shine sweep */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col gap-4">
+        <div className="relative z-10 flex flex-col gap-5">
           {/* Header row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
                 {bank.logo ? (
-                  <img src={bank.logo} alt={bank.name} className="w-6 h-6 object-contain" />
+                  <img src={bank.logo} alt={bank.name} className="w-7 h-7 object-contain" />
                 ) : (
-                  <Building2 className="w-5 h-5 text-white" />
+                  <Building2 className="w-6 h-6 text-white" />
                 )}
               </div>
               <div>
-                <h4 className="text-white font-semibold text-sm">{bank.name}</h4>
+                <h4 className="text-white font-semibold text-base">{bank.name}</h4>
                 <p className="text-white/50 text-xs">Bank Account</p>
               </div>
             </div>
@@ -60,26 +60,26 @@ export function BankCard({ bank, index, isBalanceHidden, onToggleVisibility, onC
               className="p-1.5 hover:opacity-70 transition-opacity"
             >
               {isBalanceHidden
-                ? <Eye className="w-3.5 h-3.5 text-white" />
-                : <EyeOff className="w-3.5 h-3.5 text-white" />}
+                ? <Eye className="w-4 h-4 text-white" />
+                : <EyeOff className="w-4 h-4 text-white" />}
             </button>
           </div>
 
           {/* Balance */}
           <div>
-            <p className="text-white/50 text-xs mb-1">Available Balance</p>
+            <p className="text-white/50 text-xs mb-1.5">Available Balance</p>
             <div className="flex items-baseline gap-2">
               {isBalanceHidden ? (
-                <div className="flex gap-1.5 items-center h-7">
+                <div className="flex gap-1.5 items-center h-9">
                   {[...Array(5)].map((_, i) => (
-                    <div key={i} className="w-1.5 h-1.5 bg-white/30 rounded-full" />
+                    <div key={i} className="w-2 h-2 bg-white/30 rounded-full" />
                   ))}
                 </div>
               ) : (
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-2xl font-bold text-white tracking-tight"
+                  className="text-3xl font-bold text-white tracking-tight"
                 >
                   {Number(bank.balance).toLocaleString('en-US', {
                     minimumFractionDigits: 2,
@@ -87,7 +87,7 @@ export function BankCard({ bank, index, isBalanceHidden, onToggleVisibility, onC
                   })}
                 </motion.span>
               )}
-              <span className="text-white/70 text-sm font-medium">MAD</span>
+              <span className="text-white/70 text-base font-medium">MAD</span>
             </div>
           </div>
         </div>
