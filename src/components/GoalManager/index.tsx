@@ -398,49 +398,50 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       <motion.div
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl p-5 lg:p-6 text-white"
+        className="relative overflow-hidden rounded-2xl px-4 py-3 text-white"
         style={{ background: 'linear-gradient(135deg, #059669 0%, #0891b2 100%)' }}
       >
-        <div className="absolute inset-0 pointer-events-none" style={{
-          backgroundImage: 'radial-gradient(at 15% 10%, rgba(255,255,255,0.10) 0, transparent 55%)',
-        }} />
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-white/10 pointer-events-none" />
-
-        <div className="relative z-10 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col">
-              <span className="text-white/50 text-[11px] font-semibold uppercase tracking-widest mb-0.5">Goals</span>
-              <span className="text-3xl font-bold">{goals.length}</span>
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {/* Goals count */}
+            <div>
+              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Goals</p>
+              <p className="text-xl font-bold leading-tight">{goals.length}</p>
             </div>
-            <div className="w-px h-10 bg-white/20" />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-white/50 text-[11px] font-semibold uppercase tracking-widest">Total Saved</span>
-                <button onClick={() => setShowAmounts(v => !v)} className="p-0.5 hover:bg-white/10 rounded transition-colors">
-                  {showAmounts ? <EyeOff className="w-3 h-3 text-white/50" /> : <Eye className="w-3 h-3 text-white/50" />}
+            <div className="w-px h-7 bg-white/20" />
+            {/* Total saved */}
+            <div>
+              <div className="flex items-center gap-1">
+                <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Saved</p>
+                <button onClick={() => setShowAmounts(v => !v)} className="hover:bg-white/10 rounded p-0.5 transition-colors">
+                  {showAmounts ? <EyeOff className="w-2.5 h-2.5 text-white/50" /> : <Eye className="w-2.5 h-2.5 text-white/50" />}
                 </button>
               </div>
               {showAmounts ? (
-                <span className="text-3xl font-bold">{totalSaved.toLocaleString('en-US', { maximumFractionDigits: 0 })} <span className="text-base font-normal text-white/60">MAD</span></span>
+                <p className="text-xl font-bold leading-tight">
+                  {totalSaved.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  <span className="text-xs font-normal text-white/60 ml-1">MAD</span>
+                </p>
               ) : (
-                <div className="flex items-center gap-2 h-9">
-                  {[...Array(4)].map((_, i) => <span key={i} className="w-3 h-3 bg-white/40 rounded-full" />)}
+                <div className="flex items-center gap-1.5 h-7">
+                  {[...Array(4)].map((_, i) => <span key={i} className="w-2 h-2 bg-white/40 rounded-full" />)}
                 </div>
               )}
             </div>
-            <div className="w-px h-10 bg-white/20" />
-            <div className="flex flex-col">
-              <span className="text-white/50 text-[11px] font-semibold uppercase tracking-widest mb-0.5">Completed</span>
-              <span className="text-3xl font-bold">{completedCount}</span>
+            <div className="w-px h-7 bg-white/20" />
+            {/* Completed */}
+            <div>
+              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Done</p>
+              <p className="text-xl font-bold leading-tight">{completedCount}</p>
             </div>
           </div>
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 active:bg-white/10 backdrop-blur-sm text-white text-sm font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors flex-shrink-0"
           >
-            <Plus className="w-4 h-4" />
-            New Goal
+            <Plus className="w-3.5 h-3.5" />
+            New
           </button>
         </div>
       </motion.div>
