@@ -35,9 +35,6 @@ export function BankGrid({ banks, visibleBalances, onCardClick, onToggleVisibili
       <div className="p-5 border-b border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-            </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
               {banks.length} {banks.length === 1 ? 'account' : 'accounts'} • Total:{' '}
               {totalHidden ? (
@@ -66,9 +63,9 @@ export function BankGrid({ banks, visibleBalances, onCardClick, onToggleVisibili
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               {isExpanded ? (
-                <><Layers className="w-3.5 h-3.5" /><span>Stack</span></>
+                <Layers className="w-4 h-4" />
               ) : (
-                <><LayoutGrid className="w-3.5 h-3.5" /><span>Expand</span></>
+                <LayoutGrid className="w-4 h-4" />
               )}
             </button>
           )}
