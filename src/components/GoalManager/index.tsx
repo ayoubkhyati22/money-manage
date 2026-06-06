@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Goal, Bank } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { Plus, Target } from 'lucide-react'
+import { Plus, Target, Eye, EyeOff } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 import { goalService } from '../../services/goalService'
@@ -24,6 +24,7 @@ interface GoalManagerProps {
 export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManagerProps) {
   const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
+  const [showAmounts, setShowAmounts] = useState(false)
   const [showAddMoneyForm, setShowAddMoneyForm] = useState(false)
   const [showAllocationsModal, setShowAllocationsModal] = useState(false)
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
@@ -374,47 +375,77 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
     setBankBalanceData({ newBalance: '', description: '' })
   }
 
+  const totalSaved = Object.values(objectiveAmounts).reduce((s, v) => s + Math.max(0, v), 0)
+  const completedCount = goals.filter(g => {
+    const amt = objectiveAmounts[g.id] || 0
+    return g.target_amount && amt >= g.target_amount
+  }).length
+
   if (loading && goals.length === 0) {
     return (
-      <div className="glass-card p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-lg w-1/4"></div>
-          <div className="space-y-3">
-            <div className="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
-            <div className="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
-          </div>
+      <div className="space-y-4">
+        <div className="h-28 rounded-3xl bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {[1, 2, 3].map(i => <div key={i} className="h-56 rounded-2xl bg-slate-200 dark:bg-slate-700 animate-pulse" />)}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-5">
+      {/* ── Stats hero ── */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="relative overflow-hidden rounded-3xl p-5 lg:p-6 text-white"
+        style={{ background: 'linear-gradient(135deg, #059669 0%, #0891b2 100%)' }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-success-500 to-accent-500 flex items-center justify-center shadow-lg">
-            <Target className="w-6 h-6 text-white" />
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: 'radial-gradient(at 15% 10%, rgba(255,255,255,0.10) 0, transparent 55%)',
+        }} />
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-white/10 pointer-events-none" />
+
+        <div className="relative z-10 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <span className="text-white/50 text-[11px] font-semibold uppercase tracking-widest mb-0.5">Goals</span>
+              <span className="text-3xl font-bold">{goals.length}</span>
+            </div>
+            <div className="w-px h-10 bg-white/20" />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-white/50 text-[11px] font-semibold uppercase tracking-widest">Total Saved</span>
+                <button onClick={() => setShowAmounts(v => !v)} className="p-0.5 hover:bg-white/10 rounded transition-colors">
+                  {showAmounts ? <EyeOff className="w-3 h-3 text-white/50" /> : <Eye className="w-3 h-3 text-white/50" />}
+                </button>
+              </div>
+              {showAmounts ? (
+                <span className="text-3xl font-bold">{totalSaved.toLocaleString('en-US', { maximumFractionDigits: 0 })} <span className="text-base font-normal text-white/60">MAD</span></span>
+              ) : (
+                <div className="flex items-center gap-2 h-9">
+                  {[...Array(4)].map((_, i) => <span key={i} className="w-3 h-3 bg-white/40 rounded-full" />)}
+                </div>
+              )}
+            </div>
+            <div className="w-px h-10 bg-white/20" />
+            <div className="flex flex-col">
+              <span className="text-white/50 text-[11px] font-semibold uppercase tracking-widest mb-0.5">Completed</span>
+              <span className="text-3xl font-bold">{completedCount}</span>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-display font-bold text-slate-800 dark:text-white">Goals</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Track your savings objectives</p>
-          </div>
+
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 active:bg-white/10 backdrop-blur-sm text-white text-sm font-semibold transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            New Goal
+          </button>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="btn-primary"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Goal</span>
-        </button>
       </motion.div>
 
-      {/* Forms */}
+      {/* ── Forms ── */}
       {showForm && (
         <GoalForm
           formData={formData}
@@ -465,59 +496,49 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
         />
       )}
 
-      {/* Goals Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-card overflow-hidden"
-      >
-        <div className="p-5 border-b border-slate-200 dark:border-slate-700">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center">
-              <Target className="w-5 h-5 text-success-600 dark:text-success-400" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-800 dark:text-white">Your Objectives</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {goals.length} {goals.length === 1 ? 'goal' : 'goals'}
-              </p>
-            </div>
+      {/* ── Goals grid ── */}
+      {goals.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center py-20 gap-4"
+        >
+          <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Target className="w-8 h-8 text-slate-400" />
           </div>
+          <div className="text-center">
+            <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">No goals yet</p>
+            <p className="text-sm text-slate-400">Create your first savings goal to get started</p>
+          </div>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add your first goal
+          </button>
+        </motion.div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {goals.map((goal, index) => (
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              index={index}
+              currentAmount={objectiveAmounts[goal.id] || 0}
+              showAmounts={showAmounts}
+              onEdit={() => handleEdit(goal)}
+              onDelete={() => handleDelete(goal)}
+              onAddMoney={() => {
+                setSelectedObjective(goal)
+                setShowAddMoneyForm(true)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+              onManageAllocations={() => openAllocationsModal(goal)}
+            />
+          ))}
         </div>
-
-        <div className="p-5">
-          {goals.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                <Target className="w-8 h-8 text-slate-400" />
-              </div>
-              <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-1">No goals yet</h4>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Create your first savings goal to get started
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {goals.map((goal, index) => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  index={index}
-                  currentAmount={objectiveAmounts[goal.id] || 0}
-                  onEdit={() => handleEdit(goal)}
-                  onDelete={() => handleDelete(goal)}
-                  onAddMoney={() => {
-                    setSelectedObjective(goal)
-                    setShowAddMoneyForm(true)
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                  }}
-                  onManageAllocations={() => openAllocationsModal(goal)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </motion.div>
+      )}
     </div>
   )
 }
