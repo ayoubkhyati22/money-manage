@@ -510,12 +510,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
             <div className="w-px h-7 bg-white/20" />
             {/* Total saved */}
             <div>
-              <div className="flex items-center gap-1">
-                <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Saved</p>
-                <button onClick={() => setShowAmounts(v => !v)} className="hover:bg-white/10 rounded p-0.5 transition-colors">
-                  {showAmounts ? <EyeOff className="w-2.5 h-2.5 text-white/50" /> : <Eye className="w-2.5 h-2.5 text-white/50" />}
-                </button>
-              </div>
+              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Saved</p>
               {showAmounts ? (
                 <p className="text-xl font-bold leading-tight">
                   {totalSaved.toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -535,12 +530,21 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
             </div>
           </div>
 
-          <div
-            onClick={() => setShowForm(!showForm)}
-            className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
-            style={{ minWidth: 32, minHeight: 32 }}
-          >
-            <Plus className="w-4 h-4" />
+          <div className="flex items-center gap-2">
+            <div
+              onClick={() => setShowAmounts(v => !v)}
+              className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
+              style={{ minWidth: 32, minHeight: 32 }}
+            >
+              {showAmounts ? <EyeOff className="w-4 h-4 text-white" /> : <Eye className="w-4 h-4 text-white" />}
+            </div>
+            <div
+              onClick={() => setShowForm(!showForm)}
+              className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
+              style={{ minWidth: 32, minHeight: 32 }}
+            >
+              <Plus className="w-4 h-4 text-white" />
+            </div>
           </div>
         </div>
       </motion.div>
@@ -643,7 +647,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
         return filtered.length === 0 ? (
           <p className="text-center py-10 text-sm text-slate-400">No goals in this category</p>
         ) : (
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((goal, index) => (
               <GoalCard
                 key={goal.id}

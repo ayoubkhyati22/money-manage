@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchTransactions, returnMoney, returnMultipleTransactions, PAGE_SIZE } from '../services/transactionService'
+import { fetchTransactions, fetchTotals, returnMoney, returnMultipleTransactions, PAGE_SIZE } from '../services/transactionService'
 import { ObjectiveTransaction } from '../types/transaction'
 import { useAuth } from './useAuth'
 import { useSweetAlert } from './useSweetAlert'
@@ -17,6 +17,8 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [totalIn, setTotalIn] = useState(0)
+  const [totalOut, setTotalOut] = useState(0)
 
   useEffect(() => {
     const handleResize = () => {
@@ -28,12 +30,24 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
   }, [])
 
   useEffect(() => {
+    loadTotals()
+  }, [user])
+
+  useEffect(() => {
     setPage(1)
     loadTransactions(1, true)
     // Reset selection when filter changes
     setSelectedIds(new Set())
     setIsSelectionMode(false)
   }, [user, showWithdrawnOnly, isDesktop])
+
+  const loadTotals = async () => {
+    try {
+      const { totalIn: tin, totalOut: tout } = await fetchTotals()
+      setTotalIn(tin)
+      setTotalOut(tout)
+    } catch { /* silent */ }
+  }
 
   const loadTransactions = async (pageNumber = 1, reset = false) => {
     if (!user) return
@@ -237,6 +251,7 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
       })
       
       loadTransactions(page, true)
+      loadTotals()
       if (onUpdate) onUpdate()
     } catch (err: any) {
       await showError('Return Failed', err.message)
@@ -269,6 +284,7 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
       setSelectedIds(new Set())
       setIsSelectionMode(false)
       loadTransactions(page, true)
+      loadTotals()
       if (onUpdate) onUpdate()
     } catch (err: any) {
       await showError('Return Failed', err.message)
@@ -343,6 +359,8 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
     isDesktop,
     selectedIds,
     isSelectionMode,
+    totalIn,
+    totalOut,
     handleReturnMoney,
     handleReturnSelected,
     toggleSelection,
@@ -352,6 +370,6 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
     goToPage,
     toggleSelectionMode,
     getSelectedTotal,
-    refresh: () => loadTransactions(1, true)
+    refresh: () => { loadTransactions(1, true); loadTotals() }
   }
 }

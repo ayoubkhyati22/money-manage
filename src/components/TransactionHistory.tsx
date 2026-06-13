@@ -11,13 +11,11 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
     transactions, loading, showWithdrawnOnly,
     page, totalCount, hasMore, isDesktop,
     selectedIds, isSelectionMode,
+    totalIn, totalOut,
     handleReturnMoney, handleReturnSelected,
     toggleSelection, toggleSelectAll, toggleFilter,
     loadMore, goToPage, toggleSelectionMode, getSelectedTotal, refresh,
   } = useTransactionHistory(onUpdate)
-
-  const totalIn  = transactions.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0)
-  const totalOut = transactions.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0)
 
   const selectableCount = transactions.filter(
     t => t.amount < 0 && !t.description?.includes('Stock Purchase:') && !t.description?.includes('Stock Sale:')

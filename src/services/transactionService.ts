@@ -38,6 +38,19 @@ export const fetchTransactions = async (
   return { transactions: formatted, totalCount: count || 0 }
 }
 
+export const fetchTotals = async (): Promise<{ totalIn: number; totalOut: number }> => {
+  const { data, error } = await supabase
+    .from('objectives_transactions')
+    .select('amount')
+
+  if (error) throw error
+
+  const totalIn  = data?.filter(t => Number(t.amount) > 0).reduce((s, t) => s + Number(t.amount), 0) ?? 0
+  const totalOut = data?.filter(t => Number(t.amount) < 0).reduce((s, t) => s + Math.abs(Number(t.amount)), 0) ?? 0
+
+  return { totalIn, totalOut }
+}
+
 export const returnMoney = async (
   transaction: ObjectiveTransaction,
   returnAmount?: number
