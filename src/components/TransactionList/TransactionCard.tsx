@@ -1,144 +1,114 @@
-import { Calendar, Building2, Target, ArrowDownCircle, TrendingUp, RotateCcw } from 'lucide-react'
 import { format } from 'date-fns'
 import { ObjectiveTransaction } from '../../types/transaction'
+import { ArrowDownLeft, ArrowUpRight, BarChart2, RotateCcw } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 interface TransactionCardProps {
   transaction: ObjectiveTransaction
   isSelectionMode: boolean
   isSelected: boolean
   onReturn: (transaction: ObjectiveTransaction) => void
-  onToggleSelection: (transactionId: string) => void
+  onToggleSelection: (id: string) => void
+  index?: number
 }
 
-export function TransactionCard({ 
-  transaction, 
-  isSelectionMode, 
+export function TransactionCard({
+  transaction,
+  isSelectionMode,
   isSelected,
-  onReturn, 
-  onToggleSelection 
+  onReturn,
+  onToggleSelection,
+  index = 0,
 }: TransactionCardProps) {
   const isPositive = transaction.amount >= 0
-  
-  // Check if this is a stock transaction by looking at the description
-  const isStockTransaction = transaction.description?.includes('Stock Purchase:') || 
-                            transaction.description?.includes('Stock Sale:')
-  
-  // Can only select negative (withdrawal) transactions that are not stock transactions
-  const isSelectable = transaction.amount < 0 && !isStockTransaction
+  const isStock =
+    transaction.description?.includes('Stock Purchase:') ||
+    transaction.description?.includes('Stock Sale:')
+  const isSelectable = transaction.amount < 0 && !isStock
 
-  const handleCardClick = () => {
-    if (isSelectionMode && isSelectable) {
-      onToggleSelection(transaction.id)
-    }
+  const handleClick = () => {
+    if (isSelectionMode && isSelectable) onToggleSelection(transaction.id)
   }
 
-  const handleCheckboxClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-  }
+  // Type config
+  const type = isStock ? 'stock' : isPositive ? 'deposit' : 'withdraw'
+  const typeConfig = {
+    deposit:  { icon: ArrowUpRight,   iconBg: 'bg-emerald-500/10 dark:bg-emerald-500/15', iconCls: 'text-emerald-500', dot: 'bg-emerald-500', label: 'Deposit',  amtCls: 'text-emerald-500' },
+    withdraw: { icon: ArrowDownLeft,  iconBg: 'bg-red-500/10 dark:bg-red-500/15',         iconCls: 'text-red-500',     dot: 'bg-red-500',     label: 'Withdraw', amtCls: 'text-red-500'     },
+    stock:    { icon: BarChart2,      iconBg: 'bg-violet-500/10 dark:bg-violet-500/15',   iconCls: 'text-violet-500',  dot: 'bg-violet-500',  label: 'Stock',    amtCls: isPositive ? 'text-emerald-500' : 'text-red-500' },
+  }[type]
+
+  const Icon = typeConfig.icon
 
   return (
-    <div 
-      onClick={handleCardClick}
-      className={`flex items-center justify-between rounded-xl p-3 border transition-all duration-200 ${
-        isSelected 
-          ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-400 dark:border-blue-600 shadow-md' 
-          : 'bg-white dark:bg-dark-800 border-gray-200 dark:border-dark-700 hover:shadow-md'
-      } ${isSelectionMode && isSelectable ? 'cursor-pointer' : ''}`}
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.18 }}
+      onClick={handleClick}
+      className={`relative flex items-center gap-3 px-4 py-3.5 transition-colors
+        ${isSelected ? 'bg-primary-50/80 dark:bg-primary-900/20' : 'bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50'}
+        ${isSelectionMode && isSelectable ? 'cursor-pointer' : ''}
+      `}
     >
-      {/* Checkbox in selection mode */}
+      {/* Selection checkbox */}
       {isSelectionMode && (
-        <div className="flex-shrink-0 mr-3" onClick={handleCheckboxClick}>
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={() => {}}
-            disabled={!isSelectable}
-            className={`w-5 h-5 rounded border-gray-300 dark:border-dark-600 ${
-              isSelectable 
-                ? 'text-blue-600 focus:ring-blue-500 cursor-pointer' 
-                : 'opacity-30 cursor-not-allowed'
-            }`}
-          />
+        <div
+          onClick={e => { e.stopPropagation(); if (isSelectable) onToggleSelection(transaction.id) }}
+          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+            isSelected
+              ? 'border-primary-500 bg-primary-500'
+              : isSelectable
+                ? 'border-slate-300 dark:border-slate-600'
+                : 'border-slate-200 dark:border-slate-700 opacity-30'
+          }`}
+        >
+          {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
         </div>
       )}
 
-      {/* Left: Icon + Main Info */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        {/* Icon */}
-        <div
-          className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
-            isPositive
-              ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-              : 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-          }`}
-        >
-          {isPositive ? <TrendingUp className="w-5 h-5" /> : <ArrowDownCircle className="w-5 h-5" />}
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
-              {transaction.objective_name}
-            </h3>
-            <span className="text-xs text-gray-400 dark:text-dark-500">•</span>
-            <span className="text-xs text-gray-500 dark:text-dark-400 truncate">
-              {transaction.bank_name}
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-dark-400">
-            <Calendar className="w-3 h-3" />
-            <span>{format(new Date(transaction.created_at), 'MMM dd, HH:mm')}</span>
-          </div>
-
-          {transaction.description && (
-            <p className="text-xs text-gray-500 dark:text-dark-400 mt-1 line-clamp-1 italic">
-              "{transaction.description}"
-            </p>
-          )}
-          
-          {/* Show a small badge for stock transactions */}
-          {isStockTransaction && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 mt-1">
-              Stock
-            </span>
-          )}
-        </div>
+      {/* Icon */}
+      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${typeConfig.iconBg}`}>
+        <Icon className={`w-4 h-4 ${typeConfig.iconCls}`} />
       </div>
 
-      {/* Right: Amount + Action */}
-      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-        <div className="text-right">
-          <p
-            className={`text-base font-semibold whitespace-nowrap ${
-              isPositive
-                ? 'text-primary-600 dark:text-primary-400'
-                : 'text-red-600 dark:text-red-400'
-            }`}
-          >
-            {isPositive ? '+' : ''}
-            {transaction.amount.toFixed(2)}
-          </p>
-          <p className="text-[10px] text-gray-400 dark:text-dark-500 uppercase tracking-wide">
-            MAD
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-semibold text-slate-800 dark:text-white truncate leading-tight">
+            {transaction.objective_name}
           </p>
         </div>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${typeConfig.dot}`} />
+          <p className="text-[11px] text-slate-400 truncate">
+            {transaction.bank_name}
+            {transaction.description ? ` · ${transaction.description}` : ''}
+          </p>
+        </div>
+        <p className="text-[11px] text-slate-300 dark:text-slate-600 mt-0.5">
+          {format(new Date(transaction.created_at), 'HH:mm · MMM dd')}
+        </p>
+      </div>
 
-        {/* Only show return button for non-positive, non-stock transactions when not in selection mode */}
-        {!isSelectionMode && !isPositive && !isStockTransaction && (
+      {/* Amount + action */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="text-right">
+          <p className={`text-sm font-bold tabular-nums leading-tight ${typeConfig.amtCls}`}>
+            {isPositive ? '+' : ''}{Math.abs(transaction.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          </p>
+          <p className="text-[10px] text-slate-400 uppercase tracking-wide">MAD</p>
+        </div>
+
+        {!isSelectionMode && !isPositive && !isStock && (
           <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onReturn(transaction)
-            }}
-            className="p-1.5 rounded-lg text-cyan-500 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-all duration-200"
-            title="Return Money"
+            onClick={e => { e.stopPropagation(); onReturn(transaction) }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors flex-shrink-0"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

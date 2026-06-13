@@ -45,7 +45,14 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview')
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
+  const avatarMenuRef = useRef<HTMLDivElement>(null)
+
+  // Scroll to top on tab change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+  }, [activeTab])
 
   // Dispatch tab change event
   const handleTabChange = (tabId: ActiveTab) => {
@@ -66,6 +73,19 @@ export function Layout({ children }: LayoutProps) {
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [mobileMenuOpen])
+
+  // Close avatar menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(event.target as Node)) {
+        setAvatarMenuOpen(false)
+      }
+    }
+    if (avatarMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [avatarMenuOpen])
 
   // Listen for external tab change requests
   useEffect(() => {
@@ -249,8 +269,39 @@ export function Layout({ children }: LayoutProps) {
           {activeTab === 'overview' ? 'Dashboard' : navigationItems.find(item => item.id === activeTab)?.label}
         </h1>
 
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white font-semibold text-xs">
-          {userInitials}
+        <div className="relative" ref={avatarMenuRef}>
+          <div
+            onClick={() => setAvatarMenuOpen(v => !v)}
+            className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white font-semibold text-xs cursor-pointer"
+          >
+            {userInitials}
+          </div>
+
+          <AnimatePresence>
+            {avatarMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: -6 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: -6 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                className="absolute right-0 top-10 w-52 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50"
+              >
+                {/* User info */}
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                  <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{userName}</p>
+                  <p className="text-xs text-slate-400 truncate mt-0.5">{user?.email}</p>
+                </div>
+                {/* Log out */}
+                <button
+                  onClick={() => { setAvatarMenuOpen(false); signOut() }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Log out
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </header>
 

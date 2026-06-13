@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ChevronLeft, Plus, Eye, Edit2, Trash2, Calendar, Sparkles,
-  Building2, TrendingUp, Check, AlertTriangle,
+  ChevronLeft, Plus, Eye, EyeOff, Edit2, Trash2, Calendar, Sparkles,
+  Building2, Check, AlertTriangle, ArrowUpCircle, ArrowDownCircle, History,
 } from 'lucide-react'
 import { Goal, Bank } from '../../lib/supabase'
 import { format, differenceInDays } from 'date-fns'
-import type { Allocation } from '../../types/goal'
+import type { Allocation, GoalTransaction } from '../../types/goal'
 import { categories } from '../../types/goal'
+import { goalService } from '../../services/goalService'
 import toast from 'react-hot-toast'
 
-type View = 'detail' | 'add-money' | 'edit' | 'allocations' | 'confirm-delete'
+type View = 'detail' | 'add-money' | 'edit' | 'allocations' | 'transactions' | 'confirm-delete'
 
 interface GoalDetailPageProps {
   goal: Goal
@@ -72,9 +73,22 @@ export function GoalDetailPage({
   const [addForm,  setAddForm]  = useState({ bank_id: '', amount: '', description: '' })
   const [editForm, setEditForm] = useState({ name: '', category: '', target_amount: '', target_date: '', notes: '' })
   const [confirmDeleteAlloc, setConfirmDeleteAlloc] = useState<string | null>(null)
+  const [localShow, setLocalShow] = useState(showAmounts)
+  const [transactions, setTransactions] = useState<GoalTransaction[]>([])
+  const [loadingTransactions, setLoadingTransactions] = useState(false)
 
   // Reset to detail when goal changes
   useEffect(() => { setView('detail'); setDir(1) }, [goal.id])
+
+  // Load transactions when navigating to that view
+  useEffect(() => {
+    if (view !== 'transactions') return
+    setLoadingTransactions(true)
+    goalService.loadGoalTransactions(goal.id)
+      .then(setTransactions)
+      .catch(err => toast.error(err.message))
+      .finally(() => setLoadingTransactions(false))
+  }, [view, goal.id])
 
   // Pre-fill edit form
   useEffect(() => {
@@ -98,7 +112,6 @@ export function GoalDetailPage({
   const cfg         = isCompleted ? completedCat : (goal.category ? (catConfig[goal.category] ?? defaultCat) : defaultCat)
   const dashOffset  = CIRC * (1 - progress / 100)
   const daysLeft    = goal.target_date ? differenceInDays(new Date(goal.target_date), new Date()) : null
-  const remaining   = goal.target_amount ? Math.max(0, goal.target_amount - currentAmount) : null
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -167,18 +180,30 @@ export function GoalDetailPage({
 
       // ── DETAIL ────────────────────────────────────────────────────────────
       case 'detail': return (
-        <div className="space-y-0">
+        <div className="space-y-4">
 
           {/* ← Back row */}
-          <div className="flex items-center gap-2 mb-4 px-1">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <div
+                onClick={onBack}
+                className="flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer flex-shrink-0"
+                style={{ width: 38, height: 38, minWidth: 38, minHeight: 38 }}
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+              </div>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Goals</span>
+            </div>
             <div
-              onClick={onBack}
+              onClick={() => setLocalShow(v => !v)}
               className="flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer flex-shrink-0"
               style={{ width: 38, height: 38, minWidth: 38, minHeight: 38 }}
             >
-              <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+              {localShow
+                ? <Eye className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                : <EyeOff className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+              }
             </div>
-            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Goals</span>
           </div>
 
           {/* Gradient hero */}
@@ -242,10 +267,10 @@ export function GoalDetailPage({
           </div>
 
           {/* Amounts card */}
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div className="glass-card p-4">
               <p className={labelCls}>Saved</p>
-              {showAmounts ? (
+              {localShow ? (
                 <>
                   <p className="text-xl font-bold text-slate-800 dark:text-white leading-none">
                     {currentAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -261,7 +286,7 @@ export function GoalDetailPage({
             <div className="glass-card p-4">
               <p className={labelCls}>{goal.target_amount ? 'Target' : 'Status'}</p>
               {goal.target_amount ? (
-                showAmounts ? (
+                localShow ? (
                   <>
                     <p className="text-xl font-bold text-slate-800 dark:text-white leading-none">
                       {Number(goal.target_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -277,84 +302,42 @@ export function GoalDetailPage({
             </div>
           </div>
 
-          {/* Progress bar + remaining */}
-          {goal.target_amount && (
-            <div className="glass-card p-4 mt-3 space-y-3">
-              {remaining !== null && remaining > 0 && showAmounts && (
-                <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary-50 dark:bg-primary-900/20">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Still needed</span>
-                  </div>
-                  <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
-                    {remaining.toLocaleString('en-US', { maximumFractionDigits: 0 })} MAD
-                  </span>
-                </div>
-              )}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Progress</span>
-                  <span className={`text-[11px] font-bold ${isCompleted ? 'text-success-500' : 'text-primary-500'}`}>
-                    {progress.toFixed(1)}%
-                  </span>
-                </div>
-                <div className="h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full ${isCompleted ? 'bg-success-500' : 'bg-gradient-to-r from-primary-500 to-accent-400'}`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 1.4, ease: 'easeOut', delay: 0.15 }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Notes */}
           {goal.notes && (
-            <div className="glass-card p-4 mt-3">
+            <div className="glass-card p-4">
               <p className={labelCls}>Notes</p>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{goal.notes}</p>
             </div>
           )}
 
-          {/* Actions */}
-          <div className="glass-card p-4 mt-3">
+          {/* Actions — icons only */}
+          <div className="glass-card p-4">
             <p className={labelCls}>Actions</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex gap-3">
               {[
-                { icon: Plus,   label: 'Add Money',   sub: 'Allocate funds',    onClick: () => goTo('add-money'),
-                  bg: 'bg-primary-500 hover:bg-primary-600', iconBg: 'bg-white/20', iconCls: 'text-white', textCls: 'text-white', subCls: 'text-white/60' },
-                { icon: Eye,    label: 'Allocations', sub: 'View by bank',      onClick: () => goTo('allocations'),
-                  bg: 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80',
-                  iconBg: 'bg-slate-200 dark:bg-slate-700', iconCls: 'text-slate-600 dark:text-slate-300', textCls: 'text-slate-800 dark:text-slate-100', subCls: 'text-slate-400' },
-                { icon: Edit2,  label: 'Edit Goal',   sub: 'Change details',    onClick: () => goTo('edit'),
-                  bg: 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80',
-                  iconBg: 'bg-slate-200 dark:bg-slate-700', iconCls: 'text-slate-600 dark:text-slate-300', textCls: 'text-slate-800 dark:text-slate-100', subCls: 'text-slate-400' },
-                { icon: Trash2, label: 'Delete',      sub: 'Remove goal',       onClick: () => goTo('confirm-delete'),
-                  bg: 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40',
-                  iconBg: 'bg-red-100 dark:bg-red-900/30', iconCls: 'text-red-500', textCls: 'text-red-600 dark:text-red-400', subCls: 'text-red-400/70' },
-              ].map(({ icon: Icon, label, sub, onClick, bg, iconBg, iconCls, textCls, subCls }) => (
+                { icon: Plus,   onClick: () => goTo('add-money'),
+                  bg: 'bg-primary-500 hover:bg-primary-600', iconCls: 'text-white' },
+                { icon: History, onClick: () => goTo('transactions'),
+                  bg: 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700', iconCls: 'text-slate-600 dark:text-slate-300' },
+                { icon: Edit2,  onClick: () => goTo('edit'),
+                  bg: 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700', iconCls: 'text-slate-600 dark:text-slate-300' },
+                { icon: Trash2, onClick: () => goTo('confirm-delete'),
+                  bg: 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40', iconCls: 'text-red-500' },
+              ].map(({ icon: Icon, onClick, bg, iconCls }, idx) => (
                 <div
-                  key={label}
+                  key={idx}
                   onClick={onClick}
-                  className={`flex items-center gap-3 p-3.5 rounded-2xl transition-colors cursor-pointer ${bg}`}
+                  className={`flex-1 flex items-center justify-center rounded-2xl transition-colors cursor-pointer ${bg}`}
+                  style={{ height: 52 }}
                 >
-                  <div className={`rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}
-                    style={{ width: 40, height: 40, minWidth: 40, minHeight: 40 }}>
-                    <Icon className={`w-4 h-4 ${iconCls}`} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className={`text-sm font-bold leading-tight ${textCls}`}>{label}</p>
-                    <p className={`text-[11px] mt-0.5 ${subCls}`}>{sub}</p>
-                  </div>
+                  <Icon className={`w-5 h-5 ${iconCls}`} />
                 </div>
               ))}
             </div>
           </div>
 
           {/* Allocations preview */}
-          <div className="glass-card p-4 mt-3 mb-6">
+          <div className="glass-card p-4 mb-6">
             <div className="flex items-center justify-between mb-3">
               <p className={labelCls + ' mb-0'}>Bank Allocations</p>
               {allocations.length > 0 && (
@@ -384,7 +367,7 @@ export function GoalDetailPage({
                       <Building2 className="w-4 h-4 text-slate-400" />
                     </div>
                     <p className="flex-1 min-w-0 text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{a.bank_name}</p>
-                    {showAmounts ? (
+                    {localShow ? (
                       <div className="text-right">
                         <p className="text-sm font-bold text-slate-800 dark:text-white">
                           {Number(a.amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -430,7 +413,7 @@ export function GoalDetailPage({
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{bank.name}</p>
-                        {showAmounts
+                        {localShow
                           ? <p className="text-xs text-slate-400">{Number(bank.balance).toLocaleString('en-US', { maximumFractionDigits: 0 })} MAD</p>
                           : <div className="flex gap-1 mt-0.5">{[...Array(3)].map((_, i) => <span key={i} className="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full" />)}</div>
                         }
@@ -566,7 +549,7 @@ export function GoalDetailPage({
                         <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
                         <p className="text-sm font-semibold text-red-700 dark:text-red-300">Remove this allocation?</p>
                       </div>
-                      {showAmounts && (
+                      {localShow && (
                         <p className="text-xs text-red-500 dark:text-red-400">
                           {Number(a.amount).toLocaleString('en-US', { maximumFractionDigits: 0 })} MAD will be returned to {a.bank_name}
                         </p>
@@ -590,7 +573,7 @@ export function GoalDetailPage({
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{a.bank_name}</p>
-                        {showAmounts
+                        {localShow
                           ? <p className="text-xs text-slate-400 mt-0.5">{Number(a.amount).toLocaleString('en-US', { maximumFractionDigits: 0 })} MAD</p>
                           : <div className="flex gap-1 mt-1">{[...Array(3)].map((_, j) => <span key={j} className="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full" />)}</div>
                         }
@@ -615,6 +598,97 @@ export function GoalDetailPage({
         </div>
       )
 
+      // ── TRANSACTIONS ─────────────────────────────────────────────────────
+      case 'transactions': return (
+        <div>
+          <SubHeader
+            title="Transactions"
+            subtitle={`${goal.name}`}
+          />
+          {loadingTransactions ? (
+            <div className="space-y-3">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              ))}
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="flex flex-col items-center py-16 gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                <History className="w-8 h-8 text-slate-400" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">No transactions yet</p>
+                <p className="text-xs text-slate-400 mt-1">Add money to see your history here</p>
+              </div>
+              <div
+                onClick={() => goTo('add-money')}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-bold cursor-pointer transition-colors"
+              >
+                <Plus className="w-4 h-4" /> Add Money
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3 pb-6">
+              {transactions.map((tx, i) => {
+                const isPositive = tx.amount > 0
+                return (
+                  <motion.div
+                    key={tx.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800"
+                  >
+                    <div
+                      className={`flex items-center justify-center rounded-xl flex-shrink-0 ${
+                        isPositive
+                          ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                          : 'bg-red-100 dark:bg-red-900/30'
+                      }`}
+                      style={{ width: 42, height: 42, minWidth: 42, minHeight: 42 }}
+                    >
+                      {isPositive
+                        ? <ArrowUpCircle className="w-5 h-5 text-emerald-500" />
+                        : <ArrowDownCircle className="w-5 h-5 text-red-500" />
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">
+                        {tx.description || tx.bank_name}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Building2 className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                        <p className="text-xs text-slate-400 truncate">{tx.bank_name}</p>
+                        <span className="text-slate-300 dark:text-slate-600">·</span>
+                        <p className="text-xs text-slate-400 flex-shrink-0">
+                          {format(new Date(tx.created_at), 'MMM dd, yyyy')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      {localShow ? (
+                        <>
+                          <p className={`text-sm font-bold ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                            {isPositive ? '+' : ''}{tx.amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                          </p>
+                          <p className="text-[10px] text-slate-400">MAD</p>
+                        </>
+                      ) : (
+                        <div className="flex gap-1">
+                          {[...Array(3)].map((_, j) => (
+                            <span key={j} className="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )
+
       // ── CONFIRM DELETE ────────────────────────────────────────────────────
       case 'confirm-delete': return (
         <div>
@@ -633,7 +707,7 @@ export function GoalDetailPage({
                   <div className="flex items-center gap-2 justify-center">
                     <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
                     <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
-                      {showAmounts
+                      {localShow
                         ? `${currentAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })} MAD will be returned to your banks`
                         : 'All saved money will be returned to your banks'
                       }

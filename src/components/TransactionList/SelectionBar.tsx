@@ -1,4 +1,5 @@
-import { CheckSquare, RotateCcw, X } from 'lucide-react'
+import { RotateCcw, CheckCircle2, X } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 interface SelectionBarProps {
   selectedCount: number
@@ -8,56 +9,60 @@ interface SelectionBarProps {
   onSelectAll: () => void
 }
 
-export function SelectionBar({ 
-  selectedCount, 
-  selectedTotal, 
+export function SelectionBar({
+  selectedCount,
+  selectedTotal,
   selectableCount,
   onReturnSelected,
-  onSelectAll 
+  onSelectAll,
 }: SelectionBarProps) {
+  const allSelected = selectedCount === selectableCount && selectableCount > 0
+
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 sm:p-4 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        {/* Left side - Selection info */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <CheckSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {selectedCount} selected
-            </span>
-          </div>
+    <motion.div
+      initial={{ y: 80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 80, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+      className="fixed bottom-20 left-0 right-0 z-50 px-4"
+    >
+      <div className="max-w-lg mx-auto bg-slate-900 dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-700/60 p-3 flex items-center gap-3">
+        {/* Count + total */}
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-widest leading-tight">
+            {selectedCount} selected
+          </p>
           {selectedCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-dark-800 rounded-lg border border-blue-300 dark:border-blue-700">
-              <span className="text-xs text-gray-500 dark:text-gray-400">Total:</span>
-              <span className="text-sm font-bold text-red-600 dark:text-red-400">
-                {selectedTotal.toFixed(2)} MAD
-              </span>
-            </div>
+            <p className="text-base font-bold text-white tabular-nums leading-tight">
+              {selectedTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              <span className="text-xs font-normal text-slate-400 ml-1">MAD</span>
+            </p>
           )}
         </div>
 
-        {/* Right side - Actions */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onSelectAll}
-            disabled={selectableCount === 0}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CheckSquare className="w-4 h-4" />
-            {selectedCount === selectableCount && selectableCount > 0 ? 'Deselect All' : 'Select All'}
-          </button>
+        {/* Select all toggle */}
+        <button
+          onClick={onSelectAll}
+          disabled={selectableCount === 0}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 dark:hover:bg-slate-600 text-slate-300 text-xs font-semibold transition-colors disabled:opacity-40"
+        >
+          {allSelected
+            ? <X className="w-3.5 h-3.5" />
+            : <CheckCircle2 className="w-3.5 h-3.5" />
+          }
+          {allSelected ? 'Deselect' : 'All'}
+        </button>
 
-          {selectedCount > 0 && (
-            <button
-              onClick={onReturnSelected}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Return Selected
-            </button>
-          )}
-        </div>
+        {/* Return button */}
+        <button
+          onClick={onReturnSelected}
+          disabled={selectedCount === 0}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          Return
+        </button>
       </div>
-    </div>
+    </motion.div>
   )
 }

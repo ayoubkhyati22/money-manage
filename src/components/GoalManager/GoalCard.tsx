@@ -1,5 +1,5 @@
 import { Goal } from '../../lib/supabase'
-import { Calendar, Edit2, Trash2, Plus, Eye, EyeOff, Sparkles } from 'lucide-react'
+import { Calendar, Eye, EyeOff, Sparkles } from 'lucide-react'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
@@ -56,53 +56,53 @@ export function GoalCard({ goal, index, currentAmount, showAmounts: globalShow, 
       {/* Accent top bar */}
       <div className={`h-0.5 w-full bg-gradient-to-r ${barGradient}`} />
 
-      <div className="p-3">
+      <div className="p-4">
         {/* Top row: category + eye */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1">
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${catColor.bg} ${catColor.text}`}>
-              <span className={`w-1 h-1 rounded-full ${catColor.dot}`} />
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${catColor.bg} ${catColor.text}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${catColor.dot}`} />
               {goal.category || 'General'}
             </span>
             {isCompleted && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400">
-                <Sparkles className="w-2.5 h-2.5" />
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-1 rounded-full text-xs font-bold bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400">
+                <Sparkles className="w-3 h-3" />
               </span>
             )}
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); setLocalShow(v => v === null ? !globalShow : !v) }}
-            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-400"
+            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-400"
           >
-            {showAmount ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            {showAmount ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           </button>
         </div>
 
         {/* Goal name */}
-        <p className="font-semibold text-slate-800 dark:text-white text-xs mb-2 line-clamp-1">{goal.name}</p>
+        <p className="font-bold text-slate-800 dark:text-white text-sm mb-3 line-clamp-1">{goal.name}</p>
 
         {/* Amount + progress */}
-        <div className="mb-2">
-          <div className="flex items-center justify-between mb-1">
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-1.5">
             {showAmount ? (
-              <span className="text-sm font-bold text-slate-800 dark:text-white">
+              <span className="text-base font-bold text-slate-800 dark:text-white">
                 {currentAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                <span className="text-[10px] font-normal text-slate-400 ml-1">MAD</span>
+                <span className="text-xs font-normal text-slate-400 ml-1">MAD</span>
               </span>
             ) : (
-              <div className="flex items-center gap-1 h-5">
-                {[...Array(4)].map((_, i) => <span key={i} className="w-1.5 h-1.5 bg-slate-200 dark:bg-slate-600 rounded-full" />)}
+              <div className="flex items-center gap-1 h-6">
+                {[...Array(4)].map((_, i) => <span key={i} className="w-2 h-2 bg-slate-200 dark:bg-slate-600 rounded-full" />)}
               </div>
             )}
             {goal.target_amount && (
-              <span className={`text-[10px] font-bold ${isCompleted ? 'text-success-500' : 'text-primary-500'}`}>
+              <span className={`text-xs font-bold ${isCompleted ? 'text-success-500' : 'text-primary-500'}`}>
                 {progress.toFixed(0)}%
               </span>
             )}
           </div>
           {goal.target_amount && (
             <>
-              <div className="h-1 bg-slate-100 dark:bg-slate-700/80 rounded-full overflow-hidden mb-1">
+              <div className="h-1.5 bg-slate-100 dark:bg-slate-700/80 rounded-full overflow-hidden mb-1.5">
                 <motion.div
                   className={`h-full rounded-full bg-gradient-to-r ${barGradient}`}
                   initial={{ width: 0 }}
@@ -111,12 +111,12 @@ export function GoalCard({ goal, index, currentAmount, showAmounts: globalShow, 
                 />
               </div>
               {showAmount ? (
-                <p className="text-[10px] text-slate-400 text-right">
+                <p className="text-xs text-slate-400 text-right">
                   of {Number(goal.target_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })} MAD
                 </p>
               ) : (
                 <div className="flex justify-end gap-1">
-                  {[...Array(3)].map((_, i) => <span key={i} className="w-1 h-1 bg-slate-200 dark:bg-slate-600 rounded-full" />)}
+                  {[...Array(3)].map((_, i) => <span key={i} className="w-1.5 h-1.5 bg-slate-200 dark:bg-slate-600 rounded-full" />)}
                 </div>
               )}
             </>
@@ -125,30 +125,11 @@ export function GoalCard({ goal, index, currentAmount, showAmounts: globalShow, 
 
         {/* Deadline */}
         {goal.target_date && (
-          <div className="flex items-center gap-1 text-[10px] text-slate-400 mb-2">
-            <Calendar className="w-2.5 h-2.5" />
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <Calendar className="w-3 h-3" />
             {format(new Date(goal.target_date), 'MMM dd, yyyy')}
           </div>
         )}
-
-        {/* Actions */}
-        <div className="flex items-center justify-around pt-2 border-t border-slate-100 dark:border-slate-700/50">
-          {[
-            { icon: Plus,  onClick: onAddMoney,          cls: 'bg-primary-500 hover:bg-primary-600',                          iconCls: 'text-white' },
-            { icon: Eye,   onClick: onManageAllocations, cls: 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600', iconCls: 'text-slate-500 dark:text-slate-400' },
-            { icon: Edit2, onClick: onEdit,              cls: 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600', iconCls: 'text-slate-500 dark:text-slate-400' },
-            { icon: Trash2,onClick: onDelete,            cls: 'bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50',  iconCls: 'text-red-500 dark:text-red-400' },
-          ].map(({ icon: Icon, onClick, cls, iconCls }) => (
-            <div
-              key={iconCls + cls}
-              onClick={(e) => { e.stopPropagation(); onClick() }}
-              className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer flex-shrink-0 ${cls}`}
-              style={{ minHeight: 28, minWidth: 28 }}
-            >
-              <Icon className={`w-3.5 h-3.5 ${iconCls}`} />
-            </div>
-          ))}
-        </div>
       </div>
     </motion.div>
   )

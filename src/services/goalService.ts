@@ -1,5 +1,5 @@
 import { supabase, Goal } from '../lib/supabase'
-import type { Allocation } from '../types/goal'
+import type { Allocation, GoalTransaction } from '../types/goal'
 
 export const goalService = {
   async loadGoals(userId: string): Promise<Goal[]> {
@@ -48,6 +48,26 @@ export const goalService = {
       bank_id: alloc.bank_id,
       amount: Number(alloc.amount),
       bank_name: (alloc.banks as any)?.name || 'Unknown Bank'
+    })) || []
+  },
+
+  async loadGoalTransactions(goalId: string): Promise<GoalTransaction[]> {
+    const { data, error } = await supabase
+      .from('objectives_transactions')
+      .select('*, banks:bank_id(name)')
+      .eq('objective_id', goalId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    return data?.map(t => ({
+      id: t.id,
+      goal_id: t.objective_id,
+      bank_id: t.bank_id,
+      bank_name: (t.banks as any)?.name || 'Unknown Bank',
+      amount: Number(t.amount),
+      description: t.description || '',
+      created_at: t.created_at,
     })) || []
   },
 
