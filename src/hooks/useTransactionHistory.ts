@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { fetchTransactions, fetchTotals, returnMoney, returnMultipleTransactions, PAGE_SIZE } from '../services/transactionService'
 import { ObjectiveTransaction } from '../types/transaction'
 import { useAuth } from './useAuth'
+import { alert as _alert } from '../lib/alert'
 import { useSweetAlert } from './useSweetAlert'
-import Swal from 'sweetalert2'
 
 export const useTransactionHistory = (onUpdate?: () => void) => {
   const { user } = useAuth()

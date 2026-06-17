@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Plus, Eye, EyeOff, Edit2, Trash2, Calendar, Sparkles,
@@ -9,7 +9,7 @@ import { format, differenceInDays } from 'date-fns'
 import type { Allocation, GoalTransaction } from '../../types/goal'
 import { categories } from '../../types/goal'
 import { goalService } from '../../services/goalService'
-import toast from 'react-hot-toast'
+import { toast } from '../../lib/toast'
 
 type View = 'detail' | 'add-money' | 'edit' | 'allocations' | 'transactions' | 'confirm-delete'
 

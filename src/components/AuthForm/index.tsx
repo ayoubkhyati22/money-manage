@@ -1,227 +1,261 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { useDarkMode } from '../../hooks/useDarkMode'
 import { useSweetAlert } from '../../hooks/useSweetAlert'
-import { DollarSign } from 'lucide-react'
-import { ThemeToggle } from './ThemeToggle'
-import { TermsModal } from './TermsModal'
+import { supabase } from '../../lib/supabase'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  TrendingUp, ShieldCheck, BarChart3, Wallet,
+  Globe, Star,
+} from 'lucide-react'
 import { LoginForm } from './LoginForm'
 import { MultiStepSignUpForm } from './MultiStepSignUpForm'
-import { supabase } from '../../lib/supabase'
+import { TermsModal } from './TermsModal'
+
+const FEATURES = [
+  { icon: Wallet,      title: 'Multi-Bank Tracking',  desc: 'Monitor all your accounts in one place' },
+  { icon: TrendingUp,  title: 'Goal Management',      desc: 'Set targets and track your progress' },
+  { icon: BarChart3,   title: 'Stock Portfolio',       desc: 'Real-time Casablanca stock prices' },
+]
+
+const STATS = [
+  { value: '10K+', label: 'Active Users' },
+  { value: '99.9%', label: 'Uptime' },
+  { value: '256-bit', label: 'Encryption' },
+]
 
 export function AuthForm() {
-  const navigate = useNavigate()
-  const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [acceptTerms, setAcceptTerms] = useState(false)
-  const [showTermsModal, setShowTermsModal] = useState(false)
+  const navigate   = useNavigate()
+  const { signIn, signUp } = useAuth()
+  const { showError, showInfo } = useSweetAlert()
 
-  // Registration data state
-  const [registrationData, setRegistrationData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phoneNumber: '',
-    password: '',
-    confirmPassword: ''
+  const [tab, setTab]                       = useState<'login' | 'register'>('login')
+  const [loading, setLoading]               = useState(false)
+  const [showTermsModal, setShowTermsModal] = useState(false)
+  const [acceptTerms, setAcceptTerms]       = useState(false)
+
+  // login fields
+  const [email,        setEmail]        = useState('')
+  const [password,     setPassword]     = useState('')
+  const [showPwd,      setShowPwd]      = useState(false)
+
+  // register fields
+  const [showRegPwd,   setShowRegPwd]   = useState(false)
+  const [showRegConf,  setShowRegConf]  = useState(false)
+  const [regData, setRegData] = useState({
+    firstName: '', lastName: '', email: '',
+    phoneNumber: '', password: '', confirmPassword: '',
   })
 
-  const { signIn, signUp } = useAuth()
-  const { theme, setTheme } = useDarkMode()
-  const { showError, showSuccess, showInfo } = useSweetAlert()
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (isLogin) {
-      // Login flow
-      if (!email || !password) {
-        await showError('Missing Information', 'Please enter both email and password')
-        return
-      }
-
-      if (password.length < 6) {
-        await showError('Password Too Short', 'Password must be at least 6 characters long')
-        return
-      }
-
-      setLoading(true)
-      try {
-        await signIn(email, password)
-        await showSuccess('Welcome Back!', 'You have successfully logged in')
-        navigate('/dashboard')
-      } catch (error: any) {
-        console.error('Auth error:', error)
-        await showError('Login Failed', error.message || 'An unexpected error occurred')
-      } finally {
-        setLoading(false)
-      }
-    } else {
-      // Registration flow
-      if (!registrationData.email || !registrationData.password) {
-        await showError('Missing Information', 'Please complete all required fields')
-        return
-      }
-
-      if (registrationData.password.length < 6) {
-        await showError('Password Too Short', 'Password must be at least 6 characters long')
-        return
-      }
-
-      if (registrationData.password !== registrationData.confirmPassword) {
-        await showError('Password Mismatch', 'Passwords do not match')
-        return
-      }
-
-      if (!acceptTerms) {
-        await showError('Terms Required', 'Please accept the terms and conditions to continue')
-        return
-      }
-
-      setLoading(true)
-      try {
-        // Create auth account
-        await signUp(registrationData.email, registrationData.password)
-        
-        // Get the user after signup
-        const { data: { user } } = await supabase.auth.getUser()
-        
-        if (user) {
-          // Create user profile
-          const { error: profileError } = await supabase
-            .from('user_profiles')
-            .insert([{
-              user_id: user.id,
-              first_name: registrationData.firstName,
-              last_name: registrationData.lastName,
-              phone_number: registrationData.phoneNumber || null
-            }])
-
-          if (profileError) {
-            console.error('Error creating profile:', profileError)
-          }
-        }
-        
-        await showInfo(
-          'Account Created!',
-          'Please check your email for verification link before signing in'
-        )
-        
-        // Reset registration form
-        setRegistrationData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          phoneNumber: '',
-          password: '',
-          confirmPassword: ''
-        })
-        setAcceptTerms(false)
-      } catch (error: any) {
-        console.error('Auth error:', error)
-        await showError('Sign Up Failed', error.message || 'An unexpected error occurred')
-      } finally {
-        setLoading(false)
-      }
-    }
+    if (!email || !password) { await showError('Missing Fields', 'Please enter email and password'); return }
+    if (password.length < 6) { await showError('Password Too Short', 'Minimum 6 characters required'); return }
+    setLoading(true)
+    try {
+      await signIn(email, password)
+      navigate('/dashboard')
+    } catch (err: any) {
+      await showError('Login Failed', err.message || 'Invalid credentials')
+    } finally { setLoading(false) }
   }
 
-  const cycleTheme = () => {
-    const themes = ['light', 'dark', 'system'] as const
-    const currentIndex = themes.indexOf(theme)
-    const nextIndex = (currentIndex + 1) % themes.length
-    setTheme(themes[nextIndex])
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!regData.email || !regData.password) { await showError('Missing Fields', 'Please fill in all required fields'); return }
+    if (regData.password.length < 6)          { await showError('Password Too Short', 'Minimum 6 characters required'); return }
+    if (regData.password !== regData.confirmPassword) { await showError('Password Mismatch', 'Passwords do not match'); return }
+    if (!acceptTerms)                          { await showError('Terms Required', 'Please accept the terms to continue'); return }
+    setLoading(true)
+    try {
+      await signUp(regData.email, regData.password)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('user_profiles').insert([{
+          user_id: user.id,
+          first_name: regData.firstName,
+          last_name: regData.lastName,
+          phone_number: regData.phoneNumber || null,
+        }])
+      }
+      await showInfo('Check Your Email', 'We sent a verification link — please confirm your email before signing in.')
+      setRegData({ firstName: '', lastName: '', email: '', phoneNumber: '', password: '', confirmPassword: '' })
+      setAcceptTerms(false)
+      setTab('login')
+    } catch (err: any) {
+      await showError('Registration Failed', err.message || 'An error occurred')
+    } finally { setLoading(false) }
   }
 
-  const toggleAuthMode = () => {
-    setIsLogin(!isLogin)
+  const switchTab = (t: 'login' | 'register') => {
+    setTab(t)
+    setEmail(''); setPassword(''); setShowPwd(false)
+    setRegData({ firstName: '', lastName: '', email: '', phoneNumber: '', password: '', confirmPassword: '' })
     setAcceptTerms(false)
-    // Reset forms when switching
-    setEmail('')
-    setPassword('')
-    setRegistrationData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phoneNumber: '',
-      password: '',
-      confirmPassword: ''
-    })
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mint-50 via-white to-primary-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900 flex items-center justify-center p-4 transition-all duration-500">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-bl from-primary-100/30 dark:from-primary-900/20 to-transparent rounded-full"></div>
-        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-accent-100/30 dark:from-accent-900/20 to-transparent rounded-full"></div>
+    <div className="min-h-screen flex" style={{ background: '#0b0e11' }}>
+
+      {/* ── Left branding panel ── */}
+      <div className="hidden lg:flex flex-col justify-between w-[52%] relative overflow-hidden p-12"
+        style={{ background: 'linear-gradient(135deg, #0d1117 0%, #0f1923 100%)' }}>
+
+        {/* Animated orbs */}
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div animate={{ y: [0, -24, 0], x: [0, 12, 0] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-[10%] right-[15%] w-72 h-72 rounded-full blur-[80px]"
+            style={{ background: 'rgba(99,102,241,0.18)' }} />
+          <motion.div animate={{ y: [0, 20, 0], x: [0, -16, 0] }} transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            className="absolute bottom-[20%] left-[10%] w-56 h-56 rounded-full blur-[80px]"
+            style={{ background: 'rgba(6,182,212,0.14)' }} />
+          <motion.div animate={{ y: [0, 14, 0] }} transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+            className="absolute top-[55%] right-[30%] w-40 h-40 rounded-full blur-[60px]"
+            style={{ background: 'rgba(14,203,129,0.10)' }} />
+        </div>
+
+        {/* Logo */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #6366F1, #06B6D4)' }}>
+              <Wallet className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-white font-bold text-xl tracking-tight">FinanceFlow</span>
+          </div>
+          <p className="text-sm font-medium" style={{ color: '#848E9C' }}>
+            Your complete wealth management platform
+          </p>
+        </div>
+
+        {/* Headline */}
+        <div className="relative z-10 my-auto">
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="font-bold leading-[1.15] mb-6"
+            style={{ fontSize: '2.6rem', color: '#EAECEF' }}
+          >
+            Take control of<br />
+            <span style={{ background: 'linear-gradient(90deg, #6366F1, #06B6D4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              your finances
+            </span>
+          </motion.h1>
+
+          <div className="space-y-5">
+            {FEATURES.map(({ icon: Icon, title, desc }, i) => (
+              <motion.div key={title} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 + i * 0.12 }}
+                className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                  <Icon style={{ color: '#818CF8', width: 18, height: 18 }} />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm" style={{ color: '#EAECEF' }}>{title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#848E9C' }}>{desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="relative z-10 grid grid-cols-3 gap-4">
+          {STATS.map(({ value, label }) => (
+            <div key={label} className="rounded-2xl p-4"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="font-bold text-lg" style={{ color: '#EAECEF' }}>{value}</p>
+              <p className="text-xs mt-0.5" style={{ color: '#848E9C' }}>{label}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <ThemeToggle theme={theme} onToggle={cycleTheme} />
+      {/* ── Right form panel ── */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 relative">
 
-      <div className="relative w-full max-w-2xl">
-        <div className="bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-mint-200/50 dark:border-dark-600/50 p-6 sm:p-8">
-          <div className="text-center mb-6">
-            <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl mx-auto mb-4 shadow-lg">
-              <DollarSign className="w-7 h-7 text-white" />
-            </div>
-            <h1 className="text-2xl font-semibold text-dark-500 dark:text-dark-100 mb-1">FinanceFlow</h1>
-            <p className="text-sm text-dark-400 dark:text-dark-300 font-medium">
-              {isLogin ? 'Welcome back!' : 'Create your account'}
-            </p>
+        {/* Mobile logo */}
+        <div className="lg:hidden flex items-center gap-2 mb-8">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #6366F1, #06B6D4)' }}>
+            <Wallet className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-white font-bold text-lg">FinanceFlow</span>
+        </div>
+
+        <div className="w-full" style={{ maxWidth: tab === 'register' ? 480 : 420 }}>
+
+          {/* Tab switcher */}
+          <div className="flex mb-8 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            {(['login', 'register'] as const).map(t => (
+              <button key={t} onClick={() => switchTab(t)}
+                className="flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 capitalize"
+                style={{
+                  background: tab === t ? 'rgba(99,102,241,0.15)' : 'transparent',
+                  color: tab === t ? '#818CF8' : '#848E9C',
+                  border: tab === t ? '1px solid rgba(99,102,241,0.25)' : '1px solid transparent',
+                }}>
+                {t === 'login' ? 'Log In' : 'Create Account'}
+              </button>
+            ))}
           </div>
 
-          {isLogin ? (
-            <LoginForm
-              email={email}
-              password={password}
-              showPassword={showPassword}
-              loading={loading}
-              onEmailChange={setEmail}
-              onPasswordChange={setPassword}
-              onTogglePassword={() => setShowPassword(!showPassword)}
-              onSubmit={handleSubmit}
-            />
-          ) : (
-            <MultiStepSignUpForm
-              registrationData={registrationData}
-              onRegistrationDataChange={setRegistrationData}
-              showPassword={showPassword}
-              showConfirmPassword={showConfirmPassword}
-              loading={loading}
-              acceptTerms={acceptTerms}
-              onTogglePassword={() => setShowPassword(!showPassword)}
-              onToggleConfirmPassword={() => setShowConfirmPassword(!showConfirmPassword)}
-              onAcceptTermsChange={setAcceptTerms}
-              onShowTerms={() => setShowTermsModal(true)}
-              onSubmit={handleSubmit}
-            />
-          )}
+          {/* Form content */}
+          <AnimatePresence mode="wait">
+            {tab === 'login' ? (
+              <motion.div key="login"
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.22 }}>
+                <LoginForm
+                  email={email} password={password} showPassword={showPwd} loading={loading}
+                  onEmailChange={setEmail} onPasswordChange={setPassword}
+                  onTogglePassword={() => setShowPwd(v => !v)}
+                  onSubmit={handleLogin}
+                  onSwitchToRegister={() => switchTab('register')}
+                />
+              </motion.div>
+            ) : (
+              <motion.div key="register"
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.22 }}>
+                <MultiStepSignUpForm
+                  registrationData={regData}
+                  onRegistrationDataChange={setRegData}
+                  showPassword={showRegPwd}
+                  showConfirmPassword={showRegConf}
+                  loading={loading}
+                  acceptTerms={acceptTerms}
+                  onTogglePassword={() => setShowRegPwd(v => !v)}
+                  onToggleConfirmPassword={() => setShowRegConf(v => !v)}
+                  onAcceptTermsChange={setAcceptTerms}
+                  onShowTerms={() => setShowTermsModal(true)}
+                  onSubmit={handleRegister}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <div className="mt-6 text-center">
-            <button
-              onClick={toggleAuthMode}
-              className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors duration-300 group"
-            >
-              <span className="group-hover:underline decoration-2 underline-offset-4">
-                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-              </span>
-            </button>
+          {/* Trust bar */}
+          <div className="mt-8 flex items-center justify-center gap-5">
+            {[
+              { icon: ShieldCheck, label: 'Secure' },
+              { icon: Globe,       label: 'Private' },
+              { icon: Star,        label: 'Trusted' },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <Icon style={{ color: '#5a6272', width: 13, height: 13 }} />
+                <span className="text-xs" style={{ color: '#5a6272' }}>{label}</span>
+              </div>
+            ))}
           </div>
-
-          <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full opacity-60"></div>
-          <div className="absolute -bottom-3 -left-3 w-5 h-5 bg-gradient-to-br from-mint-400 to-mint-600 rounded-full opacity-60"></div>
         </div>
       </div>
 
       <TermsModal
         isOpen={showTermsModal}
         onClose={() => setShowTermsModal(false)}
-        onAccept={() => setAcceptTerms(true)}
+        onAccept={() => { setAcceptTerms(true); setShowTermsModal(false) }}
       />
     </div>
   )

@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useRef } from 'react'
+﻿import { ReactNode, useState, useEffect, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useDarkMode } from '../hooks/useDarkMode'
 
@@ -46,8 +46,10 @@ export function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview')
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
+  const [mobileFloatMenuOpen, setMobileFloatMenuOpen] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
   const avatarMenuRef = useRef<HTMLDivElement>(null)
+  const floatMenuRef = useRef<HTMLDivElement>(null)
 
   // Scroll to top on tab change
   useEffect(() => {
@@ -86,6 +88,17 @@ export function Layout({ children }: LayoutProps) {
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [avatarMenuOpen])
+
+  useEffect(() => {
+    if (!mobileFloatMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (floatMenuRef.current && !floatMenuRef.current.contains(e.target as Node)) {
+        setMobileFloatMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [mobileFloatMenuOpen])
 
   // Listen for external tab change requests
   useEffect(() => {
@@ -346,36 +359,131 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 rounded-t-[16px] border-t border-slate-200/60 dark:border-slate-700/60 shadow-[0_-4px_20px_0_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_20px_0_rgba(0,0,0,0.35)]">
-        <div className="flex justify-around items-center px-2 py-2">
-          {navigationItems.map((item) => {
-            const Icon = item.icon
-            const isActive = activeTab === item.id
-            return (
-              <motion.button
-                key={item.id}
-                onClick={() => handleTabChange(item.id)}
-                className={`relative flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
-                  isActive
-                    ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-slate-500 dark:text-slate-400'
-                }`}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="mobileActiveTab"
-                    className="absolute inset-0 bg-primary-100 dark:bg-primary-900/30 rounded-xl"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  />
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+        <div className="flex items-end justify-between px-4 pb-5 gap-3 pointer-events-none">
+
+          {/* Left glass pill */}
+          <div className="pointer-events-auto flex items-center gap-0.5 px-1.5 py-1.5 rounded-2xl backdrop-blur-xl bg-white/70 dark:bg-slate-800/70 border border-white/50 dark:border-slate-700/50 shadow-glass dark:shadow-glass-dark">
+            {navigationItems.slice(0, 3).map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              return (
+                <motion.button
+                  key={item.id}
+                  onClick={() => handleTabChange(item.id)}
+                  className={`relative flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
+                    isActive
+                      ? 'text-primary-600 dark:text-primary-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                  }`}
+                  whileTap={{ scale: 0.93 }}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="mobileActiveTab"
+                      className="absolute inset-0 bg-primary-100 dark:bg-primary-900/40 rounded-xl"
+                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                    />
+                  )}
+                  <Icon className={`w-5 h-5 relative z-10 ${isActive ? 'text-primary-500' : ''}`} />
+                  <span className={`text-[10px] font-medium relative z-10 leading-none ${isActive ? 'text-primary-600 dark:text-primary-400' : ''}`}>
+                    {item.label}
+                  </span>
+                </motion.button>
+              )
+            })}
+          </div>
+
+          {/* Center — active secondary tab badge (Withdraw or History) */}
+          <AnimatePresence mode="wait">
+            {(activeTab === 'transactions' || activeTab === 'history') && (() => {
+              const item = navigationItems.find(n => n.id === activeTab)!
+              const Icon = item.icon
+              return (
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, scale: 0.7, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.7, y: 10 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                  className="pointer-events-auto flex flex-col items-center gap-1 px-4 py-2.5 rounded-2xl backdrop-blur-xl bg-primary-500/90 dark:bg-primary-600/90 border border-primary-400/50 shadow-[0_0_20px_rgba(99,102,241,0.35)] text-white"
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-[10px] font-semibold leading-none">{item.label}</span>
+                </motion.div>
+              )
+            })()}
+          </AnimatePresence>
+
+          {/* Right — premium circular Menu button with popup */}
+          <div ref={floatMenuRef} className="pointer-events-auto relative flex-shrink-0">
+
+            {/* Popup: Withdraw & History */}
+            <AnimatePresence>
+              {mobileFloatMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8, y: 16 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8, y: 16 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                  className="absolute bottom-full right-0 mb-3 flex flex-col gap-2"
+                >
+                  {navigationItems.slice(3).map((item, i) => {
+                    const Icon = item.icon
+                    const isActive = activeTab === item.id
+                    return (
+                      <motion.button
+                        key={item.id}
+                        initial={{ opacity: 0, x: 12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.06 }}
+                        onClick={() => { handleTabChange(item.id); setMobileFloatMenuOpen(false) }}
+                        className={`flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-2xl backdrop-blur-xl border transition-all ${
+                          isActive
+                            ? 'bg-primary-500/90 border-primary-400/60 text-white shadow-[0_0_16px_rgba(99,102,241,0.4)]'
+                            : 'bg-white/80 dark:bg-slate-800/80 border-white/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 shadow-glass dark:shadow-glass-dark'
+                        }`}
+                        whileTap={{ scale: 0.92 }}
+                      >
+                        <Icon className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm font-medium">{item.label}</span>
+                      </motion.button>
+                    )
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Premium circle button */}
+            <motion.button
+              onClick={() => setMobileFloatMenuOpen(prev => !prev)}
+              className="relative w-14 h-14 rounded-full flex items-center justify-center text-white overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e3a5f 100%)',
+                boxShadow: mobileFloatMenuOpen
+                  ? '0 0 0 2px rgba(99,102,241,0.6), 0 8px 32px rgba(99,102,241,0.45)'
+                  : '0 0 0 1.5px rgba(99,102,241,0.3), 0 8px 24px rgba(15,10,60,0.55)',
+              }}
+              whileTap={{ scale: 0.88 }}
+              animate={{ rotate: mobileFloatMenuOpen ? 90 : 0 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+            >
+              <span className="absolute inset-0 rounded-full border border-white/10 pointer-events-none" />
+              <span className="absolute inset-[3px] rounded-full border border-white/5 pointer-events-none" />
+              <AnimatePresence mode="wait">
+                {mobileFloatMenuOpen ? (
+                  <motion.span key="x" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}>
+                    <X className="w-6 h-6" />
+                  </motion.span>
+                ) : (
+                  <motion.span key="menu" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}>
+                    <Menu className="w-6 h-6" />
+                  </motion.span>
                 )}
-                <Icon className={`w-5 h-5 relative z-10 ${isActive ? 'text-primary-500' : ''}`} />
-                <span className={`text-[10px] font-medium relative z-10 ${isActive ? 'text-primary-600 dark:text-primary-400' : ''}`}>
-                  {item.label}
-                </span>
-              </motion.button>
-            )
-          })}
+              </AnimatePresence>
+            </motion.button>
+          </div>
+
         </div>
       </nav>
 

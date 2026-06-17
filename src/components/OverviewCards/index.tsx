@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Bank, Goal, TransactionWithDetails, ObjectiveWithAmount } from '../../lib/supabase'
 import { supabase } from '../../lib/supabase'
-import toast from 'react-hot-toast'
+import { toast } from '../../lib/toast'
 import {
   TrendingUp,
   Target,

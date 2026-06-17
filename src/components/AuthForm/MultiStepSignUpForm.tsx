@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Lock, Eye, EyeOff, User, Phone, ArrowRight, ArrowLeft, Check } from 'lucide-react'
+import {
+  Mail, Lock, Eye, EyeOff, User, Phone,
+  ArrowRight, ArrowLeft, Check, ShieldCheck,
+} from 'lucide-react'
 
 interface RegistrationData {
   firstName: string
@@ -20,528 +23,363 @@ interface MultiStepSignUpFormProps {
   acceptTerms: boolean
   onTogglePassword: () => void
   onToggleConfirmPassword: () => void
-  onAcceptTermsChange: (accepted: boolean) => void
+  onAcceptTermsChange: (v: boolean) => void
   onShowTerms: () => void
   onSubmit: (e: React.FormEvent) => void
 }
 
+const STEPS = [
+  { id: 1, label: 'Profile' },
+  { id: 2, label: 'Account' },
+  { id: 3, label: 'Confirm' },
+]
+
+const inputBase: React.CSSProperties = {
+  width: '100%',
+  height: '52px',
+  background: 'rgba(255,255,255,0.04)',
+  border: '1.5px solid rgba(255,255,255,0.08)',
+  borderRadius: '12px',
+  color: '#EAECEF',
+  fontSize: '14px',
+  outline: 'none',
+  transition: 'border-color 0.15s, box-shadow 0.15s',
+}
+
+function AuthInput({
+  icon: Icon, type = 'text', value, placeholder, onChange, autoFocus,
+  rightEl, autoComplete,
+}: {
+  icon: React.FC<any>
+  type?: string
+  value: string
+  placeholder: string
+  onChange: (v: string) => void
+  autoFocus?: boolean
+  rightEl?: React.ReactNode
+  autoComplete?: string
+}) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <div className="relative">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#5a6272' }}>
+        <Icon style={{ width: 17, height: 17 }} />
+      </div>
+      <input
+        type={type} value={value} placeholder={placeholder}
+        autoFocus={autoFocus} autoComplete={autoComplete}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          ...inputBase,
+          paddingLeft: '44px',
+          paddingRight: rightEl ? '48px' : '16px',
+          borderColor: focused ? '#6366F1' : 'rgba(255,255,255,0.08)',
+          boxShadow: focused ? '0 0 0 3px rgba(99,102,241,0.12)' : 'none',
+        }}
+      />
+      {rightEl && (
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">{rightEl}</div>
+      )}
+    </div>
+  )
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <label className="block text-xs font-medium mb-1.5" style={{ color: '#848E9C' }}>{children}</label>
+}
+
+function PasswordStrength({ password }: { password: string }) {
+  if (!password) return null
+  const len = password.length
+  const strength = len >= 12 ? 3 : len >= 8 ? 2 : len >= 6 ? 1 : 0
+  const labels = ['', 'Weak', 'Medium', 'Strong']
+  const colors = ['', '#F6465D', '#F0B90B', '#0ECB81']
+  return (
+    <div className="space-y-1.5 mt-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs" style={{ color: '#848E9C' }}>Password strength</span>
+        <span className="text-xs font-semibold" style={{ color: colors[strength] }}>{labels[strength]}</span>
+      </div>
+      <div className="flex gap-1">
+        {[1, 2, 3].map(i => (
+          <motion.div key={i} className="h-1 flex-1 rounded-full"
+            animate={{ background: i <= strength ? colors[strength] : 'rgba(255,255,255,0.08)' }}
+            transition={{ duration: 0.3 }} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function MultiStepSignUpForm({
-  registrationData,
-  onRegistrationDataChange,
-  showPassword,
-  showConfirmPassword,
-  loading,
-  acceptTerms,
-  onTogglePassword,
-  onToggleConfirmPassword,
-  onAcceptTermsChange,
-  onShowTerms,
-  onSubmit
+  registrationData, onRegistrationDataChange,
+  showPassword, showConfirmPassword, loading, acceptTerms,
+  onTogglePassword, onToggleConfirmPassword,
+  onAcceptTermsChange, onShowTerms, onSubmit,
 }: MultiStepSignUpFormProps) {
-  const [currentStep, setCurrentStep] = useState(1)
-  const totalSteps = 4
+  const [step, setStep]           = useState(1)
+  const [direction, setDirection] = useState(1)
+  const rd = registrationData
+  const set = (patch: Partial<RegistrationData>) => onRegistrationDataChange({ ...rd, ...patch })
 
-  const steps = [
-    { id: 1, title: 'Personal Info', icon: User },
-    { id: 2, title: 'Contact', icon: Mail },
-    { id: 3, title: 'Security', icon: Lock },
-    { id: 4, title: 'Review', icon: Check },
-  ]
-
-  const validateStep = (step: number): boolean => {
-    switch (step) {
-      case 1:
-        return registrationData.firstName.trim().length >= 2 && 
-               registrationData.lastName.trim().length >= 2
-      case 2:
-        return registrationData.email.trim().length > 0 && 
-               /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registrationData.email)
-      case 3:
-        return registrationData.password.length >= 6 && 
-               registrationData.password === registrationData.confirmPassword
-      case 4:
-        return acceptTerms
-      default:
-        return false
-    }
+  const valid = (s: number): boolean => {
+    if (s === 1) return rd.firstName.trim().length >= 2 && rd.lastName.trim().length >= 2
+    if (s === 2) return rd.email.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rd.email)
+                     && rd.password.length >= 6 && rd.password === rd.confirmPassword
+    if (s === 3) return acceptTerms
+    return false
   }
 
-  const handleNext = () => {
-    if (validateStep(currentStep) && currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
-
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
-
-  const handleStepClick = (step: number) => {
-    if (step < currentStep) {
-      setCurrentStep(step)
-    }
-  }
+  const next = () => { if (valid(step) && step < 3) { setDirection(1); setStep(s => s + 1) } }
+  const prev = () => { if (step > 1) { setDirection(-1); setStep(s => s - 1) } }
 
   const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 300 : -300,
-      opacity: 0
-    }),
-    center: {
-      x: 0,
-      opacity: 1
-    },
-    exit: (direction: number) => ({
-      x: direction < 0 ? 300 : -300,
-      opacity: 0
-    })
-  }
-
-  const [direction, setDirection] = useState(0)
-
-  const paginate = (newDirection: number) => {
-    setDirection(newDirection)
+    enter:  (d: number) => ({ x: d > 0 ? 260 : -260, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit:   (d: number) => ({ x: d < 0 ? 260 : -260, opacity: 0 }),
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          {steps.map((step, index) => {
-            const Icon = step.icon
-            const isCompleted = step.id < currentStep
-            const isCurrent = step.id === currentStep
-            
-            return (
-              <div key={step.id} className="flex items-center flex-1">
-                <button
-                  type="button"
-                  onClick={() => handleStepClick(step.id)}
-                  disabled={step.id > currentStep}
-                  className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold text-sm transition-all duration-300 ${
-                    isCompleted
-                      ? 'bg-gradient-to-br from-primary-400 to-primary-600 text-white shadow-lg scale-100'
-                      : isCurrent
-                      ? 'bg-gradient-to-br from-primary-400 to-primary-600 text-white shadow-lg scale-110 ring-4 ring-primary-200 dark:ring-primary-800'
-                      : 'bg-gray-200 dark:bg-dark-600 text-gray-500 dark:text-dark-400'
-                  } ${step.id <= currentStep ? 'cursor-pointer' : 'cursor-not-allowed'}`}
-                >
-                  {isCompleted ? (
-                    <Check className="w-5 h-5" />
-                  ) : (
-                    <Icon className="w-5 h-5" />
-                  )}
-                </button>
-                
-                {index < steps.length - 1 && (
-                  <div className="flex-1 h-1 mx-2 relative">
-                    <div className="absolute inset-0 bg-gray-200 dark:bg-dark-600 rounded-full"></div>
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-primary-400 to-primary-600 rounded-full"
-                      initial={{ width: '0%' }}
-                      animate={{ width: step.id < currentStep ? '100%' : '0%' }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-        
-        <div className="flex items-center justify-between text-xs text-dark-400 dark:text-dark-400 mt-3">
-          {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center flex-1">
-              <span className={`${
-                step.id === currentStep 
-                  ? 'text-primary-600 dark:text-primary-400 font-semibold' 
-                  : step.id < currentStep
-                  ? 'text-primary-500 dark:text-primary-500'
-                  : ''
-              }`}>
-                {step.title}
-              </span>
-              {index < steps.length - 1 && <div className="flex-1" />}
-            </div>
-          ))}
-        </div>
+    <form onSubmit={onSubmit} className="space-y-5">
+
+      {/* Title */}
+      <div className="mb-2">
+        <h2 className="font-bold text-2xl mb-1" style={{ color: '#EAECEF' }}>Create account</h2>
+        <p className="text-sm" style={{ color: '#848E9C' }}>Start managing your finances today</p>
       </div>
 
-      {/* Step Content */}
-      <div className="min-h-[300px] relative overflow-hidden">
+      {/* Step indicator */}
+      <div className="flex items-center gap-2 mb-6">
+        {STEPS.map((s, i) => {
+          const done    = s.id < step
+          const current = s.id === step
+          return (
+            <div key={s.id} className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all duration-300"
+                  style={{
+                    background: done ? '#0ECB81' : current ? '#6366F1' : 'rgba(255,255,255,0.06)',
+                    color: done || current ? '#fff' : '#5a6272',
+                    border: current ? '2px solid rgba(99,102,241,0.4)' : 'none',
+                    boxShadow: current ? '0 0 12px rgba(99,102,241,0.35)' : 'none',
+                  }}
+                >
+                  {done ? <Check style={{ width: 13, height: 13 }} /> : s.id}
+                </div>
+                <span className="text-xs font-medium hidden sm:block" style={{ color: current ? '#EAECEF' : done ? '#0ECB81' : '#5a6272' }}>
+                  {s.label}
+                </span>
+              </div>
+              {i < STEPS.length - 1 && (
+                <div className="flex-1 mx-1 h-px" style={{ background: done ? '#0ECB81' : 'rgba(255,255,255,0.06)' }} />
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Step content */}
+      <div className="relative overflow-hidden" style={{ minHeight: 240 }}>
         <AnimatePresence initial={false} custom={direction} mode="wait">
-          <motion.div
-            key={currentStep}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 }
-            }}
-            className="absolute w-full"
-          >
-            {/* Step 1: Personal Information */}
-            {currentStep === 1 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
-              >
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold text-dark-600 dark:text-dark-100 mb-2">
-                    Welcome! Let's get to know you
-                  </h3>
-                  <p className="text-sm text-dark-400 dark:text-dark-300">
-                    Tell us your name to personalize your experience
-                  </p>
-                </div>
+          <motion.div key={step} custom={direction}
+            variants={slideVariants} initial="enter" animate="center" exit="exit"
+            transition={{ type: 'spring', stiffness: 340, damping: 32 }}
+            className="space-y-4">
 
+            {/* Step 1: Personal */}
+            {step === 1 && (
+              <>
                 <div>
-                  <label htmlFor="firstName" className="block text-xs font-medium text-dark-500 dark:text-dark-200 mb-1.5">
-                    First Name
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-dark-400 dark:text-dark-400" />
-                    <input
-                      id="firstName"
-                      type="text"
-                      value={registrationData.firstName}
-                      onChange={(e) => onRegistrationDataChange({ ...registrationData, firstName: e.target.value })}
-                      className="w-full pl-10 pr-3 py-2.5 border-2 border-mint-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800/30 focus:border-primary-400 dark:focus:border-primary-500 transition-all duration-300 bg-white/80 dark:bg-dark-700/80 backdrop-blur-sm text-sm font-medium text-dark-600 dark:text-dark-200"
-                      placeholder="Enter your first name"
-                      required
-                      autoFocus
-                    />
-                  </div>
+                  <Label>First Name</Label>
+                  <AuthInput icon={User} value={rd.firstName} placeholder="Enter your first name"
+                    onChange={v => set({ firstName: v })} autoFocus autoComplete="given-name" />
                 </div>
-
                 <div>
-                  <label htmlFor="lastName" className="block text-xs font-medium text-dark-500 dark:text-dark-200 mb-1.5">
-                    Last Name
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-dark-400 dark:text-dark-400" />
-                    <input
-                      id="lastName"
-                      type="text"
-                      value={registrationData.lastName}
-                      onChange={(e) => onRegistrationDataChange({ ...registrationData, lastName: e.target.value })}
-                      className="w-full pl-10 pr-3 py-2.5 border-2 border-mint-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800/30 focus:border-primary-400 dark:focus:border-primary-500 transition-all duration-300 bg-white/80 dark:bg-dark-700/80 backdrop-blur-sm text-sm font-medium text-dark-600 dark:text-dark-200"
-                      placeholder="Enter your last name"
-                      required
-                    />
-                  </div>
+                  <Label>Last Name</Label>
+                  <AuthInput icon={User} value={rd.lastName} placeholder="Enter your last name"
+                    onChange={v => set({ lastName: v })} autoComplete="family-name" />
                 </div>
-              </motion.div>
+                <div>
+                  <Label>Phone Number <span style={{ color: '#5a6272' }}>(optional)</span></Label>
+                  <AuthInput icon={Phone} type="tel" value={rd.phoneNumber} placeholder="+212 6 XX XX XX XX"
+                    onChange={v => set({ phoneNumber: v })} autoComplete="tel" />
+                </div>
+              </>
             )}
 
-            {/* Step 2: Contact Information */}
-            {currentStep === 2 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
-              >
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold text-dark-600 dark:text-dark-100 mb-2">
-                    How can we reach you?
-                  </h3>
-                  <p className="text-sm text-dark-400 dark:text-dark-300">
-                    We'll use this to keep your account secure
-                  </p>
-                </div>
-
+            {/* Step 2: Account */}
+            {step === 2 && (
+              <>
                 <div>
-                  <label htmlFor="email" className="block text-xs font-medium text-dark-500 dark:text-dark-200 mb-1.5">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-dark-400 dark:text-dark-400" />
-                    <input
-                      id="email"
-                      type="email"
-                      value={registrationData.email}
-                      onChange={(e) => onRegistrationDataChange({ ...registrationData, email: e.target.value })}
-                      className="w-full pl-10 pr-3 py-2.5 border-2 border-mint-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800/30 focus:border-primary-400 dark:focus:border-primary-500 transition-all duration-300 bg-white/80 dark:bg-dark-700/80 backdrop-blur-sm text-sm font-medium text-dark-600 dark:text-dark-200"
-                      placeholder="your.email@example.com"
-                      required
-                      autoFocus
-                    />
-                  </div>
+                  <Label>Email Address</Label>
+                  <AuthInput icon={Mail} type="email" value={rd.email} placeholder="name@example.com"
+                    onChange={v => set({ email: v })} autoFocus autoComplete="email" />
                 </div>
-
                 <div>
-                  <label htmlFor="phoneNumber" className="block text-xs font-medium text-dark-500 dark:text-dark-200 mb-1.5">
-                    Phone Number (Optional)
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-dark-400 dark:text-dark-400" />
-                    <input
-                      id="phoneNumber"
-                      type="tel"
-                      value={registrationData.phoneNumber}
-                      onChange={(e) => onRegistrationDataChange({ ...registrationData, phoneNumber: e.target.value })}
-                      className="w-full pl-10 pr-3 py-2.5 border-2 border-mint-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800/30 focus:border-primary-400 dark:focus:border-primary-500 transition-all duration-300 bg-white/80 dark:bg-dark-700/80 backdrop-blur-sm text-sm font-medium text-dark-600 dark:text-dark-200"
-                      placeholder="+1 (555) 000-0000"
-                    />
-                  </div>
+                  <Label>Password</Label>
+                  <AuthInput icon={Lock} type={showPassword ? 'text' : 'password'} value={rd.password}
+                    placeholder="Min. 6 characters"
+                    onChange={v => set({ password: v })}
+                    autoComplete="new-password"
+                    rightEl={
+                      <button type="button" onClick={onTogglePassword} style={{ color: '#5a6272' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#EAECEF' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#5a6272' }}>
+                        {showPassword ? <EyeOff style={{ width: 17, height: 17 }} /> : <Eye style={{ width: 17, height: 17 }} />}
+                      </button>
+                    }
+                  />
+                  <PasswordStrength password={rd.password} />
                 </div>
-              </motion.div>
-            )}
-
-            {/* Step 3: Security */}
-            {currentStep === 3 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
-              >
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold text-dark-600 dark:text-dark-100 mb-2">
-                    Secure your account
-                  </h3>
-                  <p className="text-sm text-dark-400 dark:text-dark-300">
-                    Create a strong password (at least 6 characters)
-                  </p>
-                </div>
-
                 <div>
-                  <label htmlFor="password" className="block text-xs font-medium text-dark-500 dark:text-dark-200 mb-1.5">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-dark-400 dark:text-dark-400" />
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={registrationData.password}
-                      onChange={(e) => onRegistrationDataChange({ ...registrationData, password: e.target.value })}
-                      className="w-full pl-10 pr-11 py-2.5 border-2 border-mint-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800/30 focus:border-primary-400 dark:focus:border-primary-500 transition-all duration-300 bg-white/80 dark:bg-dark-700/80 backdrop-blur-sm text-sm font-medium text-dark-600 dark:text-dark-200"
-                      placeholder="Enter your password"
-                      required
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={onTogglePassword}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-400 dark:text-dark-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-300"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-xs font-medium text-dark-500 dark:text-dark-200 mb-1.5">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-dark-400 dark:text-dark-400" />
-                    <input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      value={registrationData.confirmPassword}
-                      onChange={(e) => onRegistrationDataChange({ ...registrationData, confirmPassword: e.target.value })}
-                      className="w-full pl-10 pr-11 py-2.5 border-2 border-mint-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800/30 focus:border-primary-400 dark:focus:border-primary-500 transition-all duration-300 bg-white/80 dark:bg-dark-700/80 backdrop-blur-sm text-sm font-medium text-dark-600 dark:text-dark-200"
-                      placeholder="Confirm your password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={onToggleConfirmPassword}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-400 dark:text-dark-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-300"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  {registrationData.password && registrationData.confirmPassword && registrationData.password !== registrationData.confirmPassword && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                      Passwords don't match
-                    </p>
+                  <Label>Confirm Password</Label>
+                  <AuthInput icon={Lock} type={showConfirmPassword ? 'text' : 'password'} value={rd.confirmPassword}
+                    placeholder="Re-enter your password"
+                    onChange={v => set({ confirmPassword: v })}
+                    autoComplete="new-password"
+                    rightEl={
+                      <button type="button" onClick={onToggleConfirmPassword} style={{ color: '#5a6272' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#EAECEF' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#5a6272' }}>
+                        {showConfirmPassword ? <EyeOff style={{ width: 17, height: 17 }} /> : <Eye style={{ width: 17, height: 17 }} />}
+                      </button>
+                    }
+                  />
+                  {rd.password && rd.confirmPassword && rd.password !== rd.confirmPassword && (
+                    <p className="text-xs mt-1.5" style={{ color: '#F6465D' }}>Passwords don't match</p>
                   )}
                 </div>
-
-                {/* Password Strength Indicator */}
-                {registrationData.password && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-dark-500 dark:text-dark-300">Password Strength:</span>
-                      <span className={`font-medium ${
-                        registrationData.password.length >= 12 
-                          ? 'text-green-600 dark:text-green-400'
-                          : registrationData.password.length >= 8
-                          ? 'text-yellow-600 dark:text-yellow-400'
-                          : 'text-red-600 dark:text-red-400'
-                      }`}>
-                        {registrationData.password.length >= 12 
-                          ? 'Strong'
-                          : registrationData.password.length >= 8
-                          ? 'Medium'
-                          : 'Weak'
-                        }
-                      </span>
-                    </div>
-                    <div className="h-1.5 w-full bg-gray-200 dark:bg-dark-600 rounded-full overflow-hidden">
-                      <motion.div
-                        className={`h-full rounded-full ${
-                          registrationData.password.length >= 12
-                            ? 'bg-green-500'
-                            : registrationData.password.length >= 8
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500'
-                        }`}
-                        initial={{ width: '0%' }}
-                        animate={{ 
-                          width: `${Math.min((registrationData.password.length / 12) * 100, 100)}%` 
-                        }}
-                        transition={{ duration: 0.3 }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </motion.div>
+              </>
             )}
 
-            {/* Step 4: Review & Terms */}
-            {currentStep === 4 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
-              >
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold text-dark-600 dark:text-dark-100 mb-2">
-                    Almost there! 🎉
-                  </h3>
-                  <p className="text-sm text-dark-400 dark:text-dark-300">
-                    Review your information and accept our terms
+            {/* Step 3: Review & Terms */}
+            {step === 3 && (
+              <>
+                {/* Summary card */}
+                <div className="rounded-xl p-4 space-y-3"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="flex items-center gap-3 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm"
+                      style={{ background: 'linear-gradient(135deg, #6366F1, #06B6D4)', color: '#fff' }}>
+                      {(rd.firstName[0] || '?').toUpperCase()}{(rd.lastName[0] || '').toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm" style={{ color: '#EAECEF' }}>
+                        {rd.firstName} {rd.lastName}
+                      </p>
+                      <p className="text-xs" style={{ color: '#848E9C' }}>{rd.email}</p>
+                    </div>
+                  </div>
+                  {[
+                    { label: 'Email',    value: rd.email },
+                    ...(rd.phoneNumber ? [{ label: 'Phone', value: rd.phoneNumber }] : []),
+                    { label: 'Password', value: '••••••••' },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center justify-between">
+                      <span className="text-xs" style={{ color: '#848E9C' }}>{label}</span>
+                      <span className="text-xs font-medium" style={{ color: '#EAECEF' }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Security note */}
+                <div className="flex items-start gap-3 px-3 py-2.5 rounded-xl"
+                  style={{ background: 'rgba(14,203,129,0.06)', border: '1px solid rgba(14,203,129,0.15)' }}>
+                  <ShieldCheck style={{ color: '#0ECB81', width: 16, height: 16, flexShrink: 0, marginTop: 2 }} />
+                  <p className="text-xs" style={{ color: '#848E9C' }}>
+                    Your data is encrypted with 256-bit SSL and never shared with third parties.
                   </p>
                 </div>
 
-                {/* Review Card */}
-                <div className="bg-gradient-to-br from-primary-50 to-mint-50 dark:from-primary-900/20 dark:to-mint-900/20 rounded-xl p-4 border border-primary-200 dark:border-dark-600">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-dark-500 dark:text-dark-300">Full Name</span>
-                      <span className="text-sm font-semibold text-dark-600 dark:text-dark-100">
-                        {registrationData.firstName} {registrationData.lastName}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-dark-500 dark:text-dark-300">Email</span>
-                      <span className="text-sm font-semibold text-dark-600 dark:text-dark-100">
-                        {registrationData.email}
-                      </span>
-                    </div>
-                    {registrationData.phoneNumber && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-dark-500 dark:text-dark-300">Phone</span>
-                        <span className="text-sm font-semibold text-dark-600 dark:text-dark-100">
-                          {registrationData.phoneNumber}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Terms Acceptance */}
-                <div className="space-y-2">
-                  <div className="flex items-start space-x-2">
-                    <div className="flex items-center h-5">
-                      <input
-                        id="accept-terms"
-                        type="checkbox"
-                        checked={acceptTerms}
-                        onChange={(e) => onAcceptTermsChange(e.target.checked)}
-                        className="w-4 h-4 text-primary-600 bg-white dark:bg-dark-700 border-2 border-mint-200 dark:border-dark-600 rounded focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-2 transition-colors"
-                        required
-                      />
-                    </div>
-                    <div className="text-xs">
-                      <label htmlFor="accept-terms" className="text-dark-500 dark:text-dark-200">
-                        I accept the{' '}
-                        <button
-                          type="button"
-                          onClick={onShowTerms}
-                          className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline font-medium transition-colors"
-                        >
-                          Terms and Conditions
-                        </button>
-                        {' '}and{' '}
-                        <button
-                          type="button"
-                          onClick={onShowTerms}
-                          className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline font-medium transition-colors"
-                        >
-                          Privacy Policy
-                        </button>
-                      </label>
+                {/* Terms checkbox */}
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative flex-shrink-0 mt-0.5">
+                    <input type="checkbox" checked={acceptTerms} onChange={e => onAcceptTermsChange(e.target.checked)}
+                      className="sr-only" />
+                    <div
+                      className="w-5 h-5 rounded-md flex items-center justify-center transition-all duration-200"
+                      style={{
+                        background: acceptTerms ? '#6366F1' : 'rgba(255,255,255,0.04)',
+                        border: `1.5px solid ${acceptTerms ? '#6366F1' : 'rgba(255,255,255,0.12)'}`,
+                        boxShadow: acceptTerms ? '0 0 8px rgba(99,102,241,0.35)' : 'none',
+                      }}
+                    >
+                      {acceptTerms && <Check style={{ color: '#fff', width: 12, height: 12 }} />}
                     </div>
                   </div>
-                  {!acceptTerms && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400 ml-6">
-                      Please accept the terms to continue
-                    </p>
-                  )}
-                </div>
-              </motion.div>
+                  <span className="text-xs leading-relaxed" style={{ color: '#848E9C' }}>
+                    I agree to the{' '}
+                    <button type="button" onClick={onShowTerms}
+                      className="font-semibold underline underline-offset-2"
+                      style={{ color: '#6366F1' }}>
+                      Terms of Service
+                    </button>
+                    {' '}and{' '}
+                    <button type="button" onClick={onShowTerms}
+                      className="font-semibold underline underline-offset-2"
+                      style={{ color: '#6366F1' }}>
+                      Privacy Policy
+                    </button>
+                  </span>
+                </label>
+              </>
             )}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex items-center justify-between pt-6 border-t border-mint-200 dark:border-dark-600">
-        <button
-          type="button"
-          onClick={() => {
-            handlePrevious()
-            paginate(-1)
-          }}
-          disabled={currentStep === 1}
-          className="flex items-center space-x-2 px-4 py-2.5 text-sm font-medium text-dark-500 dark:text-dark-300 hover:text-primary-600 dark:hover:text-primary-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back</span>
-        </button>
+      {/* Navigation */}
+      <div className="flex items-center gap-3 pt-1">
+        {step > 1 && (
+          <motion.button type="button" onClick={prev} whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-2 px-4 h-12 rounded-xl text-sm font-semibold transition-all"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#848E9C' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.1)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)' }}>
+            <ArrowLeft style={{ width: 16, height: 16 }} />
+            Back
+          </motion.button>
+        )}
 
-        {currentStep < totalSteps ? (
-          <button
-            type="button"
-            onClick={() => {
-              handleNext()
-              paginate(1)
-            }}
-            disabled={!validateStep(currentStep)}
-            className="flex items-center space-x-2 bg-gradient-to-r from-primary-400 to-primary-600 hover:from-primary-500 hover:to-primary-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold px-6 py-2.5 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100 text-sm"
-          >
-            <span>Next</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+        {step < 3 ? (
+          <motion.button type="button" onClick={next} whileTap={{ scale: 0.97 }} disabled={!valid(step)}
+            className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-bold"
+            style={{
+              background: valid(step) ? 'linear-gradient(135deg, #6366F1, #4F46E5)' : 'rgba(255,255,255,0.06)',
+              color: valid(step) ? '#fff' : '#5a6272',
+              border: 'none',
+              cursor: valid(step) ? 'pointer' : 'not-allowed',
+              boxShadow: valid(step) ? '0 4px 20px rgba(99,102,241,0.3)' : 'none',
+              transition: 'all 0.2s',
+            }}>
+            Continue
+            <ArrowRight style={{ width: 16, height: 16 }} />
+          </motion.button>
         ) : (
-          <button
-            type="submit"
-            disabled={loading || !acceptTerms || !validateStep(currentStep)}
-            className="flex items-center space-x-2 bg-gradient-to-r from-primary-400 to-primary-600 hover:from-primary-500 hover:to-primary-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold px-6 py-2.5 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100 text-sm"
-          >
+          <motion.button type="submit" whileTap={{ scale: 0.97 }}
+            disabled={loading || !acceptTerms}
+            className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-bold"
+            style={{
+              background: !loading && acceptTerms ? 'linear-gradient(135deg, #0ECB81, #0BB574)' : 'rgba(255,255,255,0.06)',
+              color: !loading && acceptTerms ? '#fff' : '#5a6272',
+              border: 'none',
+              cursor: loading || !acceptTerms ? 'not-allowed' : 'pointer',
+              boxShadow: !loading && acceptTerms ? '0 4px 20px rgba(14,203,129,0.3)' : 'none',
+              transition: 'all 0.2s',
+            }}>
             {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Creating...</span>
-              </>
+              <div className="w-5 h-5 border-2 rounded-full animate-spin"
+                style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
             ) : (
               <>
-                <Check className="w-4 h-4" />
-                <span>Create Account</span>
+                <Check style={{ width: 16, height: 16 }} />
+                Create Account
               </>
             )}
-          </button>
+          </motion.button>
         )}
       </div>
     </form>

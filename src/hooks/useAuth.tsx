@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+﻿import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import toast from 'react-hot-toast'
+import { toast } from '../lib/toast'
 
 interface AuthContextType {
   user: User | null

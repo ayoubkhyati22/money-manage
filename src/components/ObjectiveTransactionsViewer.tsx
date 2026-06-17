@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useSweetAlert } from '../hooks/useSweetAlert'
+import { alert as _alert } from '../lib/alert'
 import { History, Calendar, Building2, ArrowUpCircle, ArrowDownCircle, RotateCcw } from 'lucide-react'
 import { format } from 'date-fns'
-import Swal from 'sweetalert2'
 
 interface ObjectiveTransaction {
   id: string

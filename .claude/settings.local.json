@@ -6,7 +6,9 @@
       "Bash(dir:*)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\hp\\\\Desktop\\\\money-manage\\\\src\\\\components\" -Recurse -Include \"*Goal*\" -ErrorAction SilentlyContinue)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\hp\\\\Desktop\\\\money-manage\\\\src\" -Recurse -Name | Where-Object { $_ -notmatch 'node_modules' })",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\hp\\\\Desktop\\\\money-manage\\\\src\" -Recurse | Where-Object { -not $_.PSIsContainer } | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\(\"C:\\\\Users\\\\hp\\\\Desktop\\\\money-manage\\\\src\\\\\", \"\"\\) })"
     ]
   }
 }

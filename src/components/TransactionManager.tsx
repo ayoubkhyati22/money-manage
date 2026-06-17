@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Bank, Goal, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useSweetAlert } from '../hooks/useSweetAlert'
@@ -136,7 +136,7 @@ export function TransactionManager({
 
   // ── Shared sub-sections ─────────────────────────────────────────────────────
 
-  const BankList = () => (
+  const bankListJsx = (
     <div className="space-y-2">
       {banks.map(bank => {
         const active = formData.bank_id === bank.id
@@ -171,7 +171,7 @@ export function TransactionManager({
     </div>
   )
 
-  const GoalList = () => (
+  const goalListJsx = (
     <div className="space-y-2">
       {availableAllocations.length === 0 ? (
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
@@ -211,7 +211,7 @@ export function TransactionManager({
     </div>
   )
 
-  const AmountPanel = () => (
+  const amountPanelJsx = (
     <div className="space-y-4">
       {/* Amount input */}
       <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700/60">
@@ -313,7 +313,7 @@ export function TransactionManager({
 
   // ── Hero (shared) ────────────────────────────────────────────────────────────
 
-  const Hero = () => (
+  const heroJsx = (
     <div className="relative overflow-hidden rounded-2xl px-5 py-5"
       style={{ background: 'linear-gradient(135deg,#b91c1c 0%,#7f1d1d 100%)' }}>
       <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
@@ -336,18 +336,18 @@ export function TransactionManager({
   if (isDesktop) {
     return (
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        <Hero />
+        {heroJsx}
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 items-start">
           {/* Left — bank + goal */}
           <div className="space-y-6">
             <div>
               <span className={labelCls}>1 · Select Bank</span>
-              <BankList />
+              {bankListJsx}
             </div>
             {formData.bank_id && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                 <span className={labelCls}>2 · Select Goal</span>
-                <GoalList />
+                {goalListJsx}
               </motion.div>
             )}
           </div>
@@ -357,7 +357,7 @@ export function TransactionManager({
             {formData.bank_id && formData.objective_id ? (
               <motion.div initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }}>
                 <span className={labelCls}>3 · Amount & Confirm</span>
-                <AmountPanel />
+                {amountPanelJsx}
               </motion.div>
             ) : (
               <div className="flex flex-col items-center justify-center h-64 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-400 gap-3">
@@ -375,7 +375,7 @@ export function TransactionManager({
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 max-w-lg mx-auto">
-      <Hero />
+      {heroJsx}
 
       {/* Step breadcrumb */}
       <div className="flex items-center gap-2 px-1">
@@ -407,7 +407,7 @@ export function TransactionManager({
           {step === 'bank' && (
             <motion.div key="bank" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.18 }}>
               <span className={labelCls}>Select Source Bank</span>
-              <BankList />
+              {bankListJsx}
             </motion.div>
           )}
           {step === 'goal' && (
@@ -419,7 +419,7 @@ export function TransactionManager({
                   <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">{selectedBank?.name}</span>
                 </div>
               </div>
-              <GoalList />
+              {goalListJsx}
             </motion.div>
           )}
           {step === 'amount' && (
@@ -434,7 +434,7 @@ export function TransactionManager({
                   <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">{selectedAllocation?.objective_name}</span>
                 </div>
               </div>
-              <AmountPanel />
+              {amountPanelJsx}
             </motion.div>
           )}
         </AnimatePresence>
