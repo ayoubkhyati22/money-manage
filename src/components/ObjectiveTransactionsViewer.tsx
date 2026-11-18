@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import Swal from 'sweetalert2'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useSweetAlert } from '../hooks/useSweetAlert'
@@ -174,7 +175,7 @@ export function ObjectiveTransactionsViewer({
         confirmButtonColor: '#3b82f6',
         cancelButtonColor: '#6b7280',
         width: '450px',
-        inputValidator: (value) => {
+        inputValidator: (value: string) => {
           const num = parseFloat(value)
           if (!value || isNaN(num)) {
             return 'Please enter a valid amount'

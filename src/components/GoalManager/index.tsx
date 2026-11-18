@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Goal, Bank } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { Plus, Target, Eye, EyeOff } from 'lucide-react'
@@ -15,6 +15,18 @@ import { AllocationsModal } from './AllocationsModal'
 import { GoalDetailPage } from './GoalDetailPage'
 import { bankService } from '../../services/bankService'
 import { motion } from 'framer-motion'
+import { ErrorBoundary } from '../ErrorBoundary'
+
+function safeFormatDate(dateStr: string | null | undefined, fmt: string = 'yyyy-MM-dd'): string {
+  if (!dateStr) return ''
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return ''
+    return format(d, fmt)
+  } catch {
+    return ''
+  }
+}
 
 interface GoalManagerProps {
   goals: Goal[]
@@ -26,7 +38,9 @@ interface GoalManagerProps {
 export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManagerProps) {
   const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
-  const [showAmounts, setShowAmounts] = useState(false)
+  const [showAmounts, setShowAmounts] = useState(() => {
+    return localStorage.getItem('ff_mask_balances') !== 'true'
+  })
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [showAddMoneyForm, setShowAddMoneyForm] = useState(false)
   const [showAllocationsModal, setShowAllocationsModal] = useState(false)
@@ -82,8 +96,9 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
     try {
       const data = await goalService.loadGoals(user.id)
       onUpdate(data)
-    } catch (error: any) {
-      toast.error('Error loading objectives: ' + error.message)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      toast.error('Error loading objectives: ' + msg)
     } finally {
       setLoading(false)
     }
@@ -93,7 +108,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
     try {
       const amounts = await goalService.loadObjectiveAmounts(goals.map(g => g.id))
       setObjectiveAmounts(amounts)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading objective amounts:', error)
     }
   }
@@ -103,8 +118,9 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
     try {
       const data = await goalService.loadAllocations(goalId)
       setAllocations(data)
-    } catch (error: any) {
-      toast.error('Error loading allocations: ' + error.message)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      toast.error('Error loading allocations: ' + msg)
     } finally {
       setLoadingAllocations(false)
     }
@@ -115,7 +131,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
     try {
       const data = await bankService.loadBanks(user.id)
       onBanksUpdate(data)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading banks:', error)
     }
   }
@@ -144,8 +160,9 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
       resetForm()
       loadGoals()
-    } catch (error: any) {
-      toast.error('Error saving objective: ' + error.message)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      toast.error('Error saving objective: ' + msg)
     } finally {
       setLoading(false)
     }
@@ -178,8 +195,9 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       setSelectedObjective(null)
       loadObjectiveAmounts()
       loadBanks()
-    } catch (error: any) {
-      toast.error('Error adding money: ' + error.message)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      toast.error('Error adding money: ' + msg)
     } finally {
       setLoading(false)
     }
@@ -214,8 +232,9 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       loadAllocations(selectedObjective.id)
       loadObjectiveAmounts()
       loadBanks()
-    } catch (error: any) {
-      toast.error('Error updating bank balance: ' + error.message)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      toast.error('Error updating bank balance: ' + msg)
     } finally {
       setLoading(false)
     }
@@ -249,8 +268,9 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       loadAllocations(selectedObjective.id)
       loadObjectiveAmounts()
       loadBanks()
-    } catch (error: any) {
-      toast.error('Error saving allocation: ' + error.message)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      toast.error('Error saving allocation: ' + msg)
     } finally {
       setLoading(false)
     }
@@ -269,8 +289,9 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       loadAllocations(allocation.goal_id)
       loadObjectiveAmounts()
       loadBanks()
-    } catch (error: any) {
-      toast.error('Error deleting allocation: ' + error.message)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      toast.error('Error deleting allocation: ' + msg)
     } finally {
       setLoading(false)
     }
@@ -282,7 +303,7 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       name: goal.name,
       category: goal.category || '',
       target_amount: goal.target_amount ? goal.target_amount.toString() : '',
-      target_date: goal.target_date ? format(new Date(goal.target_date), 'yyyy-MM-dd') : '',
+      target_date: safeFormatDate(goal.target_date, 'yyyy-MM-dd'),
       notes: goal.notes || ''
     })
     setShowForm(true)
@@ -298,8 +319,9 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
 
       try {
         await allocationService.returnMoneyToBanks(goal.id, banks)
-      } catch (error: any) {
-        toast.error('Error returning money to banks: ' + error.message)
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error)
+        toast.error('Error returning money to banks: ' + msg)
         return
       }
     } else {
@@ -318,8 +340,9 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
       if (currentAmount > 0) {
         window.location.reload()
       }
-    } catch (error: any) {
-      toast.error('Error deleting objective: ' + error.message)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      toast.error('Error deleting objective: ' + msg)
     } finally {
       setLoading(false)
     }
@@ -448,18 +471,31 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
     setBankBalanceData({ newBalance: '', description: '' })
   }
 
+  // Aggregate Calculations
   const totalSaved = Object.values(objectiveAmounts).reduce((s, v) => s + Math.max(0, v), 0)
+  const totalTarget = goals.reduce((s, g) => s + Number(g.target_amount || 0), 0)
+  const overallPace = totalTarget > 0 ? Math.min(100, (totalSaved / totalTarget) * 100) : 0
   const completedCount = goals.filter(g => {
     const amt = objectiveAmounts[g.id] || 0
     return g.target_amount && amt >= g.target_amount
   }).length
 
+  const formatMAD = (amount: number, digits = 0) => {
+    if (!showAmounts) return '••••••'
+    return amount.toLocaleString('en-US', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    })
+  }
+
   if (loading && goals.length === 0) {
     return (
-      <div className="space-y-4">
-        <div className="h-28 rounded-3xl bg-slate-200 dark:bg-slate-700 animate-pulse" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {[1, 2, 3].map(i => <div key={i} className="h-56 rounded-2xl bg-slate-200 dark:bg-slate-700 animate-pulse" />)}
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="h-28 rounded-2xl bg-stone-100 dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] shadow-sm animate-pulse p-6" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-48 rounded-2xl bg-white dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] shadow-sm animate-pulse p-5" />
+          ))}
         </div>
       </div>
     )
@@ -468,88 +504,200 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
   if (detailPageGoal) {
     const freshGoal = goals.find(g => g.id === detailPageGoal.id) || detailPageGoal
     return (
-      <motion.div
-        initial={{ x: 40, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 360, damping: 36 }}
+      <ErrorBoundary
+        fallbackTitle="Milestone Vault Unavailable"
+        fallbackMessage="Unable to load this milestone vault. Return to your active horizons below."
+        onReset={closeDetailPage}
       >
-        <GoalDetailPage
-          goal={freshGoal}
-          currentAmount={objectiveAmounts[freshGoal.id] || 0}
-          showAmounts={showAmounts}
-          allocations={allocations}
-          loadingAllocations={loadingAllocations}
-          banks={banks}
-          submitting={submitting}
-          onBack={closeDetailPage}
-          onAddMoney={handleAddMoneyInPage}
-          onSaveEdit={handleSaveEditInPage}
-          onConfirmDelete={handleDeleteInPage}
-          onDeleteAllocation={handleDeleteAllocationInPage}
-        />
-      </motion.div>
+        <motion.div
+          initial={{ x: 30, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 360, damping: 36 }}
+        >
+          <GoalDetailPage
+            goal={freshGoal}
+            currentAmount={objectiveAmounts[freshGoal.id] || 0}
+            showAmounts={showAmounts}
+            allocations={allocations || []}
+            loadingAllocations={loadingAllocations}
+            banks={banks || []}
+            submitting={submitting}
+            onBack={closeDetailPage}
+            onAddMoney={handleAddMoneyInPage}
+            onSaveEdit={handleSaveEditInPage}
+            onConfirmDelete={handleDeleteInPage}
+            onDeleteAllocation={handleDeleteAllocationInPage}
+          />
+        </motion.div>
+      </ErrorBoundary>
     )
   }
 
   return (
-    <div className="space-y-5">
-      {/* ── Stats hero ── */}
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* ── 1. COMMAND HEADER & PORTFOLIO TELEMETRY ── */}
       <motion.div
-        initial={{ opacity: 0, y: -16 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl px-4 py-3 text-white"
-        style={{ background: 'linear-gradient(135deg, #059669 0%, #0891b2 100%)' }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-stone-200 dark:border-white/[0.06]"
       >
-        <div className="relative z-10 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {/* Goals count */}
-            <div>
-              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Goals</p>
-              <p className="text-xl font-bold leading-tight">{goals.length}</p>
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-wider uppercase font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Strategic Capital // Milestones
+            </span>
+            <span className="text-xs text-stone-400 dark:text-stone-500 font-mono hidden sm:inline">
+              Portfolio Horizons
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-stone-900 dark:text-white tracking-tight">
+            Capital Goals & Targets
+          </h1>
+        </div>
+
+        {/* Quick Utilities */}
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <button
+            onClick={() => setShowAmounts(v => !v)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-white dark:bg-[#12141c] border border-stone-200 dark:border-white/[0.08] text-stone-600 dark:text-stone-300 hover:border-stone-300 dark:hover:border-white/20 transition-all"
+            title={showAmounts ? 'Mask figures' : 'Reveal figures'}
+          >
+            {showAmounts ? <EyeOff className="w-4 h-4 text-amber-500" /> : <Eye className="w-4 h-4 text-stone-400" />}
+            <span>{showAmounts ? 'Mask' : 'Reveal'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-semibold bg-stone-900 dark:bg-white text-white dark:text-stone-950 hover:opacity-90 transition-all shadow-md active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Goal</span>
+          </button>
+        </div>
+      </motion.div>
+
+      {/* ── 2. EXECUTIVE BENTO TELEMETRY BAR ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+      >
+        {/* Metric 1: Capital Secured */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] flex flex-col justify-between shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-mono font-medium text-stone-500 uppercase tracking-wider">
+              Secured in Goals
+            </span>
+            <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              Disciplined Capital
+            </span>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-mono font-bold text-stone-900 dark:text-white tabular-num">
+                {formatMAD(totalSaved)}
+              </span>
+              <span className="text-xs font-mono text-stone-400">MAD</span>
             </div>
-            <div className="w-px h-7 bg-white/20" />
-            {/* Total saved */}
-            <div>
-              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Saved</p>
-              {showAmounts ? (
-                <p className="text-xl font-bold leading-tight">
-                  {totalSaved.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                  <span className="text-xs font-normal text-white/60 ml-1">MAD</span>
-                </p>
-              ) : (
-                <div className="flex items-center gap-1.5 h-7">
-                  {[...Array(4)].map((_, i) => <span key={i} className="w-2 h-2 bg-white/40 rounded-full" />)}
-                </div>
-              )}
+            <p className="text-[11px] font-mono text-stone-400 mt-1">
+              {goals.length} target{goals.length !== 1 ? 's' : ''} currently funded
+            </p>
+          </div>
+        </div>
+
+        {/* Metric 2: Aggregate Funding Pace */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] flex flex-col justify-between shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-mono font-medium text-stone-500 uppercase tracking-wider">
+              Portfolio Funding Pace
+            </span>
+            <span className="text-[10px] font-mono font-bold text-amber-500">
+              {overallPace.toFixed(0)}% Completed
+            </span>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-mono font-bold text-stone-900 dark:text-white tabular-num">
+                {totalTarget > 0 ? formatMAD(totalTarget) : 'Open'}
+              </span>
+              {totalTarget > 0 && <span className="text-xs font-mono text-stone-400">MAD Target</span>}
             </div>
-            <div className="w-px h-7 bg-white/20" />
-            {/* Completed */}
-            <div>
-              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Done</p>
-              <p className="text-xl font-bold leading-tight">{completedCount}</p>
+            <div className="w-full bg-stone-100 dark:bg-stone-800 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-amber-500 to-emerald-500 h-full rounded-full transition-all duration-700"
+                style={{ width: `${overallPace}%` }}
+              />
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <div
-              onClick={() => setShowAmounts(v => !v)}
-              className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
-              style={{ minWidth: 32, minHeight: 32 }}
-            >
-              {showAmounts ? <EyeOff className="w-4 h-4 text-white" /> : <Eye className="w-4 h-4 text-white" />}
+        {/* Metric 3: Milestones Achieved */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] flex flex-col justify-between shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-mono font-medium text-stone-500 uppercase tracking-wider">
+              Milestone Status
+            </span>
+            <span className="text-[10px] font-mono text-stone-400">
+              Horizon Completion
+            </span>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-mono font-bold text-stone-900 dark:text-white tabular-num">
+                {completedCount}
+              </span>
+              <span className="text-xs font-mono text-stone-400">
+                of {goals.length} Achieved
+              </span>
             </div>
-            <div
-              onClick={() => setShowForm(!showForm)}
-              className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
-              style={{ minWidth: 32, minHeight: 32 }}
-            >
-              <Plus className="w-4 h-4 text-white" />
-            </div>
+            <p className="text-[11px] font-mono text-stone-400 mt-1">
+              {goals.length - completedCount} active capital horizons
+            </p>
           </div>
         </div>
       </motion.div>
 
-      {/* ── Forms ── */}
+      {/* ── 3. CATEGORY FILTER RAIL ── */}
+      {goals.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <button
+            onClick={() => setActiveCategory(null)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 flex-shrink-0 ${
+              activeCategory === null
+                ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-950 font-bold shadow-sm'
+                : 'bg-white dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] text-stone-600 dark:text-stone-400 hover:border-stone-300 shadow-sm'
+            }`}
+          >
+            <span>All Horizons</span>
+            <span className="text-[10px] opacity-70">({goals.length})</span>
+          </button>
+
+          {categories
+            .filter(c => goals.some(g => g.category === c))
+            .map(cat => {
+              const count = goals.filter(g => g.category === cat).length
+              const isSelected = activeCategory === cat
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(isSelected ? null : cat)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                    isSelected
+                      ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-950 font-bold shadow-sm'
+                      : 'bg-white dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] text-stone-600 dark:text-stone-400 hover:border-stone-300 shadow-sm'
+                  }`}
+                >
+                  <span>{cat}</span>
+                  <span className="text-[10px] opacity-70">({count})</span>
+                </button>
+              )
+            })}
+        </div>
+      )}
+
+      {/* ── 4. FORMS & MODALS ── */}
       {showForm && (
         <GoalForm
           formData={formData}
@@ -600,52 +748,38 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
         />
       )}
 
-      {/* ── Category filter ── */}
-      {goals.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {[{ label: 'All', value: null as string | null }, ...categories.filter(c => goals.some(g => g.category === c)).map(c => ({ label: c, value: c }))].map(({ label, value }) => (
-            <div
-              key={label}
-              onClick={() => setActiveCategory(prev => value === null ? null : prev === value ? null : value)}
-              className={`flex-shrink-0 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                activeCategory === value
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
-              }`}
-              style={{ height: 28, display: 'flex', alignItems: 'center' }}
-            >
-              {label}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── Goals list ── */}
+      {/* ── 5. MILESTONE CARDS GRID ── */}
       {goals.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-20 gap-4"
+          className="p-12 rounded-2xl bg-white dark:bg-[#121520] border border-dashed border-stone-200/90 dark:border-white/10 text-center flex flex-col items-center justify-center gap-3 shadow-sm"
         >
-          <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-            <Target className="w-8 h-8 text-slate-400" />
+          <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-[#161a24] flex items-center justify-center text-stone-400">
+            <Target className="w-6 h-6" />
           </div>
-          <div className="text-center">
-            <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">No goals yet</p>
-            <p className="text-sm text-slate-400">Create your first savings goal to get started</p>
+          <div>
+            <h3 className="text-base font-display font-bold text-stone-900 dark:text-white">
+              No Capital Objectives Established
+            </h3>
+            <p className="text-xs text-stone-400 font-mono mt-1 max-w-sm">
+              Define target goals for acquisitions, emergency vaults, or ventures to organize bank allocations.
+            </p>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition-colors"
+            className="mt-2 px-5 py-2.5 rounded-xl text-xs font-mono font-semibold bg-stone-900 dark:bg-white text-white dark:text-stone-950 hover:opacity-90 transition-all shadow-md flex items-center gap-2"
           >
-            <Plus className="w-4 h-4" />
-            Add your first goal
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create First Milestone</span>
           </button>
         </motion.div>
       ) : (() => {
         const filtered = activeCategory ? goals.filter(g => g.category === activeCategory) : goals
         return filtered.length === 0 ? (
-          <p className="text-center py-10 text-sm text-slate-400">No goals in this category</p>
+          <div className="py-12 text-center text-xs text-stone-400 font-mono">
+            No milestones found under category "{activeCategory}"
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((goal, index) => (
@@ -660,7 +794,6 @@ export function GoalManager({ goals, banks, onUpdate, onBanksUpdate }: GoalManag
                 onAddMoney={() => {
                   setSelectedObjective(goal)
                   setShowAddMoneyForm(true)
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
                 onManageAllocations={() => openAllocationsModal(goal)}
                 onViewDetails={() => openDetailPage(goal)}

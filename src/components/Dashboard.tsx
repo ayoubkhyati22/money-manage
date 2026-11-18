@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Bank, Goal, TransactionWithDetails, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { BankManager } from './BankManager'
@@ -8,6 +8,7 @@ import { TransactionHistory } from './TransactionHistory'
 import { OverviewCards } from './OverviewCards/index'
 import { toast } from '../lib/toast'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ErrorBoundary } from './ErrorBoundary'
 
 type ActiveTab = 'overview' | 'goals' | 'banks' | 'transactions' | 'history' | 'dca' | 'stocks'
 
@@ -38,9 +39,10 @@ export function Dashboard() {
     setLoading(true)
     try {
       await Promise.all([loadBanks(), loadGoals(), loadTransactions()])
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error)
-      toast.error('Error loading data: ' + error.message)
+      const msg = error instanceof Error ? error.message : String(error)
+      toast.error('Error loading data: ' + msg)
     } finally {
       setLoading(false)
     }
@@ -76,111 +78,116 @@ export function Dashboard() {
           total_amount: Number(t.total_amount),
           description: t.description || '',
           created_at: t.created_at,
-          bank_name: (t.banks as any)?.name || 'Unknown Bank',
+          bank_name: (t.banks as { name?: string } | null)?.name || 'Unknown Bank',
           transaction_goals:
-            t.transaction_goals?.map((tg: any) => ({
-              goal_name: tg.goals?.name || 'Unknown Goal',
-              amount: Number(tg.amount),
-            })) || [],
-        })) || []
+              t.transaction_goals?.map((tg: { amount: number | string; goals?: { name?: string } | null }) => ({
+                goal_name: tg.goals?.name || 'Unknown Goal',
+                amount: Number(tg.amount),
+              })) || [],
+            })) || []
       setTransactions(mapped)
+        }
+  }
+
+    const refreshAllData = () => loadAllData()
+
+    const pageVariants = {
+      initial: { opacity: 0, y: 20 },
+      enter: { opacity: 1, y: 0 },
+      exit: { opacity: 0, y: -20 }
     }
-  }
 
-  const refreshAllData = () => loadAllData()
-
-  const pageVariants = {
-    initial: { opacity: 0, y: 20 },
-    enter: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 }
-  }
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        return <OverviewCards banks={banks} goals={goals} transactions={transactions} />
-      case 'goals':
-        return (
-          <GoalManager
-            goals={goals}
-            banks={banks}
-            onUpdate={(updated) => {
-              setGoals(updated)
-              loadBanks()
-            }}
-            onBanksUpdate={setBanks}
-          />
-        )
-      case 'banks':
-        return (
-          <BankManager
-            banks={banks}
-            onUpdate={setBanks}
-          />
-        )
-      case 'transactions':
-        return (
-          <TransactionManager
-            banks={banks}
-            goals={goals}
-            onBanksUpdate={setBanks}
-            onGoalsUpdate={setGoals}
-            onTransactionAdded={refreshAllData}
-          />
-        )
-      case 'history':
-        return <TransactionHistory onUpdate={refreshAllData} />
-      default:
-        return null
+    const renderContent = () => {
+      switch (activeTab) {
+        case 'overview':
+          return <OverviewCards banks={banks} goals={goals} transactions={transactions} onRefresh={refreshAllData} />
+        case 'goals':
+          return (
+            <GoalManager
+              goals={goals}
+              banks={banks}
+              onUpdate={(updated) => {
+                setGoals(updated)
+                loadBanks()
+              }}
+              onBanksUpdate={setBanks}
+            />
+          )
+        case 'banks':
+          return (
+            <BankManager
+              banks={banks}
+              onUpdate={setBanks}
+            />
+          )
+        case 'transactions':
+          return (
+            <TransactionManager
+              banks={banks}
+              goals={goals}
+              onBanksUpdate={setBanks}
+              onGoalsUpdate={setGoals}
+              onTransactionAdded={refreshAllData}
+            />
+          )
+        case 'history':
+          return <TransactionHistory onUpdate={refreshAllData} />
+        default:
+          return null
+      }
     }
-  }
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        {/* Loading Skeleton - Hero Card */}
-        <div className="glass-card p-6 animate-pulse">
-          <div className="h-8 w-48 bg-slate-200 dark:bg-slate-700 rounded-lg mb-4"></div>
-          <div className="h-12 w-64 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-        </div>
+    if (loading) {
+      return (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              {/* Terminal Header Skeleton */}
+              <div className="flex flex-col sm:flex-row justify-between gap-4 pb-4 border-b border-stone-200 dark:border-white/[0.06] animate-pulse">
+                <div className="space-y-2">
+                  <div className="h-4 w-40 bg-stone-200 dark:bg-stone-800 rounded-full" />
+                  <div className="h-8 w-72 bg-stone-300 dark:bg-stone-700 rounded-lg" />
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-10 w-28 bg-stone-200 dark:bg-stone-800 rounded-xl" />
+                  <div className="h-10 w-28 bg-stone-200 dark:bg-stone-800 rounded-xl" />
+                </div>
+              </div>
 
-        {/* Loading Skeleton - Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="glass-card p-5 animate-pulse">
-              <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded mb-3"></div>
-              <div className="h-8 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
-            </div>
-          ))}
-        </div>
-
-        {/* Loading Skeleton - Content */}
-        <div className="glass-card p-6 animate-pulse">
-          <div className="h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
+        {/* Hero Card & Matrix Skeleton */ }
+                    < div className = "grid grid-cols-1 lg:grid-cols-12 gap-5" >
+          <div className="lg:col-span-5 h-64 bg-stone-900 border border-stone-800 rounded-2xl animate-pulse p-6" />
+          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-32 bg-white dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] shadow-sm rounded-2xl animate-pulse p-4" />
             ))}
           </div>
         </div>
-      </div>
-    )
+
+                {/* Chart Skeleton */}
+                <div className="h-72 bg-white dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] shadow-sm rounded-2xl animate-pulse" />
+              </div>
+              )
   }
 
-  return (
-    <div className="min-h-[calc(100vh-8rem)]">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          variants={pageVariants}
-          initial="initial"
-          animate="enter"
-          exit="exit"
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-        >
-          {renderContent()}
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  )
+              return (
+              <div className="min-h-[calc(100vh-8rem)]">
+                <ErrorBoundary
+                  fallbackTitle="View Rendering Issue"
+                  fallbackMessage="An issue occurred loading this section. Click below to refresh your ledger data."
+                  onReset={refreshAllData}
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTab}
+                      variants={pageVariants}
+                      initial="initial"
+                      animate="enter"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: 'easeOut' }}
+                    >
+                      {renderContent()}
+                    </motion.div>
+                  </AnimatePresence>
+                </ErrorBoundary>
+              </div>
+              )
 }

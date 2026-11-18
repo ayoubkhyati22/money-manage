@@ -110,7 +110,7 @@ export function TransactionHistory({ onUpdate }: TransactionHistoryProps) {
         <Toolbar />
 
         {/* Full-width table card */}
-        <div className="bg-white dark:bg-slate-800/60 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700/50 shadow-sm">
+        <div className="bg-white dark:bg-[#121520] rounded-2xl overflow-hidden border border-stone-200/90 dark:border-white/[0.08] shadow-sm">
           <DesktopView
             transactions={transactions}
             loading={loading}

@@ -1,6 +1,5 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Bank, Goal, supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
 import { useSweetAlert } from '../hooks/useSweetAlert'
 import {
   ArrowDownCircle, Building2, Target, ChevronRight,
@@ -26,9 +25,8 @@ const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-slate-400
 const PCT_BTNS = [25, 50, 75, 100]
 
 export function TransactionManager({
-  banks, goals, onBanksUpdate, onGoalsUpdate, onTransactionAdded,
+  banks, goals, onTransactionAdded,
 }: TransactionManagerProps) {
-  const { user } = useAuth()
   const { showError, showConfirm, showSuccess } = useSweetAlert()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({ bank_id: '', objective_id: '', amount: '', description: '' })
@@ -64,7 +62,7 @@ export function TransactionManager({
       setAvailableAllocations(
         data?.map(a => ({
           objective_id: a.goal_id,
-          objective_name: (a.goals as any)?.name || 'Unknown',
+          objective_name: (a.goals as { name?: string } | null)?.name || 'Unknown',
           allocated_amount: Number(a.amount),
         })) || [],
       )
@@ -115,8 +113,9 @@ export function TransactionManager({
       await showSuccess('Withdrawal Successful', `${parsedAmount.toFixed(2)} MAD withdrawn from ${selectedBank.name}`)
       reset()
       onTransactionAdded()
-    } catch (err: any) {
-      await showError('Transaction Failed', err.message)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      await showError('Transaction Failed', msg)
     } finally {
       setLoading(false)
     }
@@ -147,7 +146,7 @@ export function TransactionManager({
             className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all cursor-pointer group ${
               active
                 ? 'border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-900/15'
-                : 'border-transparent bg-white dark:bg-slate-800/80 hover:border-slate-200 dark:hover:border-slate-600 shadow-sm'
+                : 'border-stone-200/90 dark:border-white/[0.08] bg-white dark:bg-[#121520] hover:border-slate-300 dark:hover:border-slate-600 shadow-sm'
             }`}
           >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center flex-shrink-0">
@@ -188,7 +187,7 @@ export function TransactionManager({
               className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all cursor-pointer group ${
                 active
                   ? 'border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-900/15'
-                  : 'border-transparent bg-white dark:bg-slate-800/80 hover:border-slate-200 dark:hover:border-slate-600 shadow-sm'
+                  : 'border-stone-200/90 dark:border-white/[0.08] bg-white dark:bg-[#121520] hover:border-slate-300 dark:hover:border-slate-600 shadow-sm'
               }`}
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center flex-shrink-0">
@@ -214,7 +213,7 @@ export function TransactionManager({
   const amountPanelJsx = (
     <div className="space-y-4">
       {/* Amount input */}
-      <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700/60">
+      <div className="bg-white dark:bg-[#121520] rounded-2xl p-5 shadow-sm border border-stone-200/90 dark:border-white/[0.08]">
         <div className="flex items-center justify-between mb-4">
           <span className={labelCls + ' mb-0'}>Withdrawal Amount</span>
           <span className="text-[11px] text-slate-400">
@@ -257,7 +256,7 @@ export function TransactionManager({
       </div>
 
       {/* Description */}
-      <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700/60">
+      <div className="bg-white dark:bg-[#121520] rounded-2xl p-4 shadow-sm border border-stone-200/90 dark:border-white/[0.08]">
         <span className={labelCls}>Description</span>
         <input
           type="text" value={formData.description}
@@ -272,11 +271,11 @@ export function TransactionManager({
       <AnimatePresence>
         {formData.amount && selectedBank && selectedAllocation && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
-            <div className="bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
+            className="rounded-2xl overflow-hidden border border-stone-200/90 dark:border-white/[0.08] shadow-sm">
+            <div className="bg-stone-50 dark:bg-[#161a26] px-4 py-2.5 border-b border-stone-200/80 dark:border-white/[0.06]">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Order Preview</p>
             </div>
-            <div className="bg-white dark:bg-slate-800/40 divide-y divide-slate-100 dark:divide-slate-700/50">
+            <div className="bg-white dark:bg-[#121520] divide-y divide-stone-100 dark:divide-white/[0.06]">
               {[
                 { label: 'Source Bank', value: selectedBank.name },
                 { label: 'Goal', value: selectedAllocation.objective_name },

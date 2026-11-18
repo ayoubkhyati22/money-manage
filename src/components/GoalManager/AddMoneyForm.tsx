@@ -1,5 +1,6 @@
 import { Goal, Bank } from '../../lib/supabase'
-import { DollarSign } from 'lucide-react'
+import { Building2, X, ArrowUpCircle, Check } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface AddMoneyFormProps {
   selectedObjective: Goal
@@ -11,135 +12,185 @@ interface AddMoneyFormProps {
   }
   loading: boolean
   onSubmit: (e: React.FormEvent) => void
-  onChange: (data: any) => void
+  onChange: (data: {
+    bank_id: string
+    amount: string
+    description: string
+  }) => void
   onCancel: () => void
 }
 
-export function AddMoneyForm({ selectedObjective, banks, formData, loading, onSubmit, onChange, onCancel }: AddMoneyFormProps) {
+const PRESET_AMOUNTS = ['500', '1000', '2500', '5000', '10000']
+
+export function AddMoneyForm({
+  selectedObjective,
+  banks,
+  formData,
+  loading,
+  onSubmit,
+  onChange,
+  onCancel,
+}: AddMoneyFormProps) {
+  const selectedBank = banks.find(b => b.id === formData.bank_id)
+  const availableBalance = selectedBank ? Number(selectedBank.balance) : 0
+
   return (
-    <div className="relative">
-      {/* Animated background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/50 via-teal-100/30 to-cyan-100/50 dark:from-emerald-950/30 dark:via-teal-950/20 dark:to-cyan-950/30 rounded-2xl blur-3xl -z-10"></div>
-      
-      <div className="bg-white/70 dark:bg-dark-800/70 backdrop-blur-2xl rounded-2xl shadow-xl border border-white/50 dark:border-dark-600/50 overflow-hidden">
-        {/* Header with glass effect */}
-        <div className="relative bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 dark:from-emerald-900/20 dark:via-teal-900/20 dark:to-cyan-900/20 backdrop-blur-xl p-5 sm:p-6 border-b border-white/30 dark:border-dark-600/30">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-emerald-500 blur-lg opacity-50 rounded-xl"></div>
-              <div className="relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg">
-                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ duration: 0.2 }}
+          className="w-full max-w-lg bg-white dark:bg-[#121520] border border-stone-200/90 dark:border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden my-8"
+        >
+          {/* Executive Header */}
+          <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-100 dark:border-white/[0.06] bg-stone-50/50 dark:bg-[#12141c]/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-stone-900 dark:bg-[#161a24] border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <ArrowUpCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-mono tracking-widest uppercase text-emerald-600 dark:text-emerald-400 font-semibold">
+                  Capital Allocation // Deposit
+                </p>
+                <h3 className="text-lg font-display font-bold text-stone-900 dark:text-white leading-tight">
+                  Allocate to "{selectedObjective.name}"
+                </h3>
               </div>
             </div>
-            <div>
-              <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">
-                Add Money to "{selectedObjective.name}"
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Allocate funds to your objective
-              </p>
-            </div>
+
+            <button
+              onClick={onCancel}
+              className="p-2 rounded-xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/[0.05] transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-        </div>
 
-        <div className="p-5 sm:p-6">
-          <form onSubmit={onSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Select Bank */}
-              <div className="group">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-dark-200 mb-2">
-                  Select Bank *
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.bank_id}
-                    onChange={(e) => onChange({ ...formData, bank_id: e.target.value })}
-                    className="w-full px-4 py-3 text-sm border-2 border-white/50 dark:border-dark-600/50 rounded-xl focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-teal-500/50 focus:border-emerald-500 dark:focus:border-teal-500 bg-white/70 dark:bg-dark-700/70 backdrop-blur-sm text-gray-900 dark:text-dark-100 transition-all duration-300 hover:bg-white/90 dark:hover:bg-dark-700/90"
-                    required
-                  >
-                    <option value="">Choose a bank...</option>
-                    {banks.map((bank) => (
-                      <option key={bank.id} value={bank.id}>
-                        {bank.name} - {Number(bank.balance).toFixed(2)} MAD
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                </div>
-              </div>
+          {/* Form Content */}
+          <form onSubmit={onSubmit} className="p-5 sm:p-6 space-y-4">
+            {/* Source Bank Selection */}
+            <div>
+              <label className="block text-xs font-mono font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <Building2 className="w-3 h-3 text-stone-400" />
+                <span>Source Bank Account *</span>
+              </label>
 
-              {/* Amount */}
-              <div className="group">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-dark-200 mb-2">
-                  Amount (MAD) *
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    value={formData.amount}
-                    onChange={(e) => onChange({ ...formData, amount: e.target.value })}
-                    className="w-full px-4 py-3 text-sm border-2 border-white/50 dark:border-dark-600/50 rounded-xl focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-teal-500/50 focus:border-emerald-500 dark:focus:border-teal-500 bg-white/70 dark:bg-dark-700/70 backdrop-blur-sm text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400 transition-all duration-300 hover:bg-white/90 dark:hover:bg-dark-700/90"
-                    placeholder="500.00"
-                    required
-                  />
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/0 via-teal-500/5 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <select
+                value={formData.bank_id}
+                onChange={e => onChange({ ...formData, bank_id: e.target.value })}
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-[#14161f] border border-stone-200 dark:border-white/[0.08] text-sm text-stone-900 dark:text-white focus:outline-none focus:border-emerald-500/60 font-mono transition-all"
+              >
+                <option value="">Choose depository bank...</option>
+                {banks.map(bank => (
+                  <option key={bank.id} value={bank.id}>
+                    {bank.name} — {Number(bank.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })} MAD
+                  </option>
+                ))}
+              </select>
+
+              {selectedBank && (
+                <div className="mt-2 px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-[#161922] border border-stone-200/60 dark:border-white/[0.06] flex items-center justify-between text-xs font-mono">
+                  <span className="text-stone-500 dark:text-stone-400">Available Liquid Balance:</span>
+                  <span className="font-bold text-stone-800 dark:text-white tabular-num">
+                    {availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })} MAD
+                  </span>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Description */}
-            <div className="group">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-dark-200 mb-2">
-                Description
-              </label>
+            {/* Deposit Amount */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-mono font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+                  Allocation Amount (MAD) *
+                </label>
+                <span className="text-[10px] font-mono text-stone-400">Moroccan Dirham</span>
+              </div>
+
               <div className="relative">
                 <input
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) => onChange({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-white/50 dark:border-dark-600/50 rounded-xl focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-teal-500/50 focus:border-emerald-500 dark:focus:border-teal-500 bg-white/70 dark:bg-dark-700/70 backdrop-blur-sm text-gray-900 dark:text-dark-100 placeholder-gray-500 dark:placeholder-dark-400 transition-all duration-300 hover:bg-white/90 dark:hover:bg-dark-700/90"
-                  placeholder="e.g., Initial savings for car"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max={availableBalance > 0 ? availableBalance : undefined}
+                  value={formData.amount}
+                  onChange={e => onChange({ ...formData, amount: e.target.value })}
+                  placeholder="0.00"
+                  required
+                  className="w-full pl-3.5 pr-14 py-2.5 rounded-xl bg-stone-50 dark:bg-[#14161f] border border-stone-200 dark:border-white/[0.08] text-sm font-mono text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-emerald-500/60 tabular-num transition-all"
                 />
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono text-stone-400 font-semibold pointer-events-none">
+                  MAD
+                </span>
               </div>
+
+              {/* Quick Presets */}
+              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                <span className="text-[10px] font-mono text-stone-400 mr-1">Presets:</span>
+                {PRESET_AMOUNTS.map(preset => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => onChange({ ...formData, amount: preset })}
+                    className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-stone-100 dark:bg-[#181b24] hover:bg-emerald-500/10 text-stone-600 dark:text-stone-300 hover:text-emerald-500 border border-stone-200/60 dark:border-white/[0.06] transition-colors"
+                  >
+                    +{Number(preset).toLocaleString('en-US')}
+                  </button>
+                ))}
+                {availableBalance > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onChange({ ...formData, amount: String(availableBalance) })}
+                    className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                  >
+                    Max ({availableBalance.toFixed(0)})
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Description / Memo */}
+            <div>
+              <label className="block text-xs font-mono font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1.5">
+                Transaction Memo (Optional)
+              </label>
+              <input
+                type="text"
+                value={formData.description}
+                onChange={e => onChange({ ...formData, description: e.target.value })}
+                placeholder="e.g. Monthly salary savings, Bonus allocation"
+                className="w-full px-3.5 py-2 rounded-xl bg-stone-50 dark:bg-[#14161f] border border-stone-200 dark:border-white/[0.08] text-xs text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-emerald-500/60 transition-all"
+              />
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="relative group/btn flex-1 sm:flex-none overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 opacity-0 group-hover/btn:opacity-100 blur-xl transition-opacity duration-300"></div>
-                <div className="relative bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 hover:from-emerald-600 hover:to-teal-700 dark:hover:from-emerald-700 dark:hover:to-teal-800 text-white font-bold px-8 py-3 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-2xl transform hover:scale-105 disabled:hover:scale-100 active:scale-95">
-                  {loading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Adding...</span>
-                    </div>
-                  ) : (
-                    <span>Add Money</span>
-                  )}
-                </div>
-              </button>
-              
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-100 dark:border-white/[0.06]">
               <button
                 type="button"
                 onClick={onCancel}
-                className="relative group/cancel px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
+                className="px-4 py-2.5 rounded-xl text-xs font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-white/[0.05] transition-colors"
               >
-                <div className="absolute inset-0 bg-white/50 dark:bg-dark-700/50 backdrop-blur-sm rounded-xl border-2 border-gray-300/50 dark:border-dark-600/50 group-hover/cancel:border-gray-400/50 dark:group-hover/cancel:border-dark-500/50 transition-colors"></div>
-                <span className="relative font-semibold text-gray-700 dark:text-dark-200 group-hover/cancel:text-gray-900 dark:group-hover/cancel:text-dark-100">
-                  Cancel
-                </span>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading || !formData.bank_id || !formData.amount}
+                className="px-6 py-2.5 rounded-xl text-xs font-mono font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all disabled:opacity-50 shadow-md flex items-center gap-2"
+              >
+                {loading ? (
+                  <div className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                ) : (
+                  <Check className="w-3.5 h-3.5" />
+                )}
+                <span>Confirm Allocation</span>
               </button>
             </div>
           </form>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   )
 }

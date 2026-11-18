@@ -1,6 +1,6 @@
 import { Bank } from '../../lib/supabase'
 import type { Allocation } from '../../types/goal'
-import { CreditCard as Edit2, Trash2, DollarSign } from 'lucide-react'
+import { Edit2, Trash2, Landmark } from 'lucide-react'
 
 interface AllocationsListProps {
   allocations: Allocation[]
@@ -12,53 +12,58 @@ interface AllocationsListProps {
 
 export function AllocationsList({ allocations, banks, onEditAllocation, onEditBankBalance, onDelete }: AllocationsListProps) {
   if (allocations.length === 0) {
-    return <p className="text-gray-500 dark:text-dark-400 text-center py-8">No allocations yet</p>
+    return <p className="text-stone-400 font-mono text-xs text-center py-8">No allocations active yet</p>
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {allocations.map((allocation) => {
         const bank = banks.find(b => b.id === allocation.bank_id)
         const bankBalance = bank ? Number(bank.balance) : 0
 
         return (
-          <div key={allocation.id} className="flex items-center justify-between p-4 bg-white dark:bg-dark-700 border border-gray-200 dark:border-dark-600 rounded-lg">
+          <div
+            key={allocation.id}
+            className="flex items-center justify-between p-3.5 bg-stone-50 dark:bg-[#14161f] border border-stone-200/80 dark:border-white/[0.07] rounded-xl font-mono text-xs"
+          >
             <div>
-              <p className="font-medium text-gray-900 dark:text-dark-100">{allocation.bank_name}</p>
-              <p className="text-sm text-gray-500 dark:text-dark-400">
-                Allocated: {allocation.amount.toFixed(2)} MAD
+              <p className="font-semibold text-stone-900 dark:text-white">{allocation.bank_name}</p>
+              <p className="text-[11px] text-stone-400 mt-0.5">
+                Allocated: <strong className="text-stone-700 dark:text-stone-300">{allocation.amount.toFixed(2)} MAD</strong>
               </p>
             </div>
-            <div className="flex items-center space-x-3">
+
+            <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-lg font-semibold text-gray-900 dark:text-dark-100">
+                <p className="font-bold text-stone-900 dark:text-white tabular-num">
                   {bankBalance.toFixed(2)} MAD
                 </p>
-                <p className="text-xs text-gray-500 dark:text-dark-400">Bank Balance</p>
+                <p className="text-[10px] text-stone-400">Vault Balance</p>
               </div>
-              <div className="flex flex-col space-y-1">
+
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => onEditAllocation(allocation)}
-                  className="p-1 text-gray-400 dark:text-dark-400 hover:text-blue-600 dark:hover:text-primary-400 transition-colors"
-                  title="Edit Allocation"
+                  className="p-1.5 rounded-lg text-stone-400 hover:text-amber-500 hover:bg-stone-200/50 dark:hover:bg-white/[0.05] transition-colors"
+                  title="Adjust Allocation"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => onEditBankBalance(allocation)}
-                  className="p-1 text-gray-400 dark:text-dark-400 hover:text-green-600 dark:hover:text-primary-400 transition-colors"
-                  title="Edit Bank Balance"
+                  className="p-1.5 rounded-lg text-stone-400 hover:text-emerald-500 hover:bg-stone-200/50 dark:hover:bg-white/[0.05] transition-colors"
+                  title="Adjust Bank Balance"
                 >
-                  <DollarSign className="w-4 h-4" />
+                  <Landmark className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => onDelete(allocation)}
+                  className="p-1.5 rounded-lg text-stone-400 hover:text-rose-500 hover:bg-stone-200/50 dark:hover:bg-white/[0.05] transition-colors"
+                  title="Delete Allocation"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <button
-                onClick={() => onDelete(allocation)}
-                className="p-1 text-gray-400 dark:text-dark-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                title="Delete Allocation"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
             </div>
           </div>
         )

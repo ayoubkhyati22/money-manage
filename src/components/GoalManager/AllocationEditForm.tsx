@@ -8,34 +8,36 @@ interface AllocationEditFormProps {
   }
   loading: boolean
   onSubmit: (e: React.FormEvent) => void
-  onChange: (data: any) => void
+  onChange: (data: { bank_id: string; amount: string }) => void
   onCancel: () => void
 }
 
 export function AllocationEditForm({ banks, formData, loading, onSubmit, onChange, onCancel }: AllocationEditFormProps) {
+  const bankName = banks.find(b => b.id === formData.bank_id)?.name || 'Depository Account'
+
   return (
-    <div className="bg-gray-50 dark:bg-dark-700 rounded-lg p-4">
-      <h4 className="text-sm font-medium text-gray-700 dark:text-dark-200 mb-3">
-        Edit Allocation
+    <div className="bg-stone-50 dark:bg-[#14161f] border border-stone-200/80 dark:border-white/[0.08] rounded-xl p-4 font-mono text-xs">
+      <h4 className="font-display font-bold text-sm text-stone-900 dark:text-white mb-3">
+        Adjust Bank Allocation
       </h4>
 
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={onSubmit} className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
+            <label className="block text-[11px] font-medium text-stone-500 uppercase tracking-wider mb-1">
               Bank
             </label>
             <input
               type="text"
-              value={banks.find(b => b.id === formData.bank_id)?.name || ''}
-              className="w-full px-3 py-2 bg-gray-100 dark:bg-dark-600 border border-gray-300 dark:border-dark-600 rounded-lg text-gray-900 dark:text-dark-100"
+              value={bankName}
+              className="w-full px-3 py-2 bg-stone-100 dark:bg-[#1a1d28] border border-stone-200 dark:border-white/[0.06] rounded-xl text-stone-700 dark:text-stone-300 font-medium"
               disabled
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-200 mb-1">
-              Amount (MAD) *
+            <label className="block text-[11px] font-medium text-stone-500 uppercase tracking-wider mb-1">
+              Allocated Amount (MAD) *
             </label>
             <input
               type="number"
@@ -43,25 +45,25 @@ export function AllocationEditForm({ banks, formData, loading, onSubmit, onChang
               min="0"
               value={formData.amount}
               onChange={(e) => onChange({ ...formData, amount: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100"
+              className="w-full px-3 py-2 border border-stone-200 dark:border-white/[0.08] rounded-xl bg-white dark:bg-[#121520] text-stone-900 dark:text-white focus:outline-none focus:border-amber-500/60 tabular-num"
               placeholder="0.00"
               required
             />
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-2 pt-1">
           <button
             type="submit"
             disabled={loading}
-            className="bg-emerald-500 dark:bg-primary-500 hover:bg-emerald-600 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            className="bg-stone-900 dark:bg-white text-white dark:text-stone-950 px-4 py-2 rounded-xl font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {loading ? 'Updating...' : 'Update Allocation'}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 px-4 py-2 rounded-lg transition-colors"
+            className="px-3 py-2 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
           >
             Cancel
           </button>

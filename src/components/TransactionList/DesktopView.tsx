@@ -30,8 +30,8 @@ export function DesktopView({
 }: DesktopViewProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-600 rounded-lg">
-        <thead className="bg-gray-50 dark:bg-dark-700">
+      <table className="min-w-full divide-y divide-stone-200/80 dark:divide-white/[0.06] rounded-lg">
+        <thead className="bg-stone-50 dark:bg-[#161a26]">
           <tr>
             {isSelectionMode && (
               <th scope="col" className="px-3 py-3">

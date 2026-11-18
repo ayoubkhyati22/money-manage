@@ -11,14 +11,23 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Database types
 
+export interface Bank {
+  id: string
+  user_id: string
+  name: string
+  logo: string | null
+  balance: number
+  created_at: string
+}
+
 export interface Goal {
   id: string
   user_id: string
   name: string
-  category?: string
-  target_amount?: number
-  target_date?: string
-  notes: string
+  category?: string | null
+  target_amount?: number | null
+  target_date?: string | null
+  notes?: string | null
   created_at: string
   updated_at: string
 }

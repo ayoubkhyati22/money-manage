@@ -5,8 +5,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'display': ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+        'sans': ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+        'display': ['Outfit', 'Plus Jakarta Sans', 'Inter', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       fontWeight: {
         'regular': '400',
@@ -15,6 +16,35 @@ export default {
         'bold': '700',
       },
       colors: {
+        // Luxury Gold / Brass scale
+        gold: {
+          50: '#faf8f2',
+          100: '#f5efe1',
+          200: '#ebdcbf',
+          300: '#ddc597',
+          400: '#ceac6f',
+          500: '#c5a059',
+          600: '#b08842',
+          700: '#8c6830',
+          800: '#684b22',
+          900: '#4a3418',
+          950: '#2a1c0b',
+        },
+        // Obsidian & Noir scale
+        obsidian: {
+          50: '#f6f7f9',
+          100: '#ebedf1',
+          200: '#d7dbe3',
+          300: '#b4bccb',
+          400: '#8a96ad',
+          500: '#667490',
+          600: '#4f5b74',
+          700: '#3d465a',
+          800: '#1a1d26',
+          850: '#14161e',
+          900: '#0d0f15',
+          950: '#07080b',
+        },
         // Modern Primary - Electric Indigo
         primary: {
           50: '#eef2ff',

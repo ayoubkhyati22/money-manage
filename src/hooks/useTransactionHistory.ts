@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import Swal from 'sweetalert2'
 import { fetchTransactions, fetchTotals, returnMoney, returnMultipleTransactions, PAGE_SIZE } from '../services/transactionService'
 import { ObjectiveTransaction } from '../types/transaction'
 import { useAuth } from './useAuth'
@@ -78,37 +79,40 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
     }
 
     const maxReturnAmount = Math.abs(transaction.amount)
+    const isDark = document.documentElement.classList.contains('dark')
     
-    // Step 1: Ask user to choose between full or partial return
+    // Step 1: Ask user to choose between total amount or part of amount
     const result = await Swal.fire({
       title: 'Return Money',
+      background: isDark ? '#161a26' : '#ffffff',
+      color: isDark ? '#f1f5f9' : '#0f172a',
       html: `
-        <div style="text-align: left; padding: 10px;">
-          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <p style="margin: 0; color: #6b7280; font-size: 14px;">Transaction Amount</p>
-            <p style="margin: 5px 0 0 0; color: #111827; font-size: 24px; font-weight: bold;">
-              ${maxReturnAmount.toFixed(2)} MAD
+        <div style="text-align: left; padding: 4px;">
+          <div style="background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+            <p style="margin: 0; color: ${isDark ? '#94a3b8' : '#64748b'}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Withdrawn Amount</p>
+            <p style="margin: 6px 0 0 0; color: ${isDark ? '#f1f5f9' : '#0f172a'}; font-size: 24px; font-weight: 700;">
+              ${maxReturnAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 15px; font-weight: 500; color: ${isDark ? '#94a3b8' : '#64748b'};">MAD</span>
             </p>
           </div>
-          <p style="color: #374151; font-size: 15px; margin-bottom: 10px;">
-            How much would you like to return?
+          <p style="color: ${isDark ? '#cbd5e1' : '#334155'}; font-size: 14px; margin-bottom: 4px; font-weight: 500;">
+            Would you like to return the total amount or only a part?
           </p>
         </div>
       `,
       showCancelButton: true,
       showDenyButton: true,
-      confirmButtonText: '💰 Full Amount',
-      denyButtonText: '✏️ Partial Amount',
-      cancelButtonText: '❌ Cancel',
+      confirmButtonText: '💰 Total Amount',
+      denyButtonText: '✏️ Part of Amount',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#10b981',
-      denyButtonColor: '#3b82f6',
-      cancelButtonColor: '#6b7280',
-      width: '450px',
+      denyButtonColor: '#4f46e5',
+      cancelButtonColor: isDark ? '#334155' : '#94a3b8',
+      width: '460px',
       customClass: {
-        popup: 'rounded-xl',
-        confirmButton: 'px-6 py-2.5 rounded-lg font-semibold',
-        denyButton: 'px-6 py-2.5 rounded-lg font-semibold',
-        cancelButton: 'px-6 py-2.5 rounded-lg font-semibold'
+        popup: 'rounded-2xl shadow-2xl',
+        confirmButton: 'px-5 py-2.5 rounded-xl font-semibold text-sm',
+        denyButton: 'px-5 py-2.5 rounded-xl font-semibold text-sm',
+        cancelButton: 'px-5 py-2.5 rounded-xl font-semibold text-sm'
       }
     })
 
@@ -116,19 +120,21 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
 
     let returnAmount = maxReturnAmount
 
-    // Step 2: If partial, ask for amount
+    // Step 2: If user chose part, ask for specific amount
     if (result.isDenied) {
       const inputResult = await Swal.fire({
-        title: 'Specify Amount',
+        title: 'Specify Part Amount',
+        background: isDark ? '#161a26' : '#ffffff',
+        color: isDark ? '#f1f5f9' : '#0f172a',
         html: `
-          <div style="text-align: left; padding: 10px;">
-            <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #3b82f6;">
-              <p style="margin: 0; color: #1e40af; font-size: 13px;">Maximum Available</p>
-              <p style="margin: 5px 0 0 0; color: #1e3a8a; font-size: 22px; font-weight: bold;">
-                ${maxReturnAmount.toFixed(2)} MAD
+          <div style="text-align: left; padding: 4px;">
+            <div style="background: ${isDark ? 'rgba(79,70,229,0.12)' : '#eef2ff'}; border: 1px solid ${isDark ? 'rgba(79,70,229,0.3)' : '#c7d2fe'}; padding: 14px 16px; border-radius: 12px; margin-bottom: 16px;">
+              <p style="margin: 0; color: ${isDark ? '#a5b4fc' : '#4338ca'}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Maximum Available</p>
+              <p style="margin: 4px 0 0 0; color: ${isDark ? '#e0e7ff' : '#312e81'}; font-size: 22px; font-weight: 700;">
+                ${maxReturnAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MAD
               </p>
             </div>
-            <label style="display: block; color: #374151; font-size: 14px; font-weight: 500; margin-bottom: 8px;">
+            <label style="display: block; color: ${isDark ? '#cbd5e1' : '#334155'}; font-size: 13px; font-weight: 600; margin-bottom: 8px;">
               Amount to Return (MAD)
             </label>
           </div>
@@ -139,15 +145,15 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
           min: '0.01',
           max: maxReturnAmount.toString(),
           step: '0.01',
-          style: 'text-align: center; font-size: 18px; font-weight: bold; padding: 12px;'
+          style: `text-align: center; font-size: 20px; font-weight: bold; padding: 10px; background: ${isDark ? '#0b0d14' : '#ffffff'}; color: ${isDark ? '#f1f5f9' : '#0f172a'}; border: 1.5px solid ${isDark ? '#334155' : '#cbd5e1'}; border-radius: 10px; width: 85%; margin: 0 auto;`
         },
         showCancelButton: true,
-        confirmButtonText: '✓ Confirm',
+        confirmButtonText: 'Next →',
         cancelButtonText: '← Back',
-        confirmButtonColor: '#3b82f6',
-        cancelButtonColor: '#6b7280',
-        width: '450px',
-        inputValidator: (value) => {
+        confirmButtonColor: '#4f46e5',
+        cancelButtonColor: isDark ? '#334155' : '#94a3b8',
+        width: '460px',
+        inputValidator: (value: string) => {
           const num = parseFloat(value)
           if (!value || isNaN(num)) {
             return 'Please enter a valid amount'
@@ -161,10 +167,9 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
           return null
         },
         customClass: {
-          popup: 'rounded-xl',
-          input: 'rounded-lg border-2 border-blue-300',
-          confirmButton: 'px-6 py-2.5 rounded-lg font-semibold',
-          cancelButton: 'px-6 py-2.5 rounded-lg font-semibold'
+          popup: 'rounded-2xl shadow-2xl',
+          confirmButton: 'px-5 py-2.5 rounded-xl font-semibold text-sm',
+          cancelButton: 'px-5 py-2.5 rounded-xl font-semibold text-sm'
         }
       })
 
@@ -175,46 +180,49 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
     // Step 3: Final confirmation
     const confirmResult = await Swal.fire({
       title: 'Confirm Return',
+      background: isDark ? '#161a26' : '#ffffff',
+      color: isDark ? '#f1f5f9' : '#0f172a',
       html: `
-        <div style="text-align: left; padding: 10px;">
-          <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #10b981;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-              <span style="color: #065f46; font-size: 14px;">Bank:</span>
-              <span style="color: #064e3b; font-weight: 600; font-size: 14px;">${transaction.bank_name}</span>
+        <div style="text-align: left; padding: 4px;">
+          <div style="background: ${isDark ? 'rgba(16,185,129,0.1)' : '#ecfdf5'}; border: 1px solid ${isDark ? 'rgba(16,185,129,0.25)' : '#a7f3d0'}; padding: 16px; border-radius: 12px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: ${isDark ? '#6ee7b7' : '#065f46'}; font-size: 13px;">Bank:</span>
+              <span style="color: ${isDark ? '#f1f5f9' : '#064e3b'}; font-weight: 600; font-size: 13px;">${transaction.bank_name}</span>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-              <span style="color: #065f46; font-size: 14px;">Objective:</span>
-              <span style="color: #064e3b; font-weight: 600; font-size: 14px;">${transaction.objective_name}</span>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+              <span style="color: ${isDark ? '#6ee7b7' : '#065f46'}; font-size: 13px;">Objective:</span>
+              <span style="color: ${isDark ? '#f1f5f9' : '#064e3b'}; font-weight: 600; font-size: 13px;">${transaction.objective_name}</span>
             </div>
-            <div style="border-top: 1px solid #86efac; margin: 15px 0; padding-top: 15px;">
+            <div style="border-top: 1px solid ${isDark ? 'rgba(16,185,129,0.2)' : '#a7f3d0'}; margin: 10px 0; padding-top: 10px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #065f46; font-size: 15px; font-weight: 500;">Return Amount:</span>
-                <span style="color: #10b981; font-weight: bold; font-size: 24px;">
-                  +${returnAmount.toFixed(2)} MAD
+                <span style="color: ${isDark ? '#6ee7b7' : '#065f46'}; font-size: 14px; font-weight: 600;">Return Amount:</span>
+                <span style="color: #10b981; font-weight: 800; font-size: 22px;">
+                  +${returnAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 14px; font-weight: 600;">MAD</span>
                 </span>
               </div>
             </div>
           </div>
           ${returnAmount < maxReturnAmount ? `
-            <div style="background: #fef3c7; padding: 12px; border-radius: 8px; border: 1px solid #fbbf24;">
-              <p style="margin: 0; color: #92400e; font-size: 13px;">
-                ℹ️ Partial return: ${(maxReturnAmount - returnAmount).toFixed(2)} MAD will remain withdrawn
+            <div style="background: ${isDark ? 'rgba(245,158,11,0.12)' : '#fef3c7'}; padding: 12px 14px; border-radius: 10px; border: 1px solid ${isDark ? 'rgba(245,158,11,0.3)' : '#fde68a'};">
+              <p style="margin: 0; color: ${isDark ? '#fcd34d' : '#92400e'}; font-size: 12px; font-weight: 500;">
+                ℹ️ Partial return: ${(maxReturnAmount - returnAmount).toFixed(2)} MAD will remain recorded as withdrawn.
               </p>
             </div>
           ` : ''}
         </div>
       `,
       icon: 'question',
+      iconColor: '#10b981',
       showCancelButton: true,
       confirmButtonText: '✓ Yes, Return Money',
-      cancelButtonText: '❌ Cancel',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#10b981',
-      cancelButtonColor: '#6b7280',
-      width: '500px',
+      cancelButtonColor: isDark ? '#334155' : '#94a3b8',
+      width: '480px',
       customClass: {
-        popup: 'rounded-xl',
-        confirmButton: 'px-6 py-2.5 rounded-lg font-semibold',
-        cancelButton: 'px-6 py-2.5 rounded-lg font-semibold'
+        popup: 'rounded-2xl shadow-2xl',
+        confirmButton: 'px-5 py-2.5 rounded-xl font-semibold text-sm',
+        cancelButton: 'px-5 py-2.5 rounded-xl font-semibold text-sm'
       }
     })
     
@@ -225,16 +233,17 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
       
       await Swal.fire({
         title: 'Success!',
+        background: isDark ? '#161a26' : '#ffffff',
+        color: isDark ? '#f1f5f9' : '#0f172a',
         html: `
-          <div style="text-align: center; padding: 10px;">
-            <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
-            <p style="color: #374151; font-size: 16px; margin-bottom: 10px;">
-              Money has been returned successfully
+          <div style="text-align: center; padding: 8px;">
+            <p style="color: ${isDark ? '#94a3b8' : '#475569'}; font-size: 14px; margin-bottom: 14px;">
+              Money has been returned to <strong>${transaction.bank_name}</strong> successfully.
             </p>
-            <div style="background: #ecfdf5; padding: 15px; border-radius: 8px; display: inline-block;">
-              <p style="margin: 0; color: #065f46; font-size: 14px;">Returned Amount</p>
-              <p style="margin: 5px 0 0 0; color: #10b981; font-size: 28px; font-weight: bold;">
-                +${returnAmount.toFixed(2)} MAD
+            <div style="background: ${isDark ? 'rgba(16,185,129,0.12)' : '#ecfdf5'}; border: 1px solid ${isDark ? 'rgba(16,185,129,0.3)' : '#a7f3d0'}; padding: 14px 20px; border-radius: 12px; display: inline-block;">
+              <p style="margin: 0; color: ${isDark ? '#6ee7b7' : '#065f46'}; font-size: 12px; font-weight: 600; text-transform: uppercase;">Returned Amount</p>
+              <p style="margin: 4px 0 0 0; color: #10b981; font-size: 24px; font-weight: 800;">
+                +${returnAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MAD
               </p>
             </div>
           </div>
@@ -242,11 +251,11 @@ export const useTransactionHistory = (onUpdate?: () => void) => {
         icon: 'success',
         confirmButtonText: 'Done',
         confirmButtonColor: '#10b981',
-        timer: 3000,
+        timer: 2500,
         timerProgressBar: true,
         customClass: {
-          popup: 'rounded-xl',
-          confirmButton: 'px-6 py-2.5 rounded-lg font-semibold'
+          popup: 'rounded-2xl shadow-2xl',
+          confirmButton: 'px-5 py-2.5 rounded-xl font-semibold text-sm'
         }
       })
       

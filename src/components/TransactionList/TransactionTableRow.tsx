@@ -24,7 +24,7 @@ export function TransactionTableRow({
   // Can only select negative (withdrawal) transactions that are not stock transactions
   const isSelectable = transaction.amount < 0 && !isStockTransaction
 
-  const handleCheckboxClick = (e: React.MouseEvent) => {
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation()
     if (isSelectable) {
       onToggleSelection(transaction.id)
@@ -32,8 +32,8 @@ export function TransactionTableRow({
   }
 
   return (
-    <tr className={`hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors ${
-      isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+    <tr className={`hover:bg-stone-50/80 dark:hover:bg-white/[0.04] transition-colors ${
+      isSelected ? 'bg-amber-500/10 dark:bg-amber-500/15' : ''
     }`}>
       {isSelectionMode && (
         <td className="px-3 py-4">
@@ -41,7 +41,8 @@ export function TransactionTableRow({
             <input
               type="checkbox"
               checked={isSelected}
-              onChange={handleCheckboxClick}
+              onChange={handleCheckboxChange}
+              onClick={(e) => e.stopPropagation()}
               disabled={!isSelectable}
               className={`w-4 h-4 rounded border-gray-300 dark:border-dark-600 ${
                 isSelectable 

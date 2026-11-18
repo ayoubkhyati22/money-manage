@@ -1,4 +1,4 @@
-﻿import { ReactNode, useState, useEffect, useRef } from 'react'
+import { ReactNode, useState, useEffect, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useDarkMode } from '../hooks/useDarkMode'
 
@@ -14,14 +14,12 @@ import {
   Menu,
   X,
   ChevronLeft,
-  User,
   Settings,
   Bell,
   Search,
   Wallet,
   ArrowRight,
-  Zap,
-  Text
+  Zap
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -117,40 +115,45 @@ export function Layout({ children }: LayoutProps) {
   const userName = user?.email?.split('@')[0] || 'User'
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-dark-900">
+    <div className="min-h-screen bg-[#eaecf0] dark:bg-[#0b0d14]">
       {/* Desktop Sidebar */}
       <aside
         ref={sidebarRef}
         className={`fixed left-0 top-0 h-full z-40 hidden lg:flex flex-col transition-all duration-300 ease-out
           ${sidebarCollapsed ? 'w-20' : 'w-72'}
-          bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-sidebar dark:shadow-sidebar-dark`}
+          bg-white dark:bg-[#0f121b] border-r border-stone-200/90 dark:border-white/[0.08] shadow-sm`}
       >
         {/* Logo Area */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-stone-200/80 dark:border-white/[0.06]">
           <motion.div
             className="flex items-center gap-3"
             initial={false}
             animate={{ opacity: sidebarCollapsed ? 0 : 1 }}
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg">
-              <Wallet className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-stone-900 dark:bg-[#12141c] border border-amber-500/30 flex items-center justify-center shadow-md">
+              <Wallet className="w-5 h-5 text-amber-400" />
             </div>
             {!sidebarCollapsed && (
-              <span className="font-display font-bold text-lg text-slate-800 dark:text-white">
-                FinanceFlow
-              </span>
+              <div className="flex flex-col">
+                <span className="font-display font-bold text-base text-stone-900 dark:text-white leading-tight">
+                  FinanceFlow
+                </span>
+                <span className="text-[10px] font-mono tracking-widest text-amber-600 dark:text-amber-400 uppercase">
+                  Private Ledger
+                </span>
+              </div>
             )}
           </motion.div>
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/[0.05] transition-colors"
           >
-            <ChevronLeft className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
+            <ChevronLeft className={`w-5 h-5 text-stone-400 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
           {navigationItems.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.id
@@ -158,10 +161,10 @@ export function Layout({ children }: LayoutProps) {
               <motion.button
                 key={item.id}
                 onClick={() => handleTabChange(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative
                   ${isActive
-                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100'
+                    ? 'bg-stone-900 dark:bg-[#141620] text-amber-400 border border-amber-500/20 shadow-sm'
+                    : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-white/[0.04] hover:text-stone-900 dark:hover:text-stone-100'
                   }`}
                 whileHover={{ x: 4 }}
                 whileTap={{ scale: 0.98 }}
@@ -169,16 +172,16 @@ export function Layout({ children }: LayoutProps) {
                 {isActive && (
                   <motion.div
                     layoutId="activeIndicator"
-                    className="absolute left-0 w-1 h-8 bg-primary-500 rounded-r-full"
+                    className="absolute left-0 w-1 h-6 bg-amber-400 rounded-r-full"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
-                <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary-500' : ''}`} />
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-amber-400' : 'text-stone-400'}`} />
                 {!sidebarCollapsed && (
-                  <span className="font-medium truncate">{item.label}</span>
+                  <span className="font-medium text-xs truncate">{item.label}</span>
                 )}
                 {sidebarCollapsed && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-slate-900 dark:bg-slate-700 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                  <div className="absolute left-full ml-2 px-2.5 py-1 bg-stone-900 dark:bg-stone-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-lg border border-white/10 font-mono">
                     {item.label}
                   </div>
                 )}
@@ -240,16 +243,16 @@ export function Layout({ children }: LayoutProps) {
   </button>
 
   {/* User Info Container */}
-  <div className={`flex items-center gap-3 px-3 py-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40 backdrop-blur-sm ${sidebarCollapsed ? 'justify-center' : ''}`}>
-    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-500/20 flex-shrink-0">
+  <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border border-stone-200/70 dark:border-white/[0.06] bg-stone-50/50 dark:bg-[#12141c]/50 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+    <div className="w-9 h-9 rounded-xl bg-stone-900 dark:bg-[#161924] border border-amber-500/30 flex items-center justify-center text-amber-400 font-mono font-bold text-xs shadow-sm flex-shrink-0">
       {userInitials}
     </div>
     {!sidebarCollapsed && (
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-slate-800 dark:text-slate-100 text-sm truncate leading-tight">
+        <p className="font-semibold text-stone-900 dark:text-stone-100 text-xs truncate leading-tight font-mono">
           {userName}
         </p>
-        <p className="text-[11px] text-slate-500 dark:text-slate-500 truncate mt-0.5">
+        <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate mt-0.5">
           {user?.email}
         </p>
       </div>
@@ -270,22 +273,22 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 shadow-[0_4px_16px_0_rgba(0,0,0,0.08)] dark:shadow-[0_4px_16px_0_rgba(0,0,0,0.3)] z-40 flex items-center justify-between px-4 rounded-b-[16px]">
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/95 dark:bg-[#0f121b]/95 backdrop-blur-md border-b border-stone-200/90 dark:border-white/[0.08] z-40 flex items-center justify-between px-4">
         <button
           onClick={toggleDarkMode}
-          className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-white/[0.05] transition-colors"
         >
-          {isDarkMode ? <Sun className="w-5 h-5 text-slate-600 dark:text-slate-300" /> : <Moon className="w-5 h-5 text-slate-600" />}
+          {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-stone-600" />}
         </button>
 
-        <h1 className="font-display font-semibold text-slate-800 dark:text-white text-lg">
-          {activeTab === 'overview' ? 'Dashboard' : navigationItems.find(item => item.id === activeTab)?.label}
+        <h1 className="font-display font-semibold text-stone-900 dark:text-white text-sm">
+          {activeTab === 'overview' ? 'Terminal' : navigationItems.find(item => item.id === activeTab)?.label}
         </h1>
 
         <div className="relative" ref={avatarMenuRef}>
           <div
             onClick={() => setAvatarMenuOpen(v => !v)}
-            className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white font-semibold text-xs cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-stone-900 dark:bg-[#161924] border border-amber-500/30 flex items-center justify-center text-amber-400 font-mono font-semibold text-xs cursor-pointer"
           >
             {userInitials}
           </div>
@@ -297,19 +300,19 @@ export function Layout({ children }: LayoutProps) {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.92, y: -6 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
-                className="absolute right-0 top-10 w-52 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50"
+                className="absolute right-0 top-10 w-52 bg-white dark:bg-[#11131a] rounded-xl shadow-xl border border-stone-200 dark:border-white/[0.08] overflow-hidden z-50 font-mono"
               >
                 {/* User info */}
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-                  <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{userName}</p>
-                  <p className="text-xs text-slate-400 truncate mt-0.5">{user?.email}</p>
+                <div className="px-4 py-3 border-b border-stone-100 dark:border-white/[0.06]">
+                  <p className="text-xs font-bold text-stone-900 dark:text-white truncate">{userName}</p>
+                  <p className="text-[10px] text-stone-400 truncate mt-0.5">{user?.email}</p>
                 </div>
                 {/* Log out */}
                 <button
                   onClick={() => { setAvatarMenuOpen(false); signOut() }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3.5 h-3.5" />
                   Log out
                 </button>
               </motion.div>
@@ -321,33 +324,29 @@ export function Layout({ children }: LayoutProps) {
       {/* Main Content Area */}
       <main className={`min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'} pt-16 lg:pt-0 pb-24 lg:pb-0`}>
         {/* Desktop Top Bar */}
-        <div className="hidden lg:flex h-16 items-center px-6 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 backdrop-blur-xl shadow-[0_4px_16px_0_rgba(0,0,0,0.08)] dark:shadow-[0_4px_16px_0_rgba(0,0,0,0.3)] rounded-b-[16px]">
+        <div className="hidden lg:flex h-14 items-center px-6 border-b border-stone-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-[#0f121b]/90 backdrop-blur-md sticky top-0 z-30">
           <div className="flex-1" />
-
-          <h1 className="text-xl font-display font-semibold text-slate-800 dark:text-white">
-            {activeTab === 'overview' ? 'Dashboard' : navigationItems.find(item => item.id === activeTab)?.label}
-          </h1>
 
           <div className="flex-1 flex items-center justify-end gap-3">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
               <input
                 type="text"
-                placeholder="Search..."
-                className="pl-10 pr-4 py-2 w-64 bg-slate-100 dark:bg-slate-700 border-none rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                placeholder="Search assets, banks, goals..."
+                className="pl-9 pr-4 py-1.5 w-64 bg-stone-100/80 dark:bg-[#14161f] border border-stone-200/80 dark:border-white/[0.08] rounded-xl text-xs text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-amber-500/50 font-mono transition-all"
               />
             </div>
 
             {/* Notifications */}
-            <button className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-              <Bell className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-danger-500 rounded-full"></span>
+            <button className="relative p-2 rounded-xl text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/[0.05] transition-colors">
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
             </button>
 
             {/* Settings */}
-            <button className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-              <Settings className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+            <button className="p-2 rounded-xl text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/[0.05] transition-colors">
+              <Settings className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -438,15 +437,15 @@ export function Layout({ children }: LayoutProps) {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.06 }}
                         onClick={() => { handleTabChange(item.id); setMobileFloatMenuOpen(false) }}
-                        className={`flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-2xl backdrop-blur-xl border transition-all ${
+                        className={`flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-xl backdrop-blur-xl border transition-all ${
                           isActive
-                            ? 'bg-primary-500/90 border-primary-400/60 text-white shadow-[0_0_16px_rgba(99,102,241,0.4)]'
-                            : 'bg-white/80 dark:bg-slate-800/80 border-white/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 shadow-glass dark:shadow-glass-dark'
+                            ? 'bg-stone-900 border-amber-500/50 text-amber-400 shadow-lg'
+                            : 'bg-white/90 dark:bg-[#11131a]/90 border-stone-200 dark:border-white/[0.08] text-stone-700 dark:text-stone-200 shadow-sm'
                         }`}
                         whileTap={{ scale: 0.92 }}
                       >
                         <Icon className="w-4 h-4 flex-shrink-0" />
-                        <span className="text-sm font-medium">{item.label}</span>
+                        <span className="text-xs font-mono font-medium">{item.label}</span>
                       </motion.button>
                     )
                   })}
@@ -454,30 +453,29 @@ export function Layout({ children }: LayoutProps) {
               )}
             </AnimatePresence>
 
-            {/* Premium circle button */}
+            {/* Sovereign circle button */}
             <motion.button
               onClick={() => setMobileFloatMenuOpen(prev => !prev)}
-              className="relative w-14 h-14 rounded-full flex items-center justify-center text-white overflow-hidden"
+              className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-amber-400 overflow-hidden border border-amber-500/30"
               style={{
-                background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e3a5f 100%)',
+                background: 'linear-gradient(135deg, #181b24 0%, #0d0f15 100%)',
                 boxShadow: mobileFloatMenuOpen
-                  ? '0 0 0 2px rgba(99,102,241,0.6), 0 8px 32px rgba(99,102,241,0.45)'
-                  : '0 0 0 1.5px rgba(99,102,241,0.3), 0 8px 24px rgba(15,10,60,0.55)',
+                  ? '0 0 0 2px rgba(197,160,89,0.5), 0 8px 24px rgba(0,0,0,0.6)'
+                  : '0 0 0 1px rgba(197,160,89,0.2), 0 6px 18px rgba(0,0,0,0.5)',
               }}
               whileTap={{ scale: 0.88 }}
               animate={{ rotate: mobileFloatMenuOpen ? 90 : 0 }}
               transition={{ type: 'spring', stiffness: 350, damping: 22 }}
             >
-              <span className="absolute inset-0 rounded-full border border-white/10 pointer-events-none" />
-              <span className="absolute inset-[3px] rounded-full border border-white/5 pointer-events-none" />
+              <span className="absolute inset-0 rounded-full border border-white/5 pointer-events-none" />
               <AnimatePresence mode="wait">
                 {mobileFloatMenuOpen ? (
                   <motion.span key="x" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}>
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5 text-amber-400" />
                   </motion.span>
                 ) : (
                   <motion.span key="menu" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}>
-                    <Menu className="w-6 h-6" />
+                    <Menu className="w-5 h-5 text-amber-400" />
                   </motion.span>
                 )}
               </AnimatePresence>
